@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace khoaluantotnghiep.DTOs
 {
+    // chua co test
     public class LoginRequest
     {
         [Required(ErrorMessage = "Email is required")]
