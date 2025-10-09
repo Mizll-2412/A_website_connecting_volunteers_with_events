@@ -17,13 +17,13 @@ namespace khoaluantotnghiep.Controllers
         [HttpGet]
         public IActionResult GetUsers()
         {
-            return Ok(_context.Users.ToList());
+            return Ok(_context.User.ToList());
         }
 
         [HttpPost]
         public IActionResult AddUser(User user)
         {
-            _context.Users.Add(user);
+            _context.User.Add(user);
             _context.SaveChanges();
             return Ok(user);
         }
