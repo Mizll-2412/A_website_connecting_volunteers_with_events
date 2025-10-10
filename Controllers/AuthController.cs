@@ -6,7 +6,7 @@ using khoaluantotnghiep.Services;
 namespace khoaluantotnghiep.Controllers
 {
     [ApiController]
-    [Route("api/controller")]
+    [Route("api/[controller]")]
     public class AuthController : Controller
     {
         private readonly IAuthService _authService;
@@ -27,6 +27,20 @@ namespace khoaluantotnghiep.Controllers
                 return Unauthorized(respone);
             }
             return Ok(respone);
+        }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register ([FromBody] RegisterRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var response = await _authService.RegisterAsync(request);
+            if (!response.Success)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
         }
     }
 }
