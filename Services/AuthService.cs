@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using khoaluantotnghiep.Models;
 
 namespace khoaluantotnghiep.Services
 {
@@ -112,6 +113,46 @@ namespace khoaluantotnghiep.Services
                     VaiTro = user.VaiTro
                 }
             };
+        }
+
+        public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
+        {
+            var existingUser = await _context.User.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (existingUser != null)
+            {
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Message = "Email đã được sử dụng"
+                };
+            }
+            var salt = GenerateSalt();
+            var hashedPassword = HashPassword(request.Password, salt);
+            var newUser = new User
+            {
+                HoTen = request.HoTen,
+                Email = request.Email,
+                Password = request.Password,
+                PasswordSalt = hashedPassword,
+                VaiTro = request.VaiTro ?? "User",
+                TrangThai = true,
+                NgayTao = DateTime.Now
+            };
+            _context.User.Add(newUser);
+            await _context.SaveChangesAsync();
+            return new RegisterResponse
+            {
+                Success = true,
+                Message = "Đăng ký thành công",
+                UserInfo = new UserInfo
+                {
+                    MaTaiKhoan = newUser.MaTaiKhoan,
+                    HoTen = newUser.HoTen,
+                    Email = newUser.Email,
+                    VaiTro = newUser.VaiTro
+                }
+            };
+            throw new NotImplementedException();
         }
     }
 }

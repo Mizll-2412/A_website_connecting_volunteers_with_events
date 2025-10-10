@@ -31,7 +31,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
         };
     });
 // CORS
@@ -76,7 +77,6 @@ app.MapGet("/weatherforecast", () =>
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
