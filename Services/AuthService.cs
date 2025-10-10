@@ -132,8 +132,8 @@ namespace khoaluantotnghiep.Services
             {
                 HoTen = request.HoTen,
                 Email = request.Email,
-                Password = request.Password,
-                PasswordSalt = hashedPassword,
+                Password = hashedPassword,
+                PasswordSalt = salt,
                 VaiTro = request.VaiTro ?? "User",
                 TrangThai = true,
                 NgayTao = DateTime.Now
