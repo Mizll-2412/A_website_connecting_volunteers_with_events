@@ -8,10 +8,10 @@ namespace khoaluantotnghiep.Data
         public AppDbContext(DbContextOptions<AppDbContext> options)
             : base(options) { }
             public DbSet<User> User { get; set; }
-            public DbSet<Volunteer> Volunteers { get; set; }
-            public DbSet<Admin> Admins { get; set; }
-            public DbSet<Organization> Organizations { get; set; }
-            public DbSet<Event> Events { get; set; }
+            public DbSet<Volunteer> Volunteer { get; set; }
+            public DbSet<Admin> Admin { get; set; }
+            public DbSet<Organization> Organization { get; set; }
+            public DbSet<Event> Event { get; set; }
 
     }
     

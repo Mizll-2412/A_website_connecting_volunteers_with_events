@@ -24,29 +24,29 @@ namespace khoaluantotnghiep.Models
         [Column("NoiDung")]
         public string NoiDung { get; set; }
         [Column("SoLuong")]
-        public int SoLuong { get; set; }
+        public int? SoLuong { get; set; }
 
         [StringLength(255)]
         [Column("DiaChi")]
-        public string DiaChi { get; set; }
+        public string? DiaChi { get; set; }
 
         [Column("NgayBatDau")]
-        public DateTime NgayBatDau { get; set; } = DateTime.Now;
+        public DateTime? NgayBatDau { get; set; } = DateTime.Now;
         [Column("NgayKetThuc")]
-        public DateTime NgayKetThuc { get; set; }
+        public DateTime? NgayKetThuc { get; set; }
 
         [Column("NgayTao")]
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+        public DateTime? NgayTao { get; set; } = DateTime.Now;
 
         [Column("NgayTuyen")]
-        public DateTime NgayTuyen { get; set; } = DateTime.Now;
+        public DateTime? NgayTuyen { get; set; } = DateTime.Now;
 
         [Column("NgayKetThucTuyen")]
-        public DateTime NgayKetThucTuyen { get; set; }
+        public DateTime? NgayKetThucTuyen { get; set; }
 
         [StringLength(500)]
         [Column("TrangThai")]
-        public string TrangThai { get; set; }
+        public string? TrangThai { get; set; }
 
         [ForeignKey("MaToChuc")]
         public virtual Organization Organization { get; set; }
