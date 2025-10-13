@@ -9,6 +9,7 @@ namespace khoaluantotnghiep.Models
     {
         [Key]
         [Column("MaAdmin")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaAdmin { get; set; }
 
         [Required]
