@@ -4,13 +4,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("Organization")]
-    public class Organization
+    [Table("Volunteer")]
+    public class Volunteer
     {
         [Key]
-        [Column("MaToChuc")]
+        [Column("MaTNV")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int MaToChuc { get; set; }
+        public int MaTNV { get; set; }
 
         [Required]
         [Column("MaTaiKhoan")]
@@ -18,38 +18,36 @@ namespace khoaluantotnghiep.Models
 
         [Required]
         [StringLength(100)]
-        [Column("TenToChuc")]
-        public string TenToChuc { get; set; }
+        [Column("HoTen")]
+        public string HoTen { get; set; }
+
+        
+        [Column("NgaySinh")]
+        public DateOnly NgaySinh { get; set; }
+
+        [Column("GioiTinh")]
+        public string GioiTinh { get; set; }
+
         [Required]
         [StringLength(100)]
         [Column("Email")]
         public string Email { get; set; }
-        [StringLength(12)]
-        [Column("SoDienThoai")]
-        public string SoDienThoai { get; set; }
+         [StringLength(12)]
+        [Column("CCCD")]
+        public string CCCD { get; set; }
 
         [StringLength(255)]
         [Column("DiaChi")]
         public string DiaChi { get; set; }
 
-        [Column("NgayTao")]
-        public DateTime NgayTao { get; set; } = DateTime.Now;
-
         [StringLength(500)]
         [Column("GioiThieu")]
         public string GioiThieu { get; set; }
-
         [StringLength(500)]
         [Column("AnhDaiDien")]
         public string AnhDaiDien { get; set; }
 
-        [Column("MaGiayTo")]
-        public int MaGiayTo { get; set; }
-
         [ForeignKey("MaTaiKhoan")]
         public virtual User User { get; set; }
-
-        [ForeignKey("MaGiayTo")]
-        public virtual LegalDocument LegalDocument { get; set; }
     }
 }

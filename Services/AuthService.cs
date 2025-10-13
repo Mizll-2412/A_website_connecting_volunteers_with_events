@@ -140,6 +140,32 @@ namespace khoaluantotnghiep.Services
             };
             _context.User.Add(newUser);
             await _context.SaveChangesAsync();
+            if (newUser.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
+            {
+                var volunteer = new Volunteer
+                {
+                    MaTaiKhoan = newUser.MaTaiKhoan
+                };
+                _context.Volunteers.Add(volunteer);
+            }
+            if (newUser.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+            {
+                var org = new Organization
+                {
+                    MaTaiKhoan = newUser.MaTaiKhoan
+                };
+                _context.Organizations.Add(org);
+            }
+            if (newUser.VaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                var ad = new Admin
+                {
+                    MaTaiKhoan = newUser.MaTaiKhoan
+                };
+                _context.Admins.Add(ad);
+            }
+            
+
             return new RegisterResponse
             {
                 Success = true,
