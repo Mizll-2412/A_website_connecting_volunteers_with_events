@@ -117,68 +117,90 @@ namespace khoaluantotnghiep.Services
 
         public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
         {
-            var existingUser = await _context.User.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (existingUser != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
             {
+                var existingUser = await _context.User.FirstOrDefaultAsync(u => u.Email == request.Email);
+                if (existingUser != null)
+                {
+                    return new RegisterResponse
+                    {
+                        Success = false,
+                        Message = "Email đã được sử dụng"
+                    };
+                }
+
+                var salt = GenerateSalt();
+                var hashedPassword = HashPassword(request.Password, salt);
+
+                var newUser = new User
+                {
+                    HoTen = request.HoTen,
+                    Email = request.Email,
+                    Password = hashedPassword,
+                    PasswordSalt = salt,
+                    VaiTro = request.VaiTro ?? "User",
+                    TrangThai = true,
+                    NgayTao = DateTime.Now
+                };
+
+                _context.User.Add(newUser);
+                await _context.SaveChangesAsync();
+
+                if (newUser.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
+                {
+                    var volunteer = new Volunteer
+                    {
+                        MaTaiKhoan = newUser.MaTaiKhoan,
+                        HoTen = newUser.HoTen,
+                        Email = newUser.Email
+                    };
+                    _context.Volunteer.Add(volunteer);
+                }
+                else if (newUser.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
+                {
+                    var org = new Organization
+                    {
+                        MaTaiKhoan = newUser.MaTaiKhoan,
+                        TenToChuc = newUser.HoTen,
+                        Email = newUser.Email
+                        
+                    };
+                    _context.Organization.Add(org);
+                }
+                else if (newUser.VaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    var ad = new Admin
+                    {
+                        MaTaiKhoan = newUser.MaTaiKhoan,
+                        HoTen = newUser.HoTen,
+                        Email = newUser.Email
+                    };
+                    _context.Admin.Add(ad);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
                 return new RegisterResponse
                 {
-                    Success = false,
-                    Message = "Email đã được sử dụng"
+                    Success = true,
+                    Message = "Đăng ký thành công",
+                    UserInfo = new UserInfo
+                    {
+                        MaTaiKhoan = newUser.MaTaiKhoan,
+                        HoTen = newUser.HoTen,
+                        Email = newUser.Email,
+                        VaiTro = newUser.VaiTro
+                    }
                 };
             }
-            var salt = GenerateSalt();
-            var hashedPassword = HashPassword(request.Password, salt);
-            var newUser = new User
+            catch (Exception ex)
             {
-                HoTen = request.HoTen,
-                Email = request.Email,
-                Password = hashedPassword,
-                PasswordSalt = salt,
-                VaiTro = request.VaiTro ?? "User",
-                TrangThai = true,
-                NgayTao = DateTime.Now
-            };
-            _context.User.Add(newUser);
-            await _context.SaveChangesAsync();
-            if (newUser.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
-            {
-                var volunteer = new Volunteer
-                {
-                    MaTaiKhoan = newUser.MaTaiKhoan
-                };
-                _context.Volunteers.Add(volunteer);
+                await transaction.RollbackAsync();
+                throw;
             }
-            if (newUser.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
-            {
-                var org = new Organization
-                {
-                    MaTaiKhoan = newUser.MaTaiKhoan
-                };
-                _context.Organizations.Add(org);
-            }
-            if (newUser.VaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                var ad = new Admin
-                {
-                    MaTaiKhoan = newUser.MaTaiKhoan
-                };
-                _context.Admins.Add(ad);
-            }
-            
-
-            return new RegisterResponse
-            {
-                Success = true,
-                Message = "Đăng ký thành công",
-                UserInfo = new UserInfo
-                {
-                    MaTaiKhoan = newUser.MaTaiKhoan,
-                    HoTen = newUser.HoTen,
-                    Email = newUser.Email,
-                    VaiTro = newUser.VaiTro
-                }
-            };
-            throw new NotImplementedException();
         }
     }
 }

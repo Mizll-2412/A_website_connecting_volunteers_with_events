@@ -26,15 +26,15 @@ namespace khoaluantotnghiep.Models
         public string Email { get; set; }
          [StringLength(12)]
         [Column("CCCD")]
-        public string CCCD { get; set; }
+        public string? CCCD { get; set; }
 
         [StringLength(255)]
         [Column("DiaChi")]
-        public string DiaChi { get; set; }
+        public string? DiaChi { get; set; }
 
         [StringLength(500)]
         [Column("AnhDaiDien")]
-        public string AnhDaiDien { get; set; }
+        public string? AnhDaiDien { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
         public virtual User User { get; set; }
