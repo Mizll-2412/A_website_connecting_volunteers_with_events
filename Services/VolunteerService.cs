@@ -14,7 +14,7 @@ namespace khoaluantotnghiep.Services
         private readonly AppDbContext _context;
         private readonly ILogger<TinhNguyenVienService> _logger;
         private readonly IWebHostEnvironment _env;
-        private const long MaxFileSize = 5242880; // 5MB
+        private const long MaxFileSize = 5242880;
         private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
 
         public TinhNguyenVienService(AppDbContext context, ILogger<TinhNguyenVienService> logger, IWebHostEnvironment env)
@@ -143,7 +143,7 @@ namespace khoaluantotnghiep.Services
                 }
             }
         }
-        
+
 
         public async Task<string> UploadAnhDaiDienAsync(int maTNV, IFormFile anhFile)
         {
@@ -163,7 +163,8 @@ namespace khoaluantotnghiep.Services
                 if (tinhNguyenVien == null)
                     throw new Exception("Tình nguyện viên không tồn tại");
 
-                var uploadPath = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+                var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var uploadPath = Path.Combine(webRootPath, "uploads", "avatars");
                 if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
 

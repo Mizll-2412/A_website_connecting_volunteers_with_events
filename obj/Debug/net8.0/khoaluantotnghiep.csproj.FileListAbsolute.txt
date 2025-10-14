@@ -11,6 +11,7 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Humanizer.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\K4os.Compression.LZ4.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\K4os.Compression.LZ4.Streams.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\K4os.Hash.xxHash.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Build.Locator.dll
@@ -34,6 +35,12 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Extensions.Log
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.Extensions.Primitives.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.OpenApi.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Mono.TextTemplating.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\MySql.Data.dll
@@ -50,6 +57,7 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Composition.Runti
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Composition.TypedParts.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Configuration.ConfigurationManager.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.IO.Pipelines.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Security.Cryptography.ProtectedData.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.Security.Permissions.dll
@@ -136,6 +144,7 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.Assemb
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.csproj.CoreCompileInputs.cache
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.MvcApplicationPartsAssemblyInfo.cs
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.MvcApplicationPartsAssemblyInfo.cache
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.sourcelink.json
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\staticwebassets.build.json
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\staticwebassets.development.json
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\staticwebassets\msbuild.khoaluantotnghiep.Microsoft.AspNetCore.StaticWebAssets.props
@@ -150,12 +159,3 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\refint\khoaluantotnghiep
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.pdb
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.genruntimeconfig.cache
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\ref\khoaluantotnghiep.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Abstractions.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.JsonWebTokens.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Logging.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.Tokens.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.sourcelink.json
