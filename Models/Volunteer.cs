@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("Volunteer")]
-    public class Volunteer
+    [Table("TinhNguyenVien")]
+    public class TinhNguyenVien
     {
         [Key]
         [Column("MaTNV")]
@@ -20,7 +20,6 @@ namespace khoaluantotnghiep.Models
         [StringLength(100)]
         [Column("HoTen")]
         public string HoTen { get; set; }
-
         
         [Column("NgaySinh")]
         public DateOnly? NgaySinh { get; set; }
@@ -48,6 +47,6 @@ namespace khoaluantotnghiep.Models
         public string? AnhDaiDien { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
-        public virtual User User { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; }
     }
 }

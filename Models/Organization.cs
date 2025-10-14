@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("Organization")]
-    public class Organization
+    [Table("ToChuc")]
+    public class ToChuc
     {
         [Key]
         [Column("MaToChuc")]
@@ -43,13 +43,10 @@ namespace khoaluantotnghiep.Models
         [Column("AnhDaiDien")]
         public string? AnhDaiDien { get; set; }
 
-        [Column("MaGiayTo")]
-        public int? MaGiayTo { get; set; }
-
         [ForeignKey("MaTaiKhoan")]
-        public virtual User User { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; }
 
         [ForeignKey("MaGiayTo")]
-        public virtual LegalDocument LegalDocument { get; set; }
+        public virtual GiayToPhapLy LegalDocument { get; set; }
     }
 }

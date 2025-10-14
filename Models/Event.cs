@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("Event")]
-    public class Event
+    [Table("SuKien")]
+    public class SuKien
     {
         [Key]
         [Column("MaSuKien")]
@@ -39,17 +39,17 @@ namespace khoaluantotnghiep.Models
         public DateTime? NgayTao { get; set; } = DateTime.Now;
 
         [Column("NgayTuyen")]
-        public DateTime? NgayTuyen { get; set; } = DateTime.Now;
+        public DateTime? TuyenBatDau  { get; set; } = DateTime.Now;
 
         [Column("NgayKetThucTuyen")]
-        public DateTime? NgayKetThucTuyen { get; set; }
+        public DateTime? TuyenKetThuc  { get; set; }
 
         [StringLength(500)]
         [Column("TrangThai")]
         public string? TrangThai { get; set; }
 
         [ForeignKey("MaToChuc")]
-        public virtual Organization Organization { get; set; }
+        public virtual ToChuc Organization { get; set; }
 
     }
 }

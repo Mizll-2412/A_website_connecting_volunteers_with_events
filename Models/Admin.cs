@@ -27,7 +27,9 @@ namespace khoaluantotnghiep.Models
          [StringLength(12)]
         [Column("CCCD")]
         public string? CCCD { get; set; }
-
+        [StringLength(12)]
+        [Column("SoDienThoai")]
+        public string? SoDienThoai { get; set; }
         [StringLength(255)]
         [Column("DiaChi")]
         public string? DiaChi { get; set; }
@@ -37,6 +39,6 @@ namespace khoaluantotnghiep.Models
         public string? AnhDaiDien { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
-        public virtual User User { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; }
     }
 }

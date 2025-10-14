@@ -4,16 +4,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("User")]
-    public class User
+    [Table("TaiKhoan")]
+    public class TaiKhoan
     {
         [Key]
         [Column("MaTaiKhoan")]
         public int MaTaiKhoan { get; set; }
-        [Required]
-        [StringLength(100)]
-        [Column("HoTen")]
-        public string HoTen { get; set; }
+        //[Required]
+        // [StringLength(100)]
+        // [Column("HoTen")]
+        // public string HoTen { get; set; }
         [Required]
         [StringLength(100)]
         [Column("Email")]
