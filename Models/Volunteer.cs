@@ -16,10 +16,9 @@ namespace khoaluantotnghiep.Models
         [Column("MaTaiKhoan")]
         public int MaTaiKhoan { get; set; }
 
-        [Required]
         [StringLength(100)]
         [Column("HoTen")]
-        public string HoTen { get; set; }
+        public string? HoTen { get; set; }
         
         [Column("NgaySinh")]
         public DateOnly? NgaySinh { get; set; }
@@ -48,5 +47,9 @@ namespace khoaluantotnghiep.Models
 
         [ForeignKey("MaTaiKhoan")]
         public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual ICollection<TinhNguyenVien_LinhVuc> TinhNguyenVien_LinhVucs { get; set; } = new List<TinhNguyenVien_LinhVuc>();
+        public virtual ICollection<TinhNguyenVien_KyNang> TinhNguyenVien_KyNangs { get; set; } = new List<TinhNguyenVien_KyNang>();
+
+
     }
 }

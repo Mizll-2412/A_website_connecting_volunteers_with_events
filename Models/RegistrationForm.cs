@@ -10,7 +10,8 @@ namespace khoaluantotnghiep.Models
         [Key, Column("MaTNV")]
         public int MaTNV { get; set; }
 
-        [Key, Column("MaSuKien")]
+        [Required]
+        [Column("MaSuKien")]
         public int MaSuKien { get; set; }
 
         [Column("NgayTao")]

@@ -16,10 +16,9 @@ namespace khoaluantotnghiep.Models
         [Column("MaTaiKhoan")]
         public int MaTaiKhoan { get; set; }
 
-        [Required]
         [StringLength(100)]
         [Column("TenToChuc")]
-        public string TenToChuc { get; set; }
+        public string? TenToChuc { get; set; }
         [Required]
         [StringLength(100)]
         [Column("Email")]
@@ -46,7 +45,5 @@ namespace khoaluantotnghiep.Models
         [ForeignKey("MaTaiKhoan")]
         public virtual TaiKhoan TaiKhoan { get; set; }
 
-        [ForeignKey("MaGiayTo")]
-        public virtual GiayToPhapLy LegalDocument { get; set; }
     }
 }

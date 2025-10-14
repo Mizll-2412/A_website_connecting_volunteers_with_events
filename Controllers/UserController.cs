@@ -21,7 +21,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpPost]
-        public IActionResult AddUser(User user)
+        public IActionResult AddUser(TaiKhoan user)
         {
             _context.User.Add(user);
             _context.SaveChanges();

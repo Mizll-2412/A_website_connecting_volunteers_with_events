@@ -13,11 +13,11 @@ namespace khoaluantotnghiep.Models
         public int MaDanhGia { get; set; }
 
         [Required]
-        [Column("MaTaiKhoan")]
+        [Column("MaNguoiDanhGia")]
         public int MaNguoiDanhGia { get; set; }
 
         [Required]
-        [Column("MaTaiKhoan")]
+        [Column("MaNguoiDuocDanhGia")]
         public int MaNguoiDuocDanhGia { get; set; }
 
         [Required]
