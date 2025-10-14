@@ -16,10 +16,9 @@ namespace khoaluantotnghiep.Models
         [Column("MaTaiKhoan")]
         public int MaTaiKhoan { get; set; }
 
-        [Required]
         [StringLength(100)]
         [Column("HoTen")]
-        public string HoTen { get; set; }
+        public string? HoTen { get; set; }
         [Required]
         [StringLength(100)]
         [Column("Email")]

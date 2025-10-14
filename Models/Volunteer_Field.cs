@@ -13,7 +13,7 @@ namespace khoaluantotnghiep.Models
         public int MaTNV { get; set; }
         [Key]
         [Column("MaLinhVuc")]
-        public int MaKyNang { get; set; }
+        public int MaLinhVuc { get; set; }
 
         [ForeignKey("MaTNV")]
         public virtual TinhNguyenVien TinhNguyenVien { get; set; }

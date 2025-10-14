@@ -51,5 +51,8 @@ namespace khoaluantotnghiep.Models
         [ForeignKey("MaToChuc")]
         public virtual ToChuc Organization { get; set; }
 
+        public virtual ICollection<SuKien_LinhVuc> SuKien_LinhVucs { get; set; }
+        public virtual ICollection<SuKien_KyNang> SuKien_KyNangs { get; set; }
+
     }
 }

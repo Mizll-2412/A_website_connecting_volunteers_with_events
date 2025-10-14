@@ -38,9 +38,9 @@ namespace khoaluantotnghiep.Services
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Role, vaiTro ?? "User")
             };
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt: Issuer"],
-                audience: _configuration["Jwt: Audience"],
+            var token = new JwtSecurityToken(   
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.Now.AddHours(24),
                 signingCredentials: credentials
@@ -108,7 +108,7 @@ namespace khoaluantotnghiep.Services
                 UserInfo = new UserInfo
                 {
                     MaTaiKhoan = user.MaTaiKhoan,
-                    HoTen = user.HoTen,
+                    // HoTen = user.HoTen,
                     Email = user.Email,
                     VaiTro = user.VaiTro
                 }
@@ -134,9 +134,9 @@ namespace khoaluantotnghiep.Services
                 var salt = GenerateSalt();
                 var hashedPassword = HashPassword(request.Password, salt);
 
-                var newUser = new User
+                var newUser = new TaiKhoan
                 {
-                    HoTen = request.HoTen,
+                    // HoTen = request.HoTen,
                     Email = request.Email,
                     Password = hashedPassword,
                     PasswordSalt = salt,
@@ -150,22 +150,22 @@ namespace khoaluantotnghiep.Services
 
                 if (newUser.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
                 {
-                    var volunteer = new Volunteer
+                    var volunteer = new TinhNguyenVien
                     {
                         MaTaiKhoan = newUser.MaTaiKhoan,
-                        HoTen = newUser.HoTen,
+                        // HoTen = newUser.HoTen,
                         Email = newUser.Email
                     };
                     _context.Volunteer.Add(volunteer);
                 }
                 else if (newUser.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
                 {
-                    var org = new Organization
+                    var org = new ToChuc
                     {
                         MaTaiKhoan = newUser.MaTaiKhoan,
-                        TenToChuc = newUser.HoTen,
+                        // TenToChuc = newUser.HoTen,
                         Email = newUser.Email
-                        
+
                     };
                     _context.Organization.Add(org);
                 }
@@ -174,7 +174,7 @@ namespace khoaluantotnghiep.Services
                     var ad = new Admin
                     {
                         MaTaiKhoan = newUser.MaTaiKhoan,
-                        HoTen = newUser.HoTen,
+                        // HoTen = newUser.HoTen,
                         Email = newUser.Email
                     };
                     _context.Admin.Add(ad);
@@ -190,7 +190,7 @@ namespace khoaluantotnghiep.Services
                     UserInfo = new UserInfo
                     {
                         MaTaiKhoan = newUser.MaTaiKhoan,
-                        HoTen = newUser.HoTen,
+                        // HoTen = newUser.HoTen,
                         Email = newUser.Email,
                         VaiTro = newUser.VaiTro
                     }
