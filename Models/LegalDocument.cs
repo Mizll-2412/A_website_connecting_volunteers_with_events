@@ -1,28 +1,33 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace khoaluantotnghiep.Models
 {
-    [Table("LegalDocument")]
-    public class LegalDocument
+    [Table("GiayToPhapLy")]
+    public class GiayToPhapLy
     {
         [Key]
         [Column("MaGiayTo")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaGiayTo { get; set; }
 
         [Required]
-        [StringLength(100)]
+        [Column("MaToChuc")]
+        public int MaToChuc { get; set; }
+
+        [StringLength(200)]
         [Column("TenGiayTo")]
-        public string TenGiayTo { get; set; }
-    
+        public string? TenGiayTo { get; set; }
+
         [Column("NgayTao")]
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
-        [StringLength(100)]
+        [StringLength(255)]
         [Column("File")]
-        public string File { get; set; }
+        public string? File { get; set; }
 
+        [ForeignKey("MaToChuc")]
+        public virtual ToChuc ToChuc { get; set; }
     }
 }
