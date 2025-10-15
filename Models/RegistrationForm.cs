@@ -22,7 +22,7 @@ namespace khoaluantotnghiep.Models
         public string? GhiChu { get; set; }
 
         [Column("TrangThai")]
-        public byte? TrangThai { get; set; }
+        public int? TrangThai { get; set; }
 
         [ForeignKey("MaTNV")]
         public virtual TinhNguyenVien TinhNguyenVien { get; set; }
