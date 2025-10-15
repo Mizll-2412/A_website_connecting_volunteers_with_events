@@ -1,11 +1,77 @@
 {
   "Version": 1,
-  "Hash": "ZyQ2v63GYz02hrnHt1LuOe4UmZ4JOGmBJ/71wMU8ddc=",
+  "Hash": "BMueKOllq0VT+l2rpgJWtefCDWD4i2yuOAJQ0vomA0U=",
   "Source": "khoaluantotnghiep",
   "BasePath": "_content/khoaluantotnghiep",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [],
-  "Assets": []
+  "DiscoveryPatterns": [
+    {
+      "Name": "khoaluantotnghiep\\wwwroot",
+      "Source": "khoaluantotnghiep",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": [
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\1_20251015005804.png",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/1_20251015005804.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\1_20251015005804.png"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\1_20251015111309.png",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/1_20251015111309.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\1_20251015111309.png"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png"
+    }
+  ]
 }
