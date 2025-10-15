@@ -112,7 +112,12 @@ namespace khoaluantotnghiep.Services
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
                 var uploadPath = Path.Combine(webRootPath, "uploads", "avatars"); if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
-
+                if (!string.IsNullOrEmpty(toChuc.AnhDaiDien))
+                {
+                    var oldFilePath = Path.Combine(webRootPath, toChuc.AnhDaiDien.TrimStart('/'));
+                    if (File.Exists(oldFilePath))
+                        File.Delete(oldFilePath);
+                }
                 var fileName = $"{maToChuc}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
                 var filePath = Path.Combine(uploadPath, fileName);
 
@@ -132,6 +137,125 @@ namespace khoaluantotnghiep.Services
             {
                 _logger.LogError($"Lỗi upload ảnh: {ex.Message}");
                 throw;
+            }
+        }
+
+        public async Task<ToChucResponseDto> CreateToChucAsync(CreateToChucDto createDto)
+        {
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var taiKhoan = await _context.User.FindAsync(createDto.MaTaiKhoan);
+                    if (taiKhoan == null)
+                        throw new Exception("Tài khoản không tồn tại");
+                    var existingTNV = await _context.Volunteer
+                        .FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaTaiKhoan);
+
+                    if (existingTNV != null)
+                        throw new Exception("Tài khoản này đã có hồ sơ tình nguyện viên");
+                    var toChuc = new ToChuc
+                    {
+                        MaTaiKhoan = createDto.MaTaiKhoan,
+                        TenToChuc = createDto.TenToChuc,
+                        Email = createDto.Email,
+                        DiaChi = createDto.DiaChi,
+                        GioiThieu = createDto.GioiThieu,
+                        AnhDaiDien = createDto.AnhDaiDien
+                    };
+
+                    _context.Organization.Add(toChuc);
+                    await _context.SaveChangesAsync();
+
+                    if (createDto.GiayToPhapLyIds != null && createDto.GiayToPhapLyIds.Count > 0)
+                    {
+                        var giayTos = await _context.GiayToPhapLy
+                            .Where(g => createDto.GiayToPhapLyIds.Contains(g.MaGiayTo))
+                            .ToListAsync();
+
+                        foreach (var g in giayTos)
+                        {
+                            toChuc.GiayToPhapLys.Add(g);
+                        }
+
+                        await _context.SaveChangesAsync();
+                    }
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetToChucAsync(toChuc.MaToChuc);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Lỗi tạo tình nguyện viên: {ex.Message}");
+                    throw;
+                }
+            }
+        }
+
+        public async Task<List<ToChucResponseDto>> GetAllToChucAsync()
+        {
+            try
+            {
+                var toChucs = await _context.Organization
+                    .Include(t => t.GiayToPhapLys)
+
+                    .ToListAsync();
+
+                return toChucs.Select(t => new ToChucResponseDto
+                {
+                    MaToChuc = t.MaTaiKhoan,
+                    TenToChuc = t.TenToChuc,
+                    Email = t.Email,
+                    DiaChi = t.DiaChi,
+                    GioiThieu = t.GioiThieu,
+                    AnhDaiDien = t.AnhDaiDien,
+                    DiemTrungBinh = t.DiemTrungBinh,
+                    GiayToPhapLyIds = t.GiayToPhapLys?.Select(l => l.MaGiayTo).ToList(),
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy danh sách tổ chức: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteToChucAsync(int maToChuc)
+        {
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var tochuc = await _context.Organization
+                        .Include(t => t.GiayToPhapLys)
+                        .FirstOrDefaultAsync(t => t.MaToChuc == maToChuc);
+
+                    if (tochuc == null)
+                        throw new Exception("Tổ chức không tồn tại");
+                    _context.GiayToPhapLy.RemoveRange(tochuc.GiayToPhapLys);
+
+                    if (!string.IsNullOrEmpty(tochuc.AnhDaiDien))
+                    {
+                        var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        var filePath = Path.Combine(webRootPath, tochuc.AnhDaiDien.TrimStart('/'));
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
+                    }
+                    _context.Organization.Remove(tochuc);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Lỗi xóa tổ chức: {ex.Message}");
+                    throw;
+                }
             }
         }
     }
