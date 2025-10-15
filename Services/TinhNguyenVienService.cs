@@ -91,7 +91,14 @@ namespace khoaluantotnghiep.Services
                     tinhNguyenVien.DiaChi = updateDto.DiaChi;
                     tinhNguyenVien.GioiThieu = updateDto.GioiThieu;
                     tinhNguyenVien.AnhDaiDien = updateDto.AnhDaiDien;
+                    var taiKhoan = await _context.User
+                .FirstOrDefaultAsync(t => t.MaTaiKhoan == tinhNguyenVien.MaTaiKhoan);
 
+                    if (taiKhoan != null)
+                    {
+                        taiKhoan.Email = updateDto.Email;
+                        _context.User.Update(taiKhoan);
+                    }
                     // Cập nhật Lĩnh vực
                     if (updateDto.LinhVucIds != null)
                     {
