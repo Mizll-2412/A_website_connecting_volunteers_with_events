@@ -76,7 +76,14 @@ namespace khoaluantotnghiep.Services
                     toChuc.DiaChi = updateDto.DiaChi;
                     toChuc.GioiThieu = updateDto.GioiThieu;
                     toChuc.AnhDaiDien = updateDto.AnhDaiDien;
+                    var taiKhoan = await _context.User
+                    .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
 
+                    if (taiKhoan != null)
+                    {
+                        taiKhoan.Email = updateDto.Email;
+                        _context.User.Update(taiKhoan);
+                    }
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
