@@ -21,7 +21,8 @@ builder.Services.AddScoped<ITinhNguyenVienService, TinhNguyenVienService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IEventService, EventSerVice>();
 builder.Services.AddScoped<IRegistrationFormService, RegistrationFormService>();
-
+builder.Services.AddScoped<IDanhGiaService, DanhGiaService>();
+builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
 
 
 builder.Services.AddAuthentication(options =>

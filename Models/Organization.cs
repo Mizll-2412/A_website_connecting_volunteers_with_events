@@ -44,6 +44,12 @@ namespace khoaluantotnghiep.Models
 
         [ForeignKey("MaTaiKhoan")]
         public virtual TaiKhoan TaiKhoan { get; set; }
+        public byte? TrangThaiXacMinh { get; set; }
+        public string? LyDoTuChoi { get; set; }
+        [Column("DiemTrungBinh")]
+        public decimal? DiemTrungBinh { get; set; }
+
+        public virtual ICollection<GiayToPhapLy> GiayToPhapLys { get; set; } = new List<GiayToPhapLy>();
 
     }
 }

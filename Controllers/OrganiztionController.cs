@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
+using khoaluantotnghiep.Models;
 
 namespace khoaluantotnghiep.Controllers
 {
@@ -20,7 +21,54 @@ namespace khoaluantotnghiep.Controllers
             _logger = logger;
         }
 
-       
+        // Tạo mới tổ chức
+        [HttpPost]
+        public async Task<IActionResult> CreateTochuc([FromBody] CreateToChucDto createDto)
+        {
+            try
+            {
+                var result = await _service.CreateToChucAsync(createDto);
+                return CreatedAtAction(nameof(GetToChuc), new { maToChuc = result.MaToChuc },
+                    new { message = "Tạo hồ sơ thành công", data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{maToChuc}")]
+        public async Task<IActionResult> DeleteTinhNguyenVien(int maToChuc)
+        {
+            try
+            {
+                await _service.DeleteToChucAsync(maToChuc);
+                return Ok(new { message = "Xóa tổ chức thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        // Lấy tất cả tổ chức
+        [HttpGet]
+        public async Task<IActionResult> GetAllToChuc()
+        {
+            try
+            {
+                var result = await _service.GetAllToChucAsync();
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
         [HttpGet("{maToChuc}")]
         public async Task<IActionResult> GetToChuc(int maToChuc)
         {
@@ -36,7 +84,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-      
+
         [HttpPut("{maToChuc}")]
         public async Task<IActionResult> UpdateToChuc(int maToChuc, [FromForm] UpdateToChucDto updateDto, IFormFile? anhFile)
         {

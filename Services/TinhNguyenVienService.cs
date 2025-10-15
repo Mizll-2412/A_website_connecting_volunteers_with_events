@@ -168,6 +168,13 @@ namespace khoaluantotnghiep.Services
                 if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
 
+                if (!string.IsNullOrEmpty(tinhNguyenVien.AnhDaiDien))
+                {
+                    var oldFilePath = Path.Combine(webRootPath, tinhNguyenVien.AnhDaiDien.TrimStart('/'));
+                    if (File.Exists(oldFilePath))
+                        File.Delete(oldFilePath);
+                }
+
                 var fileName = $"{maTNV}_{DateTime.Now:yyyyMMddHHmmss}{fileExtension}";
                 var filePath = Path.Combine(uploadPath, fileName);
 
@@ -175,6 +182,7 @@ namespace khoaluantotnghiep.Services
                 {
                     await anhFile.CopyToAsync(stream);
                 }
+
                 var imageUrl = $"/uploads/avatars/{fileName}";
                 tinhNguyenVien.AnhDaiDien = imageUrl;
 
@@ -186,6 +194,152 @@ namespace khoaluantotnghiep.Services
             {
                 _logger.LogError($"Lỗi upload ảnh: {ex.Message}");
                 throw;
+            }
+        }
+
+        public async Task<TinhNguyenVienResponseDto> CreateTinhNguyenVienAsync(CreateTinhNguyenVienDto createDto)
+        {
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var taiKhoan = await _context.User.FindAsync(createDto.MaTaiKhoan);
+                    if (taiKhoan == null)
+                        throw new Exception("Tài khoản không tồn tại");
+                    var existingTNV = await _context.Volunteer
+                        .FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaTaiKhoan);
+
+                    if (existingTNV != null)
+                        throw new Exception("Tài khoản này đã có hồ sơ tình nguyện viên");
+                    var tinhNguyenVien = new TinhNguyenVien
+                    {
+                        MaTaiKhoan = createDto.MaTaiKhoan,
+                        HoTen = createDto.HoTen,
+                        NgaySinh = createDto.NgaySinh,
+                        GioiTinh = createDto.GioiTinh,
+                        Email = createDto.Email,
+                        CCCD = createDto.CCCD,
+                        DiaChi = createDto.DiaChi,
+                        GioiThieu = createDto.GioiThieu,
+                        AnhDaiDien = createDto.AnhDaiDien
+                    };
+
+                    _context.Volunteer.Add(tinhNguyenVien);
+                    await _context.SaveChangesAsync();
+
+                    if (createDto.LinhVucIds != null && createDto.LinhVucIds.Count > 0)
+                    {
+                        foreach (var linhVucId in createDto.LinhVucIds)
+                        {
+                            var linhVuc = await _context.LinhVuc.FindAsync(linhVucId);
+                            if (linhVuc != null)
+                            {
+                                _context.TinhNguyenVien_LinhVuc.Add(new TinhNguyenVien_LinhVuc
+                                {
+                                    MaTNV = tinhNguyenVien.MaTNV,
+                                    MaLinhVuc = linhVucId
+                                });
+                            }
+                        }
+                    }
+
+                    if (createDto.KyNangIds != null && createDto.KyNangIds.Count > 0)
+                    {
+                        foreach (var kyNangId in createDto.KyNangIds)
+                        {
+                            var kyNang = await _context.KyNang.FindAsync(kyNangId);
+                            if (kyNang != null)
+                            {
+                                _context.TinhNguyenVien_KyNang.Add(new TinhNguyenVien_KyNang
+                                {
+                                    MaTNV = tinhNguyenVien.MaTNV,
+                                    MaKyNang = kyNangId
+                                });
+                            }
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetTinhNguyenVienAsync(tinhNguyenVien.MaTNV);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Lỗi tạo tình nguyện viên: {ex.Message}");
+                    throw;
+                }
+            }
+        }
+        public async Task<List<TinhNguyenVienResponseDto>> GetAllTinhNguyenVienAsync()
+        {
+            try
+            {
+                var tinhNguyenViens = await _context.Volunteer
+                    .Include(t => t.TinhNguyenVien_LinhVucs)
+                    .Include(t => t.TinhNguyenVien_KyNangs)
+                    .ToListAsync();
+
+                return tinhNguyenViens.Select(t => new TinhNguyenVienResponseDto
+                {
+                    MaTNV = t.MaTNV,
+                    HoTen = t.HoTen,
+                    NgaySinh = t.NgaySinh,
+                    GioiTinh = t.GioiTinh,
+                    Email = t.Email,
+                    CCCD = t.CCCD,
+                    DiaChi = t.DiaChi,
+                    GioiThieu = t.GioiThieu,
+                    AnhDaiDien = t.AnhDaiDien,
+                    DiemTrungBinh = t.DiemTrungBinh,
+                    LinhVucIds = t.TinhNguyenVien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
+                    KyNangIds = t.TinhNguyenVien_KyNangs?.Select(k => k.MaKyNang).ToList()
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy danh sách tình nguyện viên: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteTinhNguyenVienAsync(int maTNV)
+        {
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    var tinhNguyenVien = await _context.Volunteer
+                        .Include(t => t.TinhNguyenVien_LinhVucs)
+                        .Include(t => t.TinhNguyenVien_KyNangs)
+                        .FirstOrDefaultAsync(t => t.MaTNV == maTNV);
+
+                    if (tinhNguyenVien == null)
+                        throw new Exception("Tình nguyện viên không tồn tại");
+                    _context.TinhNguyenVien_LinhVuc.RemoveRange(tinhNguyenVien.TinhNguyenVien_LinhVucs);
+                    _context.TinhNguyenVien_KyNang.RemoveRange(tinhNguyenVien.TinhNguyenVien_KyNangs);
+
+                    if (!string.IsNullOrEmpty(tinhNguyenVien.AnhDaiDien))
+                    {
+                        var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        var filePath = Path.Combine(webRootPath, tinhNguyenVien.AnhDaiDien.TrimStart('/'));
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
+                    }
+                    _context.Volunteer.Remove(tinhNguyenVien);
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Lỗi xóa tình nguyện viên: {ex.Message}");
+                    throw;
+                }
             }
         }
     }
