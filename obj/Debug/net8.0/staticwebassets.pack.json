@@ -1,0 +1,33 @@
+{
+  "Files": [
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\1_20251015005804.png",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\1_20251015005804.png"
+    },
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\1_20251015111309.png",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\1_20251015111309.png"
+    },
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.khoaluantotnghiep.props",
+      "PackagePath": "build\\khoaluantotnghiep.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.khoaluantotnghiep.props",
+      "PackagePath": "buildMultiTargeting\\khoaluantotnghiep.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.khoaluantotnghiep.props",
+      "PackagePath": "buildTransitive\\khoaluantotnghiep.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.khoaluantotnghiep.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

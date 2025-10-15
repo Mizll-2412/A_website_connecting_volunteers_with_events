@@ -159,3 +159,4 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\refint\khoaluantotnghiep
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.pdb
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.genruntimeconfig.cache
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\ref\khoaluantotnghiep.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\khoaluantotnghiep.staticwebassets.runtime.json

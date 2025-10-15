@@ -44,15 +44,19 @@ namespace khoaluantotnghiep.Models
         [Column("NgayKetThucTuyen")]
         public DateTime? TuyenKetThuc  { get; set; }
 
-        [StringLength(500)]
+        [StringLength(200)]
         [Column("TrangThai")]
         public string? TrangThai { get; set; }
+
+        [Column("HinhAnh")]
+        [StringLength(255)]
+        public string? HinhAnh { get; set; }
 
         [ForeignKey("MaToChuc")]
         public virtual ToChuc Organization { get; set; }
 
-        public virtual ICollection<SuKien_LinhVuc> SuKien_LinhVucs { get; set; }
-        public virtual ICollection<SuKien_KyNang> SuKien_KyNangs { get; set; }
+        public virtual ICollection<SuKien_LinhVuc> SuKien_LinhVucs { get; set; } = new List<SuKien_LinhVuc>();
+        public virtual ICollection<SuKien_KyNang> SuKien_KyNangs { get; set; } = new List<SuKien_KyNang>();
 
     }
 }

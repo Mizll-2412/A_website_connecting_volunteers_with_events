@@ -18,6 +18,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITinhNguyenVienService, TinhNguyenVienService>();
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IEventService, EventSerVice>();
+
 
 builder.Services.AddAuthentication(options =>
 {
