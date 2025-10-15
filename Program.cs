@@ -20,6 +20,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITinhNguyenVienService, TinhNguyenVienService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IEventService, EventSerVice>();
+builder.Services.AddScoped<IRegistrationFormService, RegistrationFormService>();
+
 
 
 builder.Services.AddAuthentication(options =>
