@@ -9,6 +9,8 @@ namespace khoaluantotnghiep.Services
         Task<List<TinhNguyenVienResponseDto>> GetAllTinhNguyenVienAsync();
         Task<TinhNguyenVienResponseDto> UpdateTinhNguyenVienAsync(int maTNV, UpdateTinhNguyenVienDto updateDto);
         Task<bool> DeleteTinhNguyenVienAsync(int maTNV);
+        Task<TinhNguyenVienResponseDto> GetTinhNguyenVienByAccountAsync(int maTaiKhoan);
+
         Task<string> UploadAnhDaiDienAsync(int maTNV, IFormFile anhFile);
     }
 }

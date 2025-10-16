@@ -28,13 +28,27 @@ namespace khoaluantotnghiep.Controllers
             try
             {
                 var result = await _service.CreateTinhNguyenVienAsync(createDto);
-                return CreatedAtAction(nameof(GetTinhNguyenVien), new { maTNV = result.MaTNV }, 
+                return CreatedAtAction(nameof(GetTinhNguyenVien), new { maTNV = result.MaTNV },
                     new { message = "Tạo hồ sơ thành công", data = result });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("by-account/{maTaiKhoan}")]
+        public async Task<IActionResult> GetTinhNguyenVienByAccount(int maTaiKhoan)
+        {
+            try
+            {
+                var result = await _service.GetTinhNguyenVienByAccountAsync(maTaiKhoan);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return NotFound(new { message = ex.Message });
             }
         }
 
@@ -81,7 +95,7 @@ namespace khoaluantotnghiep.Controllers
                     var imagePath = await _service.UploadAnhDaiDienAsync(maTNV, anhFile);
                     updateDto.AnhDaiDien = imagePath;
                 }
-                
+
                 var result = await _service.UpdateTinhNguyenVienAsync(maTNV, updateDto);
                 return Ok(new { message = "Cập nhật thành công", data = result });
             }

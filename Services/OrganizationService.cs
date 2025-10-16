@@ -117,8 +117,9 @@ namespace khoaluantotnghiep.Services
                     throw new Exception("Tổ chức không tồn tại");
 
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var uploadPath = Path.Combine(webRootPath, "uploads", "avatars"); if (!Directory.Exists(uploadPath))
+                var uploadPath = Path.Combine(webRootPath, "uploads", "organizations"); if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
+                _logger.LogInformation($"UploadPath: {uploadPath}");
                 if (!string.IsNullOrEmpty(toChuc.AnhDaiDien))
                 {
                     var oldFilePath = Path.Combine(webRootPath, toChuc.AnhDaiDien.TrimStart('/'));
