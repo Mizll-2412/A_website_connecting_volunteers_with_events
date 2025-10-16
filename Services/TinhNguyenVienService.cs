@@ -65,7 +65,49 @@ namespace khoaluantotnghiep.Services
                 throw;
             }
         }
+        public async Task<TinhNguyenVienResponseDto> GetTinhNguyenVienByAccountAsync(int maTaiKhoan)
+        {
+            try
+            {
+                var tinhNguyenVien = await _context.Volunteer
+                    .Include(t => t.TinhNguyenVien_LinhVucs)
+                    .Include(t => t.TinhNguyenVien_KyNangs)
+                    .FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
 
+                if (tinhNguyenVien == null)
+                {
+                    throw new Exception("Không tìm thấy thông tin tình nguyện viên cho tài khoản này");
+                }
+
+                var linhVucIds = tinhNguyenVien.TinhNguyenVien_LinhVucs?
+                    .Select(t => t.MaLinhVuc).ToList();
+
+                var kyNangIds = tinhNguyenVien.TinhNguyenVien_KyNangs?
+                    .Select(t => t.MaKyNang).ToList();
+
+                return new TinhNguyenVienResponseDto
+                {
+                    MaTNV = tinhNguyenVien.MaTNV,
+                    MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
+                    HoTen = tinhNguyenVien.HoTen,
+                    NgaySinh = tinhNguyenVien.NgaySinh,
+                    GioiTinh = tinhNguyenVien.GioiTinh,
+                    Email = tinhNguyenVien.Email,
+                    CCCD = tinhNguyenVien.CCCD,
+                    DiaChi = tinhNguyenVien.DiaChi,
+                    GioiThieu = tinhNguyenVien.GioiThieu,
+                    AnhDaiDien = tinhNguyenVien.AnhDaiDien,
+                    DiemTrungBinh = tinhNguyenVien.DiemTrungBinh,
+                    LinhVucIds = linhVucIds,
+                    KyNangIds = kyNangIds
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy tình nguyện viên theo tài khoản: {ex.Message}");
+                throw;
+            }
+        }
         public async Task<TinhNguyenVienResponseDto> UpdateTinhNguyenVienAsync(int maTNV, UpdateTinhNguyenVienDto updateDto)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())

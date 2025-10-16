@@ -74,6 +74,7 @@ namespace khoaluantotnghiep.DTOs
     }
     public class TinhNguyenVienResponseDto
     {
+        public int MaTaiKhoan { get; set; }
         public int MaTNV { get; set; }
         public string HoTen { get; set; }
         public DateOnly? NgaySinh { get; set; }

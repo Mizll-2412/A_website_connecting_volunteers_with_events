@@ -154,6 +154,7 @@ namespace khoaluantotnghiep.Services
                     TuyenBatDau = s.TuyenBatDau,
                     TuyenKetThuc = s.TuyenKetThuc,
                     TrangThai = s.TrangThai,
+                    HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
                 }).ToList();
