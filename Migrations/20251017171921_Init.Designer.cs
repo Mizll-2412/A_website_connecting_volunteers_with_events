@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using khoaluantotnghiep.Data;
 
 #nullable disable
@@ -12,8 +12,8 @@ using khoaluantotnghiep.Data;
 namespace khoaluantotnghiep.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251015154829_AddDiemTrungBinh")]
-    partial class AddDiemTrungBinh
+    [Migration("20251017171921_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,52 +21,52 @@ namespace khoaluantotnghiep.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.9")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("khoaluantotnghiep.Models.Admin", b =>
                 {
                     b.Property<int>("MaAdmin")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaAdmin");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaAdmin"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaAdmin"));
 
                     b.Property<string>("AnhDaiDien")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("AnhDaiDien");
 
                     b.Property<string>("CCCD")
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)")
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("CCCD");
 
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("DiaChi");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("Email");
 
                     b.Property<string>("HoTen")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("HoTen");
 
                     b.Property<int>("MaTaiKhoan")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTaiKhoan");
 
                     b.Property<string>("SoDienThoai")
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)")
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("SoDienThoai");
 
                     b.HasKey("MaAdmin");
@@ -80,34 +80,34 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaDanhGia")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaDanhGia");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaDanhGia"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaDanhGia"));
 
                     b.Property<int>("DiemSo")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("DiemSo");
 
                     b.Property<int>("MaNguoiDanhGia")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaNguoiDanhGia");
 
                     b.Property<int>("MaNguoiDuocDanhGia")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaNguoiDuocDanhGia");
 
                     b.Property<int>("MaSuKien")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
                     b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("NoiDung")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("NoiDung");
 
                     b.HasKey("MaDanhGia");
@@ -124,24 +124,24 @@ namespace khoaluantotnghiep.Migrations
             modelBuilder.Entity("khoaluantotnghiep.Models.DonDangKy", b =>
                 {
                     b.Property<int>("MaTNV")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTNV");
 
                     b.Property<string>("GhiChu")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("GhiChu");
 
                     b.Property<int>("MaSuKien")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
                     b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<int?>("TrangThai")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("TrangThai");
 
                     b.HasKey("MaTNV");
@@ -155,26 +155,26 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaGiayChungNhan")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaGiayChungNhan");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaGiayChungNhan"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaGiayChungNhan"));
 
                     b.Property<string>("File")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("File");
 
                     b.Property<int>("MaMau")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaMau");
 
                     b.Property<int>("MaTNV")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTNV");
 
                     b.Property<DateTime?>("NgayCap")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayCap");
 
                     b.HasKey("MaGiayChungNhan");
@@ -190,27 +190,27 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaGiayTo")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaGiayTo");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaGiayTo"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaGiayTo"));
 
                     b.Property<string>("File")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("File");
 
                     b.Property<int>("MaToChuc")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaToChuc");
 
                     b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("TenGiayTo")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("TenGiayTo");
 
                     b.HasKey("MaGiayTo");
@@ -224,15 +224,15 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaKyNang")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaKyNang");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaKyNang"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaKyNang"));
 
                     b.Property<string>("TenKyNang")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("TenKyNang");
 
                     b.HasKey("MaKyNang");
@@ -244,15 +244,15 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaLinhVuc")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaLinhVuc");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaLinhVuc"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaLinhVuc"));
 
                     b.Property<string>("TenLinhVuc")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("TenLinhVuc");
 
                     b.HasKey("MaLinhVuc");
@@ -264,22 +264,22 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaMau")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaMau");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaMau"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaMau"));
 
                     b.Property<string>("File")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("File");
 
                     b.Property<int>("MaSuKien")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
                     b.Property<DateTime?>("NgayGui")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayGui");
 
                     b.HasKey("MaMau");
@@ -293,15 +293,15 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaNguoiNhanThongBao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaNguoiNhanThongBao");
 
                     b.Property<int>("MaThongBao")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaThongBao");
 
                     b.Property<byte?>("TrangThai")
-                        .HasColumnType("tinyint unsigned")
+                        .HasColumnType("smallint")
                         .HasColumnName("TrangThai");
 
                     b.HasKey("MaNguoiNhanThongBao");
@@ -315,64 +315,64 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaSuKien")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaSuKien"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaSuKien"));
 
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("DiaChi");
 
                     b.Property<string>("HinhAnh")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("HinhAnh");
 
                     b.Property<int>("MaToChuc")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaToChuc");
 
                     b.Property<DateTime?>("NgayBatDau")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayBatDau");
 
                     b.Property<DateTime?>("NgayKetThuc")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayKetThuc");
 
                     b.Property<DateTime?>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("NoiDung")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("NoiDung");
 
                     b.Property<int?>("SoLuong")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("SoLuong");
 
                     b.Property<string>("TenSuKien")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("TenSuKien");
 
                     b.Property<string>("TrangThai")
                         .HasMaxLength(200)
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("character varying(200)")
                         .HasColumnName("TrangThai");
 
                     b.Property<DateTime?>("TuyenBatDau")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTuyen");
 
                     b.Property<DateTime?>("TuyenKetThuc")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayKetThucTuyen");
 
                     b.HasKey("MaSuKien");
@@ -385,11 +385,11 @@ namespace khoaluantotnghiep.Migrations
             modelBuilder.Entity("khoaluantotnghiep.Models.SuKien_KyNang", b =>
                 {
                     b.Property<int>("MaSuKien")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
                     b.Property<int>("MaKyNang")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaKyNang");
 
                     b.HasKey("MaSuKien", "MaKyNang");
@@ -402,11 +402,11 @@ namespace khoaluantotnghiep.Migrations
             modelBuilder.Entity("khoaluantotnghiep.Models.SuKien_LinhVuc", b =>
                 {
                     b.Property<int>("MaSuKien")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaSuKien");
 
                     b.Property<int>("MaLinhVuc")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaLinhVuc");
 
                     b.HasKey("MaSuKien", "MaLinhVuc");
@@ -420,43 +420,43 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaTaiKhoan")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTaiKhoan");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaTaiKhoan"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaTaiKhoan"));
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("Email");
 
                     b.Property<DateTime?>("LanDangNhapCuoi")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("LanDangNhapCuoi");
 
                     b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("text")
                         .HasColumnName("Password");
 
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
-                        .HasColumnType("longtext")
+                        .HasColumnType("text")
                         .HasColumnName("PasswordSalt");
 
                     b.Property<bool>("TrangThai")
-                        .HasColumnType("tinyint(1)")
+                        .HasColumnType("boolean")
                         .HasColumnName("TrangThai");
 
                     b.Property<string>("VaiTro")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasColumnName("VaiTro");
 
                     b.HasKey("MaTaiKhoan");
@@ -468,27 +468,27 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaThongBao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaThongBao");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaThongBao"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaThongBao"));
 
                     b.Property<int>("MaNguoiTao")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTaiKhoan");
 
                     b.Property<DateTime>("NgayGui")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayGui");
 
                     b.Property<string>("NoiDung")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)")
+                        .HasColumnType("character varying(1000)")
                         .HasColumnName("NoiDung");
 
                     b.Property<int>("PhanLoai")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("PhanLoai");
 
                     b.HasKey("MaThongBao");
@@ -502,52 +502,52 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaTNV")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTNV");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaTNV"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaTNV"));
 
                     b.Property<string>("AnhDaiDien")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("AnhDaiDien");
 
                     b.Property<string>("CCCD")
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)")
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("CCCD");
 
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("DiaChi");
 
                     b.Property<decimal?>("DiemTrungBinh")
-                        .HasColumnType("decimal(65,30)")
+                        .HasColumnType("numeric")
                         .HasColumnName("DiemTrungBinh");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("Email");
 
                     b.Property<string>("GioiThieu")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("GioiThieu");
 
                     b.Property<string>("GioiTinh")
-                        .HasColumnType("longtext")
+                        .HasColumnType("text")
                         .HasColumnName("GioiTinh");
 
                     b.Property<string>("HoTen")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("HoTen");
 
                     b.Property<int>("MaTaiKhoan")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTaiKhoan");
 
                     b.Property<DateOnly?>("NgaySinh")
@@ -564,11 +564,11 @@ namespace khoaluantotnghiep.Migrations
             modelBuilder.Entity("khoaluantotnghiep.Models.TinhNguyenVien_KyNang", b =>
                 {
                     b.Property<int>("MaTNV")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTNV");
 
                     b.Property<int>("MaKyNang")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaKyNang");
 
                     b.HasKey("MaTNV", "MaKyNang");
@@ -581,11 +581,11 @@ namespace khoaluantotnghiep.Migrations
             modelBuilder.Entity("khoaluantotnghiep.Models.TinhNguyenVien_LinhVuc", b =>
                 {
                     b.Property<int>("MaTNV")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTNV");
 
                     b.Property<int>("MaLinhVuc")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaLinhVuc");
 
                     b.HasKey("MaTNV", "MaLinhVuc");
@@ -599,59 +599,59 @@ namespace khoaluantotnghiep.Migrations
                 {
                     b.Property<int>("MaToChuc")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaToChuc");
 
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("MaToChuc"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaToChuc"));
 
                     b.Property<string>("AnhDaiDien")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("AnhDaiDien");
 
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("DiaChi");
 
                     b.Property<decimal?>("DiemTrungBinh")
-                        .HasColumnType("decimal(65,30)")
+                        .HasColumnType("numeric")
                         .HasColumnName("DiemTrungBinh");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("Email");
 
                     b.Property<string>("GioiThieu")
                         .HasMaxLength(500)
-                        .HasColumnType("varchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("GioiThieu");
 
                     b.Property<string>("LyDoTuChoi")
-                        .HasColumnType("longtext");
+                        .HasColumnType("text");
 
                     b.Property<int>("MaTaiKhoan")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MaTaiKhoan");
 
                     b.Property<DateTime?>("NgayTao")
-                        .HasColumnType("datetime(6)")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("NgayTao");
 
                     b.Property<string>("SoDienThoai")
                         .HasMaxLength(12)
-                        .HasColumnType("varchar(12)")
+                        .HasColumnType("character varying(12)")
                         .HasColumnName("SoDienThoai");
 
                     b.Property<string>("TenToChuc")
                         .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("TenToChuc");
 
                     b.Property<byte?>("TrangThaiXacMinh")
-                        .HasColumnType("tinyint unsigned");
+                        .HasColumnType("smallint");
 
                     b.HasKey("MaToChuc");
 
