@@ -12,10 +12,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITinhNguyenVienService, TinhNguyenVienService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
