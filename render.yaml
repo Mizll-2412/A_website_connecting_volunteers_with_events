@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: volunteer-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    region: singapore
+    plan: free
+    envVars:
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:10000
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production

@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "cV3OGNZ/Epsfbl4ikxPbLCvcrCaE0MfW9L2qcu/l75k=",
+  "Hash": "QyAAUN8eGg1jlklvuqqomNDwm4F7fQjYqnX6ZBWlCYE=",
   "Source": "khoaluantotnghiep",
   "BasePath": "_content/khoaluantotnghiep",
   "Mode": "Default",
@@ -55,6 +55,44 @@
       "OriginalItemSpec": "wwwroot\\uploads\\avatars\\1_20251015111309.png"
     },
     {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\131ec57d-dd9f-46d3-8472-4dee5ca8322b.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/131ec57d-dd9f-46d3-8472-4dee5ca8322b.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\131ec57d-dd9f-46d3-8472-4dee5ca8322b.jpg"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\132688c3-4813-4800-a32b-dd459671de3e.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/132688c3-4813-4800-a32b-dd459671de3e.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\132688c3-4813-4800-a32b-dd459671de3e.jpg"
+    },
+    {
       "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\2_20251016121600.jpg",
       "SourceId": "khoaluantotnghiep",
       "SourceType": "Discovered",
@@ -74,6 +112,25 @@
       "OriginalItemSpec": "wwwroot\\uploads\\avatars\\2_20251016121600.jpg"
     },
     {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\2_20251016160728.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/2_20251016160728.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\2_20251016160728.jpg"
+    },
+    {
       "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\3_20251016122147.jpg",
       "SourceId": "khoaluantotnghiep",
       "SourceType": "Discovered",
@@ -91,6 +148,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\avatars\\3_20251016122147.jpg"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\3_20251016211812.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/avatars/3_20251016211812.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\avatars\\3_20251016211812.jpg"
     },
     {
       "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\4_20251016121934.jpg",
@@ -167,6 +243,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\organizations\\1_20251016130057.png"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\organizations\\2_20251016212140.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/organizations/2_20251016212140.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\organizations\\2_20251016212140.jpg"
     }
   ]
 }
