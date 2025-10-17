@@ -1,93 +1,75 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace khoaluantotnghiep.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("MySql:CharSet", "utf8mb4");
-
             migrationBuilder.CreateTable(
                 name: "KyNang",
                 columns: table => new
                 {
-                    MaKyNang = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TenKyNang = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaKyNang = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TenKyNang = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_KyNang", x => x.MaKyNang);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "LinhVuc",
                 columns: table => new
                 {
-                    MaLinhVuc = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TenLinhVuc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaLinhVuc = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TenLinhVuc = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LinhVuc", x => x.MaLinhVuc);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "TaiKhoan",
                 columns: table => new
                 {
-                    MaTaiKhoan = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    PasswordSalt = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    VaiTro = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TrangThai = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    LanDangNhapCuoi = table.Column<DateTime>(type: "datetime(6)", nullable: true)
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Password = table.Column<string>(type: "text", nullable: false),
+                    PasswordSalt = table.Column<string>(type: "text", nullable: false),
+                    VaiTro = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    TrangThai = table.Column<bool>(type: "boolean", nullable: false),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LanDangNhapCuoi = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TaiKhoan", x => x.MaTaiKhoan);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "Admin",
                 columns: table => new
                 {
-                    MaAdmin = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaTaiKhoan = table.Column<int>(type: "int", nullable: false),
-                    HoTen = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CCCD = table.Column<string>(type: "varchar(12)", maxLength: 12, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SoDienThoai = table.Column<string>(type: "varchar(12)", maxLength: 12, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiaChi = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AnhDaiDien = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaAdmin = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
+                    HoTen = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CCCD = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
+                    SoDienThoai = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
+                    DiaChi = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    AnhDaiDien = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -98,20 +80,18 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TaiKhoan",
                         principalColumn: "MaTaiKhoan",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ThongBao",
                 columns: table => new
                 {
-                    MaThongBao = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaTaiKhoan = table.Column<int>(type: "int", nullable: false),
-                    PhanLoai = table.Column<int>(type: "int", nullable: false),
-                    NoiDung = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NgayGui = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    MaThongBao = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
+                    PhanLoai = table.Column<int>(type: "integer", nullable: false),
+                    NoiDung = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    NgayGui = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -122,31 +102,24 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TaiKhoan",
                         principalColumn: "MaTaiKhoan",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "TinhNguyenVien",
                 columns: table => new
                 {
-                    MaTNV = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaTaiKhoan = table.Column<int>(type: "int", nullable: false),
-                    HoTen = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MaTNV = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
+                    HoTen = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     NgaySinh = table.Column<DateOnly>(type: "date", nullable: true),
-                    GioiTinh = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CCCD = table.Column<string>(type: "varchar(12)", maxLength: 12, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiaChi = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    GioiThieu = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AnhDaiDien = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    GioiTinh = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CCCD = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
+                    DiaChi = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    GioiThieu = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    AnhDaiDien = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    DiemTrungBinh = table.Column<decimal>(type: "numeric", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -157,29 +130,25 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TaiKhoan",
                         principalColumn: "MaTaiKhoan",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "ToChuc",
                 columns: table => new
                 {
-                    MaToChuc = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaTaiKhoan = table.Column<int>(type: "int", nullable: false),
-                    TenToChuc = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SoDienThoai = table.Column<string>(type: "varchar(12)", maxLength: 12, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    DiaChi = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    GioiThieu = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    AnhDaiDien = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaToChuc = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaTaiKhoan = table.Column<int>(type: "integer", nullable: false),
+                    TenToChuc = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Email = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    SoDienThoai = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
+                    DiaChi = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    GioiThieu = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    AnhDaiDien = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    TrangThaiXacMinh = table.Column<byte>(type: "smallint", nullable: true),
+                    LyDoTuChoi = table.Column<string>(type: "text", nullable: true),
+                    DiemTrungBinh = table.Column<decimal>(type: "numeric", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -190,16 +159,15 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TaiKhoan",
                         principalColumn: "MaTaiKhoan",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "NguoiNhanThongBao",
                 columns: table => new
                 {
-                    MaNguoiNhanThongBao = table.Column<int>(type: "int", nullable: false),
-                    MaThongBao = table.Column<int>(type: "int", nullable: false),
-                    TrangThai = table.Column<byte>(type: "tinyint unsigned", nullable: true)
+                    MaNguoiNhanThongBao = table.Column<int>(type: "integer", nullable: false),
+                    MaThongBao = table.Column<int>(type: "integer", nullable: false),
+                    TrangThai = table.Column<byte>(type: "smallint", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -216,15 +184,14 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "ThongBao",
                         principalColumn: "MaThongBao",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "TinhNguyenVien_KyNang",
                 columns: table => new
                 {
-                    MaTNV = table.Column<int>(type: "int", nullable: false),
-                    MaKyNang = table.Column<int>(type: "int", nullable: false)
+                    MaTNV = table.Column<int>(type: "integer", nullable: false),
+                    MaKyNang = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -241,15 +208,14 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TinhNguyenVien",
                         principalColumn: "MaTNV",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "TinhNguyenVien_LinhVuc",
                 columns: table => new
                 {
-                    MaTNV = table.Column<int>(type: "int", nullable: false),
-                    MaLinhVuc = table.Column<int>(type: "int", nullable: false)
+                    MaTNV = table.Column<int>(type: "integer", nullable: false),
+                    MaLinhVuc = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -266,21 +232,18 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TinhNguyenVien",
                         principalColumn: "MaTNV",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "GiayToPhapLy",
                 columns: table => new
                 {
-                    MaGiayTo = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaToChuc = table.Column<int>(type: "int", nullable: false),
-                    TenGiayTo = table.Column<string>(type: "varchar(200)", maxLength: 200, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    File = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaGiayTo = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaToChuc = table.Column<int>(type: "integer", nullable: false),
+                    TenGiayTo = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    File = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -291,30 +254,26 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "ToChuc",
                         principalColumn: "MaToChuc",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "SuKien",
                 columns: table => new
                 {
-                    MaSuKien = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaToChuc = table.Column<int>(type: "int", nullable: false),
-                    TenSuKien = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NoiDung = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    SoLuong = table.Column<int>(type: "int", nullable: true),
-                    DiaChi = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NgayBatDau = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    NgayKetThuc = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    NgayTuyen = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    NgayKetThucTuyen = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    TrangThai = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaToChuc = table.Column<int>(type: "integer", nullable: false),
+                    TenSuKien = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NoiDung = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    SoLuong = table.Column<int>(type: "integer", nullable: true),
+                    DiaChi = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    NgayBatDau = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    NgayKetThuc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    NgayTuyen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    NgayKetThucTuyen = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TrangThai = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    HinhAnh = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -325,22 +284,20 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "ToChuc",
                         principalColumn: "MaToChuc",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "DanhGia",
                 columns: table => new
                 {
-                    MaDanhGia = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaNguoiDanhGia = table.Column<int>(type: "int", nullable: false),
-                    MaNguoiDuocDanhGia = table.Column<int>(type: "int", nullable: false),
-                    MaSuKien = table.Column<int>(type: "int", nullable: false),
-                    DiemSo = table.Column<int>(type: "int", nullable: false),
-                    NoiDung = table.Column<string>(type: "varchar(500)", maxLength: 500, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                    MaDanhGia = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaNguoiDanhGia = table.Column<int>(type: "integer", nullable: false),
+                    MaNguoiDuocDanhGia = table.Column<int>(type: "integer", nullable: false),
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false),
+                    DiemSo = table.Column<int>(type: "integer", nullable: false),
+                    NoiDung = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -363,19 +320,17 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TaiKhoan",
                         principalColumn: "MaTaiKhoan",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "DonDangKy",
                 columns: table => new
                 {
-                    MaTNV = table.Column<int>(type: "int", nullable: false),
-                    MaSuKien = table.Column<int>(type: "int", nullable: false),
-                    NgayTao = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    GhiChu = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    TrangThai = table.Column<byte>(type: "tinyint unsigned", nullable: true)
+                    MaTNV = table.Column<int>(type: "integer", nullable: false),
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false),
+                    NgayTao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    GhiChu = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    TrangThai = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -392,19 +347,17 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TinhNguyenVien",
                         principalColumn: "MaTNV",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "MauGiayChungNhan",
                 columns: table => new
                 {
-                    MaMau = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaSuKien = table.Column<int>(type: "int", nullable: false),
-                    NgayGui = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    File = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaMau = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false),
+                    NgayGui = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    File = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -415,15 +368,14 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "SuKien",
                         principalColumn: "MaSuKien",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "SuKien_KyNang",
                 columns: table => new
                 {
-                    MaSuKien = table.Column<int>(type: "int", nullable: false),
-                    MaKyNang = table.Column<int>(type: "int", nullable: false)
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false),
+                    MaKyNang = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -440,15 +392,14 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "SuKien",
                         principalColumn: "MaSuKien",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "SuKien_LinhVuc",
                 columns: table => new
                 {
-                    MaSuKien = table.Column<int>(type: "int", nullable: false),
-                    MaLinhVuc = table.Column<int>(type: "int", nullable: false)
+                    MaSuKien = table.Column<int>(type: "integer", nullable: false),
+                    MaLinhVuc = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -465,20 +416,18 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "SuKien",
                         principalColumn: "MaSuKien",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateTable(
                 name: "GiayChungNhan",
                 columns: table => new
                 {
-                    MaGiayChungNhan = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    MaMau = table.Column<int>(type: "int", nullable: false),
-                    MaTNV = table.Column<int>(type: "int", nullable: false),
-                    NgayCap = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    File = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    MaGiayChungNhan = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MaMau = table.Column<int>(type: "integer", nullable: false),
+                    MaTNV = table.Column<int>(type: "integer", nullable: false),
+                    NgayCap = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    File = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -495,8 +444,7 @@ namespace khoaluantotnghiep.Migrations
                         principalTable: "TinhNguyenVien",
                         principalColumn: "MaTNV",
                         onDelete: ReferentialAction.Cascade);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Admin_MaTaiKhoan",

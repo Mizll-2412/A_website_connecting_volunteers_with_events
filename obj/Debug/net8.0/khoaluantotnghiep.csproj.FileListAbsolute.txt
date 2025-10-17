@@ -44,8 +44,6 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.IdentityModel.
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Microsoft.OpenApi.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Mono.TextTemplating.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\MySql.Data.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\MySqlConnector.dll
-D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Pomelo.EntityFrameworkCore.MySql.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -160,3 +158,5 @@ D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.pdb
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\khoaluantotnghiep.genruntimeconfig.cache
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\obj\Debug\net8.0\ref\khoaluantotnghiep.dll
 D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\khoaluantotnghiep.staticwebassets.runtime.json
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Npgsql.dll
+D:\KhoaLuanTotNghiep\khoaluantotnghiep\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
