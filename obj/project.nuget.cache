@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "G3E6Cy53kEw=",
+  "dgSpecHash": "rpzlv0Z8NsM=",
   "success": true,
   "projectFilePath": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\khoaluantotnghiep.csproj",
   "expectedPackageFiles": [
@@ -50,6 +50,8 @@
     "C:\\Users\\Admin\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\mysql.data\\9.4.0\\mysql.data.9.4.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\mysqlconnector\\2.4.0\\mysqlconnector.2.4.0.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.4\\npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\pomelo.entityframeworkcore.mysql\\9.0.0\\pomelo.entityframeworkcore.mysql.9.0.0.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\swashbuckle.aspnetcore\\6.6.2\\swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",
