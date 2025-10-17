@@ -1,6 +1,14 @@
 {
   "Files": [
     {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\131ec57d-dd9f-46d3-8472-4dee5ca8322b.jpg",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\131ec57d-dd9f-46d3-8472-4dee5ca8322b.jpg"
+    },
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\132688c3-4813-4800-a32b-dd459671de3e.jpg",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\132688c3-4813-4800-a32b-dd459671de3e.jpg"
+    },
+    {
       "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\1_20251015005804.png",
       "PackagePath": "staticwebassets\\uploads\\avatars\\1_20251015005804.png"
     },
@@ -13,8 +21,16 @@
       "PackagePath": "staticwebassets\\uploads\\avatars\\2_20251016121600.jpg"
     },
     {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\2_20251016160728.jpg",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\2_20251016160728.jpg"
+    },
+    {
       "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\3_20251016122147.jpg",
       "PackagePath": "staticwebassets\\uploads\\avatars\\3_20251016122147.jpg"
+    },
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\3_20251016211812.jpg",
+      "PackagePath": "staticwebassets\\uploads\\avatars\\3_20251016211812.jpg"
     },
     {
       "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\avatars\\42e7380a-e4b0-4762-928a-a9be0d18abca.png",
@@ -31,6 +47,10 @@
     {
       "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\organizations\\1_20251016130057.png",
       "PackagePath": "staticwebassets\\uploads\\organizations\\1_20251016130057.png"
+    },
+    {
+      "Id": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\organizations\\2_20251016212140.jpg",
+      "PackagePath": "staticwebassets\\uploads\\organizations\\2_20251016212140.jpg"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.khoaluantotnghiep.props",

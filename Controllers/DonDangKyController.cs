@@ -23,6 +23,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Tình nguyện viên đăng ký sự kiện
         [HttpPost]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> DangKySuKien([FromBody] CreateDonDangKyDto createDto)
         {
             try
@@ -39,6 +40,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy đơn đăng ký cụ thể
         [HttpGet("{maTNV}/{maSuKien}")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetDonDangKy(int maTNV, int maSuKien)
         {
             try
@@ -55,6 +57,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy danh sách đơn đăng ký của tình nguyện viên
         [HttpGet("volunteer/{maTNV}")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> GetDonDangKyByTNV(int maTNV)
         {
             try
@@ -71,6 +74,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy danh sách đơn đăng ký của sự kiện (cho tổ chức)
         [HttpGet("event/{maSuKien}")]
+        [Authorize(Roles = "Admin,Organization")]
         public async Task<IActionResult> GetDonDangKyBySuKien(int maSuKien)
         {
             try
@@ -87,6 +91,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Tổ chức duyệt/từ chối đơn đăng ký
         [HttpPut("{maTNV}/{maSuKien}")]
+        [Authorize(Roles = "Admin,Organization")]
         public async Task<IActionResult> UpdateTrangThai(int maTNV, int maSuKien, [FromBody] UpdateDonDangKyDto updateDto)
         {
             try
@@ -103,6 +108,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Hủy đăng ký sự kiện
         [HttpDelete("{maTNV}/{maSuKien}")]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> HuyDangKy(int maTNV, int maSuKien)
         {
             try
