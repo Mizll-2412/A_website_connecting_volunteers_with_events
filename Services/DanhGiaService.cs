@@ -26,78 +26,62 @@ namespace khoaluantotnghiep.Services
             {
                 try
                 {
+                    // 1. Kiểm tra sự kiện
                     var suKien = await _context.Event.FindAsync(createDto.MaSuKien);
                     if (suKien == null)
-                        throw new Exception("Sự kiện không tồn tại");
+                        throw new KeyNotFoundException("Sự kiện không tồn tại");
 
-                    if (suKien.NgayKetThuc > DateTime.Now)
-                        throw new Exception("Sự kiện chưa kết thúc");
+                    if (suKien.NgayKetThuc > DateTime.UtcNow)
+                        throw new InvalidOperationException("Sự kiện chưa kết thúc, chưa thể đánh giá");
 
-                    // 2. Kiểm tra người đánh giá có tham gia sự kiện không
+                    // 2. Kiểm tra tài khoản
                     var taiKhoanDanhGia = await _context.User.FindAsync(createDto.MaNguoiDanhGia);
                     var taiKhoanDuocDanhGia = await _context.User.FindAsync(createDto.MaNguoiDuocDanhGia);
 
                     if (taiKhoanDanhGia == null || taiKhoanDuocDanhGia == null)
-                        throw new Exception("Tài khoản không tồn tại");
+                        throw new KeyNotFoundException("Tài khoản không tồn tại");
 
-                    // 3. Xác định ai đánh giá ai
+                    // 3. Validate vai trò
                     bool isTNVDanhGiaToChuc = taiKhoanDanhGia.VaiTro == "User" && taiKhoanDuocDanhGia.VaiTro == "Organization";
                     bool isToChucDanhGiaTNV = taiKhoanDanhGia.VaiTro == "Organization" && taiKhoanDuocDanhGia.VaiTro == "User";
 
                     if (!isTNVDanhGiaToChuc && !isToChucDanhGiaTNV)
-                        throw new Exception("Chỉ tình nguyện viên đánh giá tổ chức hoặc tổ chức đánh giá tình nguyện viên");
+                        throw new InvalidOperationException("Chỉ tình nguyện viên có thể đánh giá tổ chức hoặc tổ chức đánh giá tình nguyện viên");
 
+                    // 4. Validate quyền đánh giá
                     if (isTNVDanhGiaToChuc)
                     {
-                        var tnv = await _context.Volunteer.FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaNguoiDanhGia);
-                        var donDangKy = await _context.DonDangKy
-                            .FirstOrDefaultAsync(d => d.MaTNV == tnv.MaTNV && 
-                                                     d.MaSuKien == createDto.MaSuKien && 
-                                                     d.TrangThai == 1);
-                        
-                        if (donDangKy == null)
-                            throw new Exception("Bạn chưa tham gia sự kiện này");
-
-                        if (suKien.MaToChuc != await GetMaToChucFromTaiKhoanAsync(createDto.MaNguoiDuocDanhGia))
-                            throw new Exception("Sự kiện không thuộc tổ chức này");
+                        await ValidateTNVDanhGiaToChucAsync(createDto.MaNguoiDanhGia, createDto.MaNguoiDuocDanhGia, suKien, createDto.MaSuKien);
                     }
                     else
                     {
-                        var toChuc = await _context.Organization.FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaNguoiDanhGia);
-                        if (suKien.MaToChuc != toChuc.MaToChuc)
-                            throw new Exception("Bạn không phải chủ sự kiện");
-
-                        var tnv = await _context.Volunteer.FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaNguoiDuocDanhGia);
-                        var donDangKy = await _context.DonDangKy
-                            .FirstOrDefaultAsync(d => d.MaTNV == tnv.MaTNV && 
-                                                     d.MaSuKien == createDto.MaSuKien && 
-                                                     d.TrangThai == 1);
-                        
-                        if (donDangKy == null)
-                            throw new Exception("Tình nguyện viên chưa tham gia sự kiện");
+                        await ValidateToChucDanhGiaTNVAsync(createDto.MaNguoiDanhGia, createDto.MaNguoiDuocDanhGia, suKien, createDto.MaSuKien);
                     }
 
+                    // 5. Kiểm tra đã đánh giá chưa
                     var daDanhGia = await _context.DanhGia
                         .AnyAsync(d => d.MaNguoiDanhGia == createDto.MaNguoiDanhGia && 
                                       d.MaNguoiDuocDanhGia == createDto.MaNguoiDuocDanhGia && 
                                       d.MaSuKien == createDto.MaSuKien);
                     
                     if (daDanhGia)
-                        throw new Exception("Bạn đã đánh giá rồi");
+                        throw new InvalidOperationException("Bạn đã đánh giá người này trong sự kiện này rồi");
 
+                    // 6. Tạo đánh giá
                     var danhGia = new DanhGia
                     {
                         MaNguoiDanhGia = createDto.MaNguoiDanhGia,
                         MaNguoiDuocDanhGia = createDto.MaNguoiDuocDanhGia,
                         MaSuKien = createDto.MaSuKien,
                         DiemSo = createDto.DiemSo,
-                        NoiDung = createDto.NoiDung,
-                        NgayTao = DateTime.Now
+                        NoiDung = createDto.NoiDung?.Trim(),
+                        NgayTao = DateTime.UtcNow
                     };
 
                     _context.DanhGia.Add(danhGia);
                     await _context.SaveChangesAsync();
 
+                    // 7. Cập nhật điểm trung bình
                     await CapNhatDiemTrungBinhAsync(createDto.MaNguoiDuocDanhGia);
 
                     await transaction.CommitAsync();
@@ -113,7 +97,7 @@ namespace khoaluantotnghiep.Services
             }
         }
 
-        public async Task<DanhGiaResponseDto> CapNhatDanhGiaAsync(int maDanhGia, UpdateDanhGiaDto updateDto)
+        public async Task<DanhGiaResponseDto> CapNhatDanhGiaAsync(int maDanhGia, UpdateDanhGiaDto updateDto, int currentUserId, string currentUserRole)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -121,15 +105,17 @@ namespace khoaluantotnghiep.Services
                 {
                     var danhGia = await _context.DanhGia.FindAsync(maDanhGia);
                     if (danhGia == null)
-                        throw new Exception("Đánh giá không tồn tại");
+                        throw new KeyNotFoundException("Đánh giá không tồn tại");
+
+                    // Kiểm tra quyền: Chỉ người tạo hoặc Admin mới sửa được
+                    if (danhGia.MaNguoiDanhGia != currentUserId && currentUserRole != "Admin")
+                        throw new UnauthorizedAccessException("Bạn không có quyền cập nhật đánh giá này");
 
                     danhGia.DiemSo = updateDto.DiemSo;
-                    danhGia.NoiDung = updateDto.NoiDung;
+                    danhGia.NoiDung = updateDto.NoiDung?.Trim();
 
                     await _context.SaveChangesAsync();
-
                     await CapNhatDiemTrungBinhAsync(danhGia.MaNguoiDuocDanhGia);
-
                     await transaction.CommitAsync();
 
                     return await GetDanhGiaAsync(maDanhGia);
@@ -145,90 +131,71 @@ namespace khoaluantotnghiep.Services
 
         public async Task<DanhGiaResponseDto> GetDanhGiaAsync(int maDanhGia)
         {
-            try
-            {
-                var danhGia = await _context.DanhGia
-                    .Include(d => d.NguoiDanhGia)
-                    .Include(d => d.NguoiDuocDanhGia)
-                    .Include(d => d.Event)
-                    .FirstOrDefaultAsync(d => d.MaDanhGia == maDanhGia);
+            var danhGia = await _context.DanhGia
+                .Include(d => d.NguoiDanhGia)
+                .Include(d => d.NguoiDuocDanhGia)
+                .Include(d => d.Event)
+                .FirstOrDefaultAsync(d => d.MaDanhGia == maDanhGia);
 
-                if (danhGia == null)
-                    throw new Exception("Đánh giá không tồn tại");
+            if (danhGia == null)
+                throw new KeyNotFoundException("Đánh giá không tồn tại");
 
-                return MapToDto(danhGia);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Lỗi lấy đánh giá: {ex.Message}");
-                throw;
-            }
+            return await MapToDtoAsync(danhGia);
         }
 
         public async Task<List<DanhGiaResponseDto>> GetDanhGiaCuaNguoiAsync(int maNguoi)
         {
-            try
-            {
-                var danhGias = await _context.DanhGia
-                    .Include(d => d.NguoiDanhGia)
-                    .Include(d => d.NguoiDuocDanhGia)
-                    .Include(d => d.Event)
-                    .Where(d => d.MaNguoiDuocDanhGia == maNguoi)
-                    .OrderByDescending(d => d.NgayTao)
-                    .ToListAsync();
+            var danhGias = await _context.DanhGia
+                .Include(d => d.NguoiDanhGia)
+                .Include(d => d.NguoiDuocDanhGia)
+                .Include(d => d.Event)
+                .Where(d => d.MaNguoiDuocDanhGia == maNguoi)
+                .OrderByDescending(d => d.NgayTao)
+                .ToListAsync();
 
-                return danhGias.Select(d => MapToDto(d)).ToList();
-            }
-            catch (Exception ex)
+            var result = new List<DanhGiaResponseDto>();
+            foreach (var danhGia in danhGias)
             {
-                _logger.LogError($"Lỗi lấy danh sách đánh giá: {ex.Message}");
-                throw;
+                result.Add(await MapToDtoAsync(danhGia));
             }
+            return result;
         }
 
         public async Task<ThongKeDanhGiaDto> GetThongKeDanhGiaAsync(int maNguoi)
         {
-            try
+            var taiKhoan = await _context.User.FindAsync(maNguoi);
+            if (taiKhoan == null)
+                throw new KeyNotFoundException("Tài khoản không tồn tại");
+
+            var danhGias = await GetDanhGiaCuaNguoiAsync(maNguoi);
+
+            string tenNguoi = "";
+            decimal diemTB = 0;
+
+            if (taiKhoan.VaiTro == "User")
             {
-                var taiKhoan = await _context.User.FindAsync(maNguoi);
-                if (taiKhoan == null)
-                    throw new Exception("Tài khoản không tồn tại");
-
-                var danhGias = await GetDanhGiaCuaNguoiAsync(maNguoi);
-
-                decimal diemTB = 0;
-                string tenNguoi = "";
-
-                if (taiKhoan.VaiTro == "User")
-                {
-                    var tnv = await _context.Volunteer.FirstOrDefaultAsync(t => t.MaTaiKhoan == maNguoi);
-                    diemTB = tnv?.DiemTrungBinh ?? 0;
-                    tenNguoi = tnv?.HoTen ?? "";
-                }
-                else if (taiKhoan.VaiTro == "Organization")
-                {
-                    var toChuc = await _context.Organization.FirstOrDefaultAsync(t => t.MaTaiKhoan == maNguoi);
-                    diemTB = toChuc?.DiemTrungBinh ?? 0;
-                    tenNguoi = toChuc?.TenToChuc ?? "";
-                }
-
-                return new ThongKeDanhGiaDto
-                {
-                    MaNguoi = maNguoi,
-                    TenNguoi = tenNguoi,
-                    DiemTrungBinh = diemTB,
-                    TongSoDanhGia = danhGias.Count,
-                    DanhSachs = danhGias
-                };
+                var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maNguoi);
+                tenNguoi = tnv?.HoTen ?? "";
+                diemTB = tnv?.DiemTrungBinh ?? 0;
             }
-            catch (Exception ex)
+            else if (taiKhoan.VaiTro == "Organization")
             {
-                _logger.LogError($"Lỗi thống kê: {ex.Message}");
-                throw;
+                var org = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == maNguoi);
+                tenNguoi = org?.TenToChuc ?? "";
+                diemTB = org?.DiemTrungBinh ?? 0;
             }
+
+            return new ThongKeDanhGiaDto
+            {
+                MaNguoi = maNguoi,
+                TenNguoi = tenNguoi,
+                DiemTrungBinh = diemTB,
+                TongSoDanhGia = danhGias.Count,
+                DanhSachs = danhGias
+            };
         }
 
-        public async Task<bool> XoaDanhGiaAsync(int maDanhGia)
+        public async Task<bool> XoaDanhGiaAsync(int maDanhGia, int currentUserId, string currentUserRole)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -236,16 +203,19 @@ namespace khoaluantotnghiep.Services
                 {
                     var danhGia = await _context.DanhGia.FindAsync(maDanhGia);
                     if (danhGia == null)
-                        throw new Exception("Đánh giá không tồn tại");
+                        throw new KeyNotFoundException("Đánh giá không tồn tại");
+
+                    // Kiểm tra quyền: Chỉ người tạo hoặc Admin mới xóa được
+                    if (danhGia.MaNguoiDanhGia != currentUserId && currentUserRole != "Admin")
+                        throw new UnauthorizedAccessException("Bạn không có quyền xóa đánh giá này");
 
                     var maNguoiDuocDanhGia = danhGia.MaNguoiDuocDanhGia;
 
                     _context.DanhGia.Remove(danhGia);
                     await _context.SaveChangesAsync();
-
                     await CapNhatDiemTrungBinhAsync(maNguoiDuocDanhGia);
-
                     await transaction.CommitAsync();
+
                     return true;
                 }
                 catch (Exception ex)
@@ -255,6 +225,53 @@ namespace khoaluantotnghiep.Services
                     throw;
                 }
             }
+        }
+
+        // ========== PRIVATE METHODS ==========
+
+        private async Task ValidateTNVDanhGiaToChucAsync(int maTaiKhoanTNV, int maTaiKhoanToChuc, SuKien suKien, int maSuKien)
+        {
+            var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maTaiKhoanTNV);
+            if (tnv == null)
+                throw new KeyNotFoundException("Tình nguyện viên không tồn tại");
+
+            // Kiểm tra TNV đã tham gia sự kiện
+            var donDangKy = await _context.DonDangKy
+                .FirstOrDefaultAsync(d => d.MaTNV == tnv.MaTNV && 
+                                         d.MaSuKien == maSuKien && 
+                                         d.TrangThai == 1);
+            
+            if (donDangKy == null)
+                throw new InvalidOperationException("Bạn chưa tham gia sự kiện này nên không thể đánh giá");
+
+            // Kiểm tra sự kiện thuộc tổ chức được đánh giá
+            var toChuc = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == maTaiKhoanToChuc);
+            if (toChuc == null || suKien.MaToChuc != toChuc.MaToChuc)
+                throw new InvalidOperationException("Sự kiện không thuộc tổ chức này");
+        }
+
+        private async Task ValidateToChucDanhGiaTNVAsync(int maTaiKhoanToChuc, int maTaiKhoanTNV, SuKien suKien, int maSuKien)
+        {
+            var toChuc = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == maTaiKhoanToChuc);
+            if (toChuc == null)
+                throw new KeyNotFoundException("Tổ chức không tồn tại");
+
+            // Kiểm tra tổ chức là chủ sự kiện
+            if (suKien.MaToChuc != toChuc.MaToChuc)
+                throw new UnauthorizedAccessException("Bạn không phải chủ sự kiện nên không thể đánh giá");
+
+            // Kiểm tra TNV đã tham gia sự kiện
+            var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maTaiKhoanTNV);
+            if (tnv == null)
+                throw new KeyNotFoundException("Tình nguyện viên không tồn tại");
+
+            var donDangKy = await _context.DonDangKy
+                .FirstOrDefaultAsync(d => d.MaTNV == tnv.MaTNV && 
+                                         d.MaSuKien == maSuKien && 
+                                         d.TrangThai == 1);
+            
+            if (donDangKy == null)
+                throw new InvalidOperationException("Tình nguyện viên chưa tham gia sự kiện này");
         }
 
         private async Task CapNhatDiemTrungBinhAsync(int maTaiKhoan)
@@ -269,10 +286,12 @@ namespace khoaluantotnghiep.Services
             decimal diemTB = Math.Round((decimal)danhGias.Average(d => d.DiemSo), 1);
 
             var taiKhoan = await _context.User.FindAsync(maTaiKhoan);
-            
+            if (taiKhoan == null)
+                return;
+
             if (taiKhoan.VaiTro == "User")
             {
-                var tnv = await _context.Volunteer.FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
+                var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maTaiKhoan);
                 if (tnv != null)
                 {
                     tnv.DiemTrungBinh = diemTB;
@@ -280,31 +299,28 @@ namespace khoaluantotnghiep.Services
             }
             else if (taiKhoan.VaiTro == "Organization")
             {
-                var toChuc = await _context.Organization.FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
-                if (toChuc != null)
+                var org = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == maTaiKhoan);
+                if (org != null)
                 {
-                    toChuc.DiemTrungBinh = diemTB;
+                    org.DiemTrungBinh = diemTB;
                 }
             }
 
             await _context.SaveChangesAsync();
         }
 
-        private async Task<int> GetMaToChucFromTaiKhoanAsync(int maTaiKhoan)
+        private async Task<DanhGiaResponseDto> MapToDtoAsync(DanhGia danhGia)
         {
-            var toChuc = await _context.Organization.FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
-            return toChuc?.MaToChuc ?? 0;
-        }
+            var tenNguoiDanhGia = await GetTenFromTaiKhoanAsync(danhGia.MaNguoiDanhGia);
+            var tenNguoiDuocDanhGia = await GetTenFromTaiKhoanAsync(danhGia.MaNguoiDuocDanhGia);
 
-        private DanhGiaResponseDto MapToDto(DanhGia danhGia)
-        {
             return new DanhGiaResponseDto
             {
                 MaDanhGia = danhGia.MaDanhGia,
                 MaNguoiDanhGia = danhGia.MaNguoiDanhGia,
-                TenNguoiDanhGia = GetTenFromTaiKhoan(danhGia.NguoiDanhGia),
+                TenNguoiDanhGia = tenNguoiDanhGia,
                 MaNguoiDuocDanhGia = danhGia.MaNguoiDuocDanhGia,
-                TenNguoiDuocDanhGia = GetTenFromTaiKhoan(danhGia.NguoiDuocDanhGia),
+                TenNguoiDuocDanhGia = tenNguoiDuocDanhGia,
                 MaSuKien = danhGia.MaSuKien,
                 TenSuKien = danhGia.Event?.TenSuKien,
                 DiemSo = danhGia.DiemSo,
@@ -313,18 +329,24 @@ namespace khoaluantotnghiep.Services
             };
         }
 
-        private string GetTenFromTaiKhoan(TaiKhoan taiKhoan)
+        private async Task<string> GetTenFromTaiKhoanAsync(int maTaiKhoan)
         {
+            var taiKhoan = await _context.User.FindAsync(maTaiKhoan);
+            if (taiKhoan == null) 
+                return "";
+
             if (taiKhoan.VaiTro == "User")
             {
-                var tnv = _context.Volunteer.FirstOrDefault(t => t.MaTaiKhoan == taiKhoan.MaTaiKhoan);
+                var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maTaiKhoan);
                 return tnv?.HoTen ?? "";
             }
-            else if (taiKhoan.VaiTro == "Organization")
+            
+            if (taiKhoan.VaiTro == "Organization")
             {
-                var toChuc = _context.Organization.FirstOrDefault(t => t.MaTaiKhoan == taiKhoan.MaTaiKhoan);
-                return toChuc?.TenToChuc ?? "";
+                var org = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == maTaiKhoan);
+                return org?.TenToChuc ?? "";
             }
+            
             return "";
         }
     }

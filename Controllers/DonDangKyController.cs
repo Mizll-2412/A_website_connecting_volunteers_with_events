@@ -10,6 +10,7 @@ namespace khoaluantotnghiep.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DonDangKyController : ControllerBase
     {
         private readonly IRegistrationFormService _service;
