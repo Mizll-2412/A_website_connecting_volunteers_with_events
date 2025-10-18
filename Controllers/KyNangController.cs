@@ -7,6 +7,7 @@ namespace khoaluantotnghiep.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class KyNangController : ControllerBase
     {
         private readonly IKyNangService _kynangService;

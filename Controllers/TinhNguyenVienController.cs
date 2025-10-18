@@ -10,6 +10,7 @@ namespace khoaluantotnghiep.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class TinhNguyenVienController : ControllerBase
     {
         private readonly ITinhNguyenVienService _service;

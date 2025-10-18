@@ -10,6 +10,7 @@ namespace khoaluantotnghiep.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SuKienController : ControllerBase
     {
         private readonly IEventService _service;
@@ -21,8 +22,9 @@ namespace khoaluantotnghiep.Controllers
             _logger = logger;
         }
 
-    
+
         [HttpPost]
+        [Authorize(Roles = "Organization, Admin")]
         public async Task<IActionResult> CreateSuKien([FromForm] CreateSuKienDto createDto, IFormFile? anhFile)
         {
             try
@@ -43,7 +45,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-      
+
         [HttpGet("{maSuKien}")]
         public async Task<IActionResult> GetSuKien(int maSuKien)
         {
@@ -74,6 +76,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpPut("{maSuKien}")]
+        [Authorize(Roles = "Organization, Admin")]
         public async Task<IActionResult> UpdateSuKien(int maSuKien, [FromForm] UpdateSuKienDto updateDto, IFormFile? anhFile)
         {
             try
@@ -94,6 +97,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpDelete("{maSuKien}")]
+        [Authorize(Roles = "Organization, Admin")]
         public async Task<IActionResult> DeleteSuKien(int maSuKien)
         {
             try

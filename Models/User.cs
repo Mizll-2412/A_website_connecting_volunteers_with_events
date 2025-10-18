@@ -38,5 +38,8 @@ namespace khoaluantotnghiep.Models
 
         [Column("LanDangNhapCuoi")]
         public DateTime? LanDangNhapCuoi { get; set; }
+        public virtual TinhNguyenVien? Volunteer { get; set; }
+        public virtual ToChuc? Organization { get; set; }
+
     }
 }
