@@ -16,7 +16,7 @@ namespace khoaluantotnghiep.Controllers
             _kynangService = kyNangService;
         }
 
-        // GET: api/linhvuc
+        // GET: api/kynang
         // Tất cả user đều xem được
         [HttpGet]
         [AllowAnonymous]
@@ -43,7 +43,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-        // GET: api/linhvuc/5
+        // GET: api/kynang/5
         // Tất cả user đều xem được
         [HttpGet("{id}")]
         [AllowAnonymous]
@@ -78,7 +78,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-        // POST: api/linhvuc
+        // POST: api/kynang
         // Chỉ Admin mới tạo được
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -121,7 +121,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-        // PUT: api/linhvuc/5
+        // PUT: api/kynang/5
         // Chỉ Admin mới sửa được
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
@@ -172,7 +172,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
-        // DELETE: api/linhvuc/5
+        // DELETE: api/kynang/5
         // Chỉ Admin mới xóa được
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
