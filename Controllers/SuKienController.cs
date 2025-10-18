@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> CreateSuKien([FromForm] CreateSuKienDto createDto, IFormFile? anhFile)
         {
             try

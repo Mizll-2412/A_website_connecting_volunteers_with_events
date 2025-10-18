@@ -331,19 +331,28 @@ namespace khoaluantotnghiep.Services
             try
             {
                 if (anhFile == null || anhFile.Length == 0)
-                    throw new Exception("Vui lòng chọn file ảnh");
+                    throw new ArgumentNullException(nameof(anhFile), "Vui lòng chọn file ảnh");
 
                 if (anhFile.Length > MaxFileSize)
-                    throw new Exception("File ảnh quá lớn (tối đa 5MB)");
+                    throw new InvalidOperationException($"File ảnh quá lớn (tối đa {MaxFileSize / 1024 / 1024}MB)");
 
                 var fileExtension = Path.GetExtension(anhFile.FileName).ToLower();
                 if (!AllowedExtensions.Contains(fileExtension))
-                    throw new Exception("Định dạng file không hỗ trợ (chỉ JPG, PNG, GIF)");
+                    throw new InvalidOperationException($"Định dạng file không hỗ trợ. Chỉ chấp nhận: {string.Join(", ", AllowedExtensions)}");
 
+                var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                if (!allowedContentTypes.Contains(anhFile.ContentType.ToLower()))
+                    throw new InvalidOperationException("Content-Type không hợp lệ");
+
+                // 3. Tạo đường dẫn
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var uploadPath = Path.Combine(webRootPath, "uploads", "avatars");
+                var uploadPath = Path.Combine(webRootPath, "uploads", "events"); // ← Sửa thành "events" cho sự kiện
+
                 if (!Directory.Exists(uploadPath))
+                {
                     Directory.CreateDirectory(uploadPath);
+                    _logger.LogInformation($"Đã tạo thư mục upload: {uploadPath}");
+                }
 
                 var fileName = $"{Guid.NewGuid()}{fileExtension}";
                 var filePath = Path.Combine(uploadPath, fileName);
@@ -352,15 +361,26 @@ namespace khoaluantotnghiep.Services
                 {
                     await anhFile.CopyToAsync(stream);
                 }
-                var imageUrl = $"/uploads/avatars/{fileName}";
-                await _context.SaveChangesAsync();
+                var imageUrl = $"/uploads/events/{fileName}";
+
+                _logger.LogInformation($"Upload ảnh thành công: {imageUrl}");
 
                 return imageUrl;
+            }
+            catch (ArgumentNullException ex)
+            {
+                _logger.LogWarning($"File không hợp lệ: {ex.Message}");
+                throw;
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning($"Validation lỗi: {ex.Message}");
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi upload ảnh: {ex.Message}");
-                throw;
+                throw new Exception("Có lỗi xảy ra khi upload ảnh", ex);
             }
         }
     }
