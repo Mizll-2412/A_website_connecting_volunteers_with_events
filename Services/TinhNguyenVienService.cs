@@ -47,6 +47,7 @@ namespace khoaluantotnghiep.Services
                 return new TinhNguyenVienResponseDto
                 {
                     MaTNV = tinhNguyenVien.MaTNV,
+                    MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
                     HoTen = tinhNguyenVien.HoTen,
                     NgaySinh = tinhNguyenVien.NgaySinh,
                     GioiTinh = tinhNguyenVien.GioiTinh,
@@ -125,14 +126,14 @@ namespace khoaluantotnghiep.Services
                     }
 
                     // Cập nhật thông tin cơ bản
-                    tinhNguyenVien.HoTen = updateDto.HoTen;
-                    tinhNguyenVien.NgaySinh = updateDto.NgaySinh;
-                    tinhNguyenVien.GioiTinh = updateDto.GioiTinh;
+                    tinhNguyenVien.HoTen = updateDto.HoTen?? tinhNguyenVien.HoTen;
+                    tinhNguyenVien.NgaySinh = updateDto.NgaySinh ?? tinhNguyenVien.NgaySinh;
+                    tinhNguyenVien.GioiTinh = updateDto.GioiTinh ?? tinhNguyenVien.GioiThieu;
                     tinhNguyenVien.Email = updateDto.Email;
-                    tinhNguyenVien.CCCD = updateDto.CCCD;
-                    tinhNguyenVien.DiaChi = updateDto.DiaChi;
-                    tinhNguyenVien.GioiThieu = updateDto.GioiThieu;
-                    tinhNguyenVien.AnhDaiDien = updateDto.AnhDaiDien;
+                    tinhNguyenVien.CCCD = updateDto.CCCD?? tinhNguyenVien.CCCD;
+                    tinhNguyenVien.DiaChi = updateDto.DiaChi??tinhNguyenVien.DiaChi;
+                    tinhNguyenVien.GioiThieu = updateDto.GioiThieu ?? tinhNguyenVien.GioiThieu;
+                    tinhNguyenVien.AnhDaiDien = updateDto.AnhDaiDien ?? tinhNguyenVien.AnhDaiDien;
                     var taiKhoan = await _context.User
                 .FirstOrDefaultAsync(t => t.MaTaiKhoan == tinhNguyenVien.MaTaiKhoan);
 
@@ -333,6 +334,7 @@ namespace khoaluantotnghiep.Services
                 return tinhNguyenViens.Select(t => new TinhNguyenVienResponseDto
                 {
                     MaTNV = t.MaTNV,
+                    MaTaiKhoan = t.MaTaiKhoan,
                     HoTen = t.HoTen,
                     NgaySinh = t.NgaySinh,
                     GioiTinh = t.GioiTinh,

@@ -70,7 +70,6 @@ namespace khoaluantotnghiep.Services
                         throw new Exception("Tổ chức không tồn tại");
                     }
 
-                    // Cập nhật thông tin - chỉ update nếu có giá trị mới
                     toChuc.TenToChuc = updateDto.TenToChuc ?? toChuc.TenToChuc;
                     toChuc.Email = updateDto.Email; // Email bắt buộc
                     toChuc.SoDienThoai = updateDto.SoDienThoai ?? toChuc.SoDienThoai;
@@ -78,7 +77,6 @@ namespace khoaluantotnghiep.Services
                     toChuc.GioiThieu = updateDto.GioiThieu ?? toChuc.GioiThieu;
                     toChuc.AnhDaiDien = updateDto.AnhDaiDien ?? toChuc.AnhDaiDien;
 
-                    // Cập nhật email trong bảng TaiKhoan
                     var taiKhoan = await _context.User
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
 
