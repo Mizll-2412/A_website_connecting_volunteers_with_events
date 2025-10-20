@@ -61,33 +61,48 @@ namespace khoaluantotnghiep.Services
             {
                 try
                 {
-                    var toChuc = await _context.Organization
-                        .FirstOrDefaultAsync(t => t.MaToChuc == maToChuc);
-
+                    var toChuc = await _context.Organization.FindAsync(maToChuc);
                     if (toChuc == null)
                     {
                         throw new Exception("Tổ chức không tồn tại");
                     }
 
-                    // Cập nhật thông tin
-                    toChuc.TenToChuc = updateDto.TenToChuc;
-                    toChuc.Email = updateDto.Email;
-                    toChuc.SoDienThoai = updateDto.SoDienThoai;
-                    toChuc.DiaChi = updateDto.DiaChi;
-                    toChuc.GioiThieu = updateDto.GioiThieu;
-                    toChuc.AnhDaiDien = updateDto.AnhDaiDien;
+                    // Cập nhật thông tin - chỉ update nếu có giá trị mới
+                    toChuc.TenToChuc = updateDto.TenToChuc ?? toChuc.TenToChuc;
+                    toChuc.Email = updateDto.Email; // Email bắt buộc
+                    toChuc.SoDienThoai = updateDto.SoDienThoai ?? toChuc.SoDienThoai;
+                    toChuc.DiaChi = updateDto.DiaChi ?? toChuc.DiaChi;
+                    toChuc.GioiThieu = updateDto.GioiThieu ?? toChuc.GioiThieu;
+                    toChuc.AnhDaiDien = updateDto.AnhDaiDien ?? toChuc.AnhDaiDien;
+
+                    // Cập nhật email trong bảng TaiKhoan
                     var taiKhoan = await _context.User
-                    .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
+                        .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
 
                     if (taiKhoan != null)
                     {
                         taiKhoan.Email = updateDto.Email;
                         _context.User.Update(taiKhoan);
                     }
+
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
-                    return await GetToChucAsync(maToChuc);
+                    // Trả về đúng dữ liệu
+                    return new ToChucResponseDto
+                    {
+                        MaToChuc = toChuc.MaToChuc,
+                        MaTaiKhoan = toChuc.MaTaiKhoan,
+                        TenToChuc = toChuc.TenToChuc,
+                        Email = toChuc.Email,
+                        SoDienThoai = toChuc.SoDienThoai,
+                        DiaChi = toChuc.DiaChi,
+                        NgayTao = toChuc.NgayTao,
+                        GioiThieu = toChuc.GioiThieu,
+                        DiemTrungBinh = toChuc.DiemTrungBinh,
+                        AnhDaiDien = toChuc.AnhDaiDien,
+                        GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
+                    };
                 }
                 catch (Exception ex)
                 {
