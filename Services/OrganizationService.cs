@@ -39,13 +39,16 @@ namespace khoaluantotnghiep.Services
                 return new ToChucResponseDto
                 {
                     MaToChuc = toChuc.MaToChuc,
+                    MaTaiKhoan = toChuc.MaTaiKhoan,
                     TenToChuc = toChuc.TenToChuc,
                     Email = toChuc.Email,
                     SoDienThoai = toChuc.SoDienThoai,
                     DiaChi = toChuc.DiaChi,
                     NgayTao = toChuc.NgayTao,
                     GioiThieu = toChuc.GioiThieu,
-                    AnhDaiDien = toChuc.AnhDaiDien
+                    DiemTrungBinh = toChuc.DiemTrungBinh,
+                    AnhDaiDien = toChuc.AnhDaiDien,
+                    GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
                 };
             }
             catch (Exception ex)
@@ -228,14 +231,17 @@ namespace khoaluantotnghiep.Services
 
                 return toChucs.Select(t => new ToChucResponseDto
                 {
-                    MaToChuc = t.MaTaiKhoan,
+                    MaToChuc = t.MaToChuc,
+                    MaTaiKhoan = t.MaTaiKhoan,
                     TenToChuc = t.TenToChuc,
                     Email = t.Email,
+                    SoDienThoai = t.SoDienThoai,
                     DiaChi = t.DiaChi,
+                    NgayTao = t.NgayTao,
                     GioiThieu = t.GioiThieu,
                     AnhDaiDien = t.AnhDaiDien,
                     DiemTrungBinh = t.DiemTrungBinh,
-                    GiayToPhapLyIds = t.GiayToPhapLys?.Select(l => l.MaGiayTo).ToList(),
+                    GiayToPhapLyIds = t.GiayToPhapLys?.Select(l => l.MaGiayTo).ToList() ?? new List<int>()
                 }).ToList();
             }
             catch (Exception ex)
