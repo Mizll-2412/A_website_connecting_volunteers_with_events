@@ -55,6 +55,7 @@ namespace khoaluantotnghiep.DTOs
     public class ToChucResponseDto
     {
         public int MaToChuc { get; set; }
+        public int MaTaiKhoan { get; set; }
         public string? TenToChuc { get; set; }
         public string Email { get; set; }
         public string? SoDienThoai { get; set; }

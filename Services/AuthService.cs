@@ -38,7 +38,7 @@ namespace khoaluantotnghiep.Services
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Role, vaiTro ?? "User")
             };
-            var token = new JwtSecurityToken(   
+            var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
@@ -147,7 +147,9 @@ namespace khoaluantotnghiep.Services
 
                 _context.User.Add(newUser);
                 await _context.SaveChangesAsync();
-
+                int? maTNV = null;
+                int? maToChuc = null;
+                int? maAdmin = null;
                 if (newUser.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
                 {
                     var volunteer = new TinhNguyenVien
@@ -157,6 +159,9 @@ namespace khoaluantotnghiep.Services
                         Email = newUser.Email
                     };
                     _context.Volunteer.Add(volunteer);
+                    await _context.SaveChangesAsync();
+                    maTNV = volunteer.MaTNV;
+
                 }
                 else if (newUser.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
                 {
@@ -165,9 +170,10 @@ namespace khoaluantotnghiep.Services
                         MaTaiKhoan = newUser.MaTaiKhoan,
                         // TenToChuc = newUser.HoTen,
                         Email = newUser.Email
-
                     };
                     _context.Organization.Add(org);
+                    await _context.SaveChangesAsync();
+                    maToChuc = org.MaToChuc;
                 }
                 else if (newUser.VaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase))
                 {
@@ -178,6 +184,8 @@ namespace khoaluantotnghiep.Services
                         Email = newUser.Email
                     };
                     _context.Admin.Add(ad);
+                    await _context.SaveChangesAsync();
+                    maAdmin = ad.MaAdmin;
                 }
 
                 await _context.SaveChangesAsync();
@@ -193,7 +201,10 @@ namespace khoaluantotnghiep.Services
                         // HoTen = newUser.HoTen,
                         Email = newUser.Email,
                         VaiTro = newUser.VaiTro
-                    }
+                    },
+                    MaTNV = maTNV,
+                    MaToChuc = maToChuc,
+                    MaAdmin = maAdmin
                 };
             }
             catch (Exception ex)
