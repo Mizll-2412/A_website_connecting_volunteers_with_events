@@ -57,6 +57,7 @@ namespace khoaluantotnghiep.Controllers
         }
         // Lấy tất cả tổ chức
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllToChuc()
         {
             try
@@ -73,6 +74,7 @@ namespace khoaluantotnghiep.Controllers
 
 
         [HttpGet("{maToChuc}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetToChuc(int maToChuc)
         {
             try

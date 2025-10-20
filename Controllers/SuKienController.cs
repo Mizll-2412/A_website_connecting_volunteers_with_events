@@ -47,6 +47,7 @@ namespace khoaluantotnghiep.Controllers
 
 
         [HttpGet("{maSuKien}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetSuKien(int maSuKien)
         {
             try
@@ -61,6 +62,7 @@ namespace khoaluantotnghiep.Controllers
             }
         }
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllSuKien()
         {
             try
