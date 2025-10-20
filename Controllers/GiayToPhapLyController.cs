@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Tổ chức upload giấy tờ pháp lý
         [HttpPost("upload")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> UploadGiayTo([FromForm] UploadDocument uploadDto)
         {
             try
@@ -41,7 +41,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy danh sách giấy tờ của tổ chức
         [HttpGet("tochuc/{maToChuc}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> GetGiayToByToChuc(int maToChuc)
         {
             try
@@ -58,7 +58,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Xóa giấy tờ
         [HttpDelete("{maGiayTo}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> DeleteGiayTo(int maGiayTo)
         {
             try
@@ -109,7 +109,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy thông tin xác minh của tổ chức
         [HttpGet("thong-tin/{maToChuc}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> GetThongTinXacMinh(int maToChuc)
         {
             try

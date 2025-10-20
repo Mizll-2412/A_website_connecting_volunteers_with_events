@@ -78,7 +78,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpPut("{maSuKien}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> UpdateSuKien(int maSuKien, [FromForm] UpdateSuKienDto updateDto, IFormFile? anhFile)
         {
             try
@@ -99,7 +99,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpDelete("{maSuKien}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> DeleteSuKien(int maSuKien)
         {
             try
