@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Tạo mới tình nguyện viên
         [HttpPost]
-        [Authorize(Roles = "User, Admin")]
+        [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> CreateTinhNguyenVien([FromBody] CreateTinhNguyenVienDto createDto)
         {
             try
@@ -91,7 +91,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Cập nhật thông tin tình nguyện viên
         [HttpPut("{maTNV}")]
-        [Authorize(Roles = "User, Admin")]
+        [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> UpdateTinhNguyenVien(int maTNV, [FromForm] UpdateTinhNguyenVienDto updateDto, IFormFile? anhFile)
         {
             try
@@ -114,7 +114,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Xóa tình nguyện viên
         [HttpDelete("{maTNV}")]
-        [Authorize(Roles = "User, Admin")]
+        [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> DeleteTinhNguyenVien(int maTNV)
         {
             try
@@ -131,7 +131,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Upload ảnh đại diện
         [HttpPost("{maTNV}/upload-avatar")]
-        [Authorize(Roles = "User, Admin")]
+        [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> UploadAvatar(int maTNV, [FromForm] IFormFile anhFile)
         {
             try

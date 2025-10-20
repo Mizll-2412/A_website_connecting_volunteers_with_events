@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Controllers
 
         // Tạo mới tổ chức
         [HttpPost]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> CreateTochuc([FromBody] CreateToChucDto createDto)
         {
             try
@@ -91,7 +91,7 @@ namespace khoaluantotnghiep.Controllers
 
 
         [HttpPut("{maToChuc}")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> UpdateToChuc(int maToChuc, [FromForm] UpdateToChucDto updateDto, IFormFile? anhFile)
         {
             try
@@ -113,7 +113,7 @@ namespace khoaluantotnghiep.Controllers
         }
 
         [HttpPost("{maToChuc}/upload-avatar")]
-        [Authorize(Roles = "Organization, Admin")]
+        [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> UploadAvatar(int maToChuc, [FromForm] IFormFile anhFile)
         {
             try
