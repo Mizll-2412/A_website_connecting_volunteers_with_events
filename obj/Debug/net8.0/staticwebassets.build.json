@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "QyAAUN8eGg1jlklvuqqomNDwm4F7fQjYqnX6ZBWlCYE=",
+  "Hash": "B1VXxl8rpbsWJaISNQBNJduBepPM5CI+ZVROw/efBWg=",
   "Source": "khoaluantotnghiep",
   "BasePath": "_content/khoaluantotnghiep",
   "Mode": "Default",
@@ -224,6 +224,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\avatars\\f81ee63b-4b0b-49c8-a2e9-5335474d0e23.png"
+    },
+    {
+      "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\events\\df770277-0612-4c69-b9f9-fcff4ea41b1c.jpg",
+      "SourceId": "khoaluantotnghiep",
+      "SourceType": "Discovered",
+      "ContentRoot": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\",
+      "BasePath": "_content/khoaluantotnghiep",
+      "RelativePath": "uploads/events/df770277-0612-4c69-b9f9-fcff4ea41b1c.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\events\\df770277-0612-4c69-b9f9-fcff4ea41b1c.jpg"
     },
     {
       "Identity": "D:\\KhoaLuanTotNghiep\\khoaluantotnghiep\\wwwroot\\uploads\\organizations\\1_20251016130057.png",
