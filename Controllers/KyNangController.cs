@@ -38,7 +38,7 @@ namespace khoaluantotnghiep.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "Có lỗi xảy ra khi lấy danh sách lĩnh vực",
+                    message = "Có lỗi xảy ra khi lấy danh sách kỹ năng",
                     error = ex.Message
                 });
             }
@@ -73,7 +73,7 @@ namespace khoaluantotnghiep.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "Có lỗi xảy ra khi lấy thông tin lĩnh vực",
+                    message = "Có lỗi xảy ra khi lấy thông tin kỹ năng",
                     error = ex.Message
                 });
             }
@@ -99,7 +99,7 @@ namespace khoaluantotnghiep.Controllers
                 return CreatedAtAction(nameof(GetById), new { id = kyNang.MaKyNang }, new
                 {
                     success = true,
-                    message = "Tạo lĩnh vực thành công",
+                    message = "Tạo kỹ năng thành công",
                     data = kyNang
                 });
             }
