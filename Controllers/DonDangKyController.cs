@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Tình nguyện viên đăng ký sự kiện
         [HttpPost]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         public async Task<IActionResult> DangKySuKien([FromBody] CreateDonDangKyDto createDto)
         {
             try
@@ -41,7 +41,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy đơn đăng ký cụ thể
         [HttpGet("{maTNV}/{maSuKien}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         public async Task<IActionResult> GetDonDangKy(int maTNV, int maSuKien)
         {
             try
@@ -58,7 +58,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy danh sách đơn đăng ký của tình nguyện viên
         [HttpGet("volunteer/{maTNV}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         public async Task<IActionResult> GetDonDangKyByTNV(int maTNV)
         {
             try
@@ -109,7 +109,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Hủy đăng ký sự kiện
         [HttpDelete("{maTNV}/{maSuKien}")]
-        [Authorize(Roles = "User")]
+        [Authorize(Roles = "User, Admin")]
         public async Task<IActionResult> HuyDangKy(int maTNV, int maSuKien)
         {
             try
