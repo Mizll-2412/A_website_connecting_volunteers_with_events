@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
 using khoaluantotnghiep.Models;
@@ -80,6 +81,23 @@ namespace khoaluantotnghiep.Controllers
             try
             {
                 var result = await _service.GetToChucAsync(maToChuc);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        // Lấy tổ chức theo mã tài khoản
+        [HttpGet("by-account/{maTaiKhoan}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetToChucByMaTaiKhoan(int maTaiKhoan)
+        {
+            try
+            {
+                var result = await _service.GetToChucByMaTaiKhoanAsync(maTaiKhoan);
                 return Ok(new { data = result });
             }
             catch (Exception ex)

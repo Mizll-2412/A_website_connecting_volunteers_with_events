@@ -21,7 +21,7 @@ namespace khoaluantotnghiep.Models
         public string? HoTen { get; set; }
 
         [Column("NgaySinh")]
-        public DateOnly? NgaySinh { get; set; }
+        public DateTime? NgaySinh { get; set; }
 
         [Column("GioiTinh")]
         public string? GioiTinh { get; set; }
@@ -30,9 +30,14 @@ namespace khoaluantotnghiep.Models
         [StringLength(100)]
         [Column("Email")]
         public string Email { get; set; }
+
         [StringLength(12)]
         [Column("CCCD")]
         public string? CCCD { get; set; }
+
+        // [StringLength(12)]
+        // [Column("SoDienThoai")]
+        // public string? SoDienThoai { get; set; }
 
         [StringLength(255)]
         [Column("DiaChi")]
@@ -41,6 +46,7 @@ namespace khoaluantotnghiep.Models
         [StringLength(500)]
         [Column("GioiThieu")]
         public string? GioiThieu { get; set; }
+
         [StringLength(500)]
         [Column("AnhDaiDien")]
         public string? AnhDaiDien { get; set; }
