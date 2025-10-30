@@ -11,7 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = null;
+        options.JsonSerializerOptions.WriteIndented = false;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -29,6 +34,7 @@ builder.Services.AddScoped<IDanhGiaService, DanhGiaService>();
 builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
 builder.Services.AddScoped<ILinhVucService, LinhVucService>();
 builder.Services.AddScoped<IKyNangService, KyNangService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 builder.Services.AddAuthentication(options =>
 {

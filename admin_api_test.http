@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:5000/api
+@adminToken = {{adminLogin.response.body.token}}
+
+### Đăng nhập với tài khoản Admin
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Admin123!"
+}
+
+### Lấy danh sách tất cả tài khoản
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+### Lấy thông tin chi tiết một tài khoản
+GET {{baseUrl}}/admin/users/1
+Authorization: Bearer {{adminToken}}
+
+### Cập nhật vai trò người dùng
+PUT {{baseUrl}}/admin/users/2/role
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "vaiTro": "Organization"
+}
+
+### Khóa tài khoản
+PUT {{baseUrl}}/admin/users/3/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "trangThai": false
+}
+
+### Mở khóa tài khoản
+PUT {{baseUrl}}/admin/users/3/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "trangThai": true
+}
+
+### Xóa tài khoản
+DELETE {{baseUrl}}/admin/users/4
+Authorization: Bearer {{adminToken}}
+
+### Lấy danh sách tổ chức chờ xác minh
+GET {{baseUrl}}/admin/organizations/pending
+Authorization: Bearer {{adminToken}}
+
+### Xác minh tổ chức
+PUT {{baseUrl}}/admin/organizations/1/verify
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "daXacMinh": true
+}
+
+### Từ chối xác minh tổ chức
+PUT {{baseUrl}}/admin/organizations/2/verify
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "daXacMinh": false
+}

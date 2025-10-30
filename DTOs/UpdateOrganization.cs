@@ -65,6 +65,7 @@ namespace khoaluantotnghiep.DTOs
         public decimal? DiemTrungBinh { get; set; }
         public string? AnhDaiDien { get; set; }
         public List<int>? GiayToPhapLyIds { get; set; }
-
+        public byte? TrangThaiXacMinh { get; set; }
+        public string? LyDoTuChoi { get; set; }
     }
 }

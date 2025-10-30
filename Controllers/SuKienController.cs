@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
 
@@ -74,6 +75,23 @@ namespace khoaluantotnghiep.Controllers
             {
                 _logger.LogError($"Lỗi: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Lấy danh sách sự kiện theo mã tổ chức
+        [HttpGet("organization/{maToChuc}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetSuKiensByToChuc(int maToChuc)
+        {
+            try
+            {
+                var result = await _service.GetSuKiensByToChucAsync(maToChuc);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi khi lấy danh sách sự kiện theo tổ chức: {ex.Message}");
+                return NotFound(new { message = ex.Message });
             }
         }
 

@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using khoaluantotnghiep.Data;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.IO;
 
 namespace khoaluantotnghiep.Services
 {
@@ -56,17 +59,19 @@ namespace khoaluantotnghiep.Services
                     DiaChi = tinhNguyenVien.DiaChi,
                     GioiThieu = tinhNguyenVien.GioiThieu,
                     AnhDaiDien = tinhNguyenVien.AnhDaiDien,
+                    DiemTrungBinh = tinhNguyenVien.DiemTrungBinh,
                     LinhVucIds = linhVucIds,
                     KyNangIds = kyNangIds
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Lỗi lấy tính nguyện viên: {ex.Message}");
+                _logger.LogError($"Lỗi lấy tình nguyện viên: {ex.Message}");
                 throw;
             }
         }
-        public async Task<TinhNguyenVienResponseDto> GetTinhNguyenVienByAccountAsync(int maTaiKhoan)
+
+        public async Task<TinhNguyenVienResponseDto> GetTinhNguyenVienByMaTaiKhoanAsync(int maTaiKhoan)
         {
             try
             {
@@ -109,7 +114,116 @@ namespace khoaluantotnghiep.Services
                 throw;
             }
         }
-        public async Task<TinhNguyenVienResponseDto> UpdateTinhNguyenVienAsync(int maTNV, UpdateTinhNguyenVienDto updateDto)
+
+        public async Task<List<TinhNguyenVienResponseDto>> GetFeaturedTinhNguyenVienAsync()
+        {
+            try
+            {
+                // Lấy tình nguyện viên có điểm đánh giá cao nhất
+                var tinhNguyenViens = await _context.Volunteer
+                    .Include(t => t.TinhNguyenVien_LinhVucs)
+                        .ThenInclude(tl => tl.LinhVuc)
+                    .Include(t => t.TinhNguyenVien_KyNangs)
+                        .ThenInclude(tk => tk.KyNang)
+                    .OrderByDescending(t => t.DiemTrungBinh)
+                    .Take(50)  // Lấy top 50 tình nguyện viên có điểm cao nhất
+                    .ToListAsync();
+
+                var result = new List<TinhNguyenVienResponseDto>();
+                
+                foreach (var tnv in tinhNguyenViens)
+                {
+                    var kyNangs = tnv.TinhNguyenVien_KyNangs?
+                        .Select(k => new KyNangDto 
+                        { 
+                            MaKyNang = k.MaKyNang, 
+                            TenKyNang = k.KyNang?.TenKyNang 
+                        })
+                        .ToList() ?? new List<KyNangDto>();
+                    
+                    var linhVucs = tnv.TinhNguyenVien_LinhVucs?
+                        .Select(l => new LinhVucDto 
+                        { 
+                            MaLinhVuc = l.MaLinhVuc, 
+                            TenLinhVuc = l.LinhVuc?.TenLinhVuc 
+                        })
+                        .ToList() ?? new List<LinhVucDto>();
+                    
+                    result.Add(new TinhNguyenVienResponseDto
+                    {
+                        MaTNV = tnv.MaTNV,
+                        MaTaiKhoan = tnv.MaTaiKhoan,
+                        HoTen = tnv.HoTen,
+                        NgaySinh = tnv.NgaySinh,
+                        GioiTinh = tnv.GioiTinh,
+                        Email = tnv.Email,
+                        CCCD = tnv.CCCD,
+                        SoDienThoai = null, // Tạm thời để null vì model chưa có trường này
+                        DiaChi = tnv.DiaChi,
+                        GioiThieu = tnv.GioiThieu,
+                        AnhDaiDien = tnv.AnhDaiDien,
+                        DiemTrungBinh = tnv.DiemTrungBinh,
+                        KyNangs = kyNangs,
+                        LinhVucs = linhVucs
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy danh sách tình nguyện viên nổi bật: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<KyNangDto>> GetVolunteerSkillsAsync(int maTNV)
+        {
+            try
+            {
+                var skills = await _context.TinhNguyenVien_KyNang
+                    .Where(t => t.MaTNV == maTNV)
+                    .Include(t => t.KyNang)
+                    .Select(t => new KyNangDto
+                    {
+                        MaKyNang = t.MaKyNang,
+                        TenKyNang = t.KyNang.TenKyNang
+                    })
+                    .ToListAsync();
+
+                return skills;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy kỹ năng của tình nguyện viên: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<List<LinhVucDto>> GetVolunteerFieldsAsync(int maTNV)
+        {
+            try
+            {
+                var fields = await _context.TinhNguyenVien_LinhVuc
+                    .Where(t => t.MaTNV == maTNV)
+                    .Include(t => t.LinhVuc)
+                    .Select(t => new LinhVucDto
+                    {
+                        MaLinhVuc = t.MaLinhVuc,
+                        TenLinhVuc = t.LinhVuc.TenLinhVuc
+                    })
+                    .ToListAsync();
+
+                return fields;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy lĩnh vực của tình nguyện viên: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<TinhNguyenVienResponseDto> UpdateTinhNguyenVienAsync(int maTNV, UpdateTNVDto updateDto)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -128,20 +242,23 @@ namespace khoaluantotnghiep.Services
                     // Cập nhật thông tin cơ bản
                     tinhNguyenVien.HoTen = updateDto.HoTen?? tinhNguyenVien.HoTen;
                     tinhNguyenVien.NgaySinh = updateDto.NgaySinh ?? tinhNguyenVien.NgaySinh;
-                    tinhNguyenVien.GioiTinh = updateDto.GioiTinh ?? tinhNguyenVien.GioiThieu;
+                    tinhNguyenVien.GioiTinh = updateDto.GioiTinh ?? tinhNguyenVien.GioiTinh;
                     tinhNguyenVien.Email = updateDto.Email;
                     tinhNguyenVien.CCCD = updateDto.CCCD?? tinhNguyenVien.CCCD;
+                    // tinhNguyenVien.SoDienThoai = updateDto.SoDienThoai ?? tinhNguyenVien.SoDienThoai; // Tạm thời bỏ qua vì model chưa có trường này
                     tinhNguyenVien.DiaChi = updateDto.DiaChi??tinhNguyenVien.DiaChi;
                     tinhNguyenVien.GioiThieu = updateDto.GioiThieu ?? tinhNguyenVien.GioiThieu;
                     tinhNguyenVien.AnhDaiDien = updateDto.AnhDaiDien ?? tinhNguyenVien.AnhDaiDien;
+
                     var taiKhoan = await _context.User
-                .FirstOrDefaultAsync(t => t.MaTaiKhoan == tinhNguyenVien.MaTaiKhoan);
+                        .FirstOrDefaultAsync(t => t.MaTaiKhoan == tinhNguyenVien.MaTaiKhoan);
 
                     if (taiKhoan != null)
                     {
                         taiKhoan.Email = updateDto.Email;
                         _context.User.Update(taiKhoan);
                     }
+                    
                     // Cập nhật Lĩnh vực
                     if (updateDto.LinhVucIds != null)
                     {
@@ -188,12 +305,11 @@ namespace khoaluantotnghiep.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError($"Lỗi cập nhật tính nguyện viên: {ex.Message}");
+                    _logger.LogError($"Lỗi cập nhật tình nguyện viên: {ex.Message}");
                     throw;
                 }
             }
         }
-
 
         public async Task<string> UploadAnhDaiDienAsync(int maTNV, IFormFile anhFile)
         {
@@ -247,7 +363,7 @@ namespace khoaluantotnghiep.Services
             }
         }
 
-        public async Task<TinhNguyenVienResponseDto> CreateTinhNguyenVienAsync(CreateTinhNguyenVienDto createDto)
+        public async Task<TinhNguyenVienResponseDto> CreateTinhNguyenVienAsync(CreateTNVDto createDto)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
@@ -256,11 +372,13 @@ namespace khoaluantotnghiep.Services
                     var taiKhoan = await _context.User.FindAsync(createDto.MaTaiKhoan);
                     if (taiKhoan == null)
                         throw new Exception("Tài khoản không tồn tại");
+                    
                     var existingTNV = await _context.Volunteer
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == createDto.MaTaiKhoan);
 
                     if (existingTNV != null)
                         throw new Exception("Tài khoản này đã có hồ sơ tình nguyện viên");
+                    
                     var tinhNguyenVien = new TinhNguyenVien
                     {
                         MaTaiKhoan = createDto.MaTaiKhoan,
@@ -269,6 +387,7 @@ namespace khoaluantotnghiep.Services
                         GioiTinh = createDto.GioiTinh,
                         Email = createDto.Email,
                         CCCD = createDto.CCCD,
+                        // SoDienThoai = createDto.SoDienThoai, // Tạm thời bỏ qua vì model chưa có trường này
                         DiaChi = createDto.DiaChi,
                         GioiThieu = createDto.GioiThieu,
                         AnhDaiDien = createDto.AnhDaiDien
@@ -322,6 +441,7 @@ namespace khoaluantotnghiep.Services
                 }
             }
         }
+
         public async Task<List<TinhNguyenVienResponseDto>> GetAllTinhNguyenVienAsync()
         {
             try
@@ -340,6 +460,7 @@ namespace khoaluantotnghiep.Services
                     GioiTinh = t.GioiTinh,
                     Email = t.Email,
                     CCCD = t.CCCD,
+                    SoDienThoai = null, // Tạm thời để null vì model chưa có trường này
                     DiaChi = t.DiaChi,
                     GioiThieu = t.GioiThieu,
                     AnhDaiDien = t.AnhDaiDien,
@@ -368,6 +489,7 @@ namespace khoaluantotnghiep.Services
 
                     if (tinhNguyenVien == null)
                         throw new Exception("Tình nguyện viên không tồn tại");
+                    
                     _context.TinhNguyenVien_LinhVuc.RemoveRange(tinhNguyenVien.TinhNguyenVien_LinhVucs);
                     _context.TinhNguyenVien_KyNang.RemoveRange(tinhNguyenVien.TinhNguyenVien_KyNangs);
 
@@ -378,6 +500,7 @@ namespace khoaluantotnghiep.Services
                         if (File.Exists(filePath))
                             File.Delete(filePath);
                     }
+                    
                     _context.Volunteer.Remove(tinhNguyenVien);
 
                     await _context.SaveChangesAsync();

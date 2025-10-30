@@ -48,6 +48,8 @@ namespace khoaluantotnghiep.Services
                     GioiThieu = toChuc.GioiThieu,
                     DiemTrungBinh = toChuc.DiemTrungBinh,
                     AnhDaiDien = toChuc.AnhDaiDien,
+                    TrangThaiXacMinh = toChuc.TrangThaiXacMinh,
+                    LyDoTuChoi = toChuc.LyDoTuChoi,
                     GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
                 };
             }
@@ -239,12 +241,50 @@ namespace khoaluantotnghiep.Services
                     GioiThieu = t.GioiThieu,
                     AnhDaiDien = t.AnhDaiDien,
                     DiemTrungBinh = t.DiemTrungBinh,
+                    TrangThaiXacMinh = t.TrangThaiXacMinh,
+                    LyDoTuChoi = t.LyDoTuChoi,
                     GiayToPhapLyIds = t.GiayToPhapLys?.Select(l => l.MaGiayTo).ToList() ?? new List<int>()
                 }).ToList();
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi lấy danh sách tổ chức: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ToChucResponseDto> GetToChucByMaTaiKhoanAsync(int maTaiKhoan)
+        {
+            try
+            {
+                var toChuc = await _context.Organization
+                    .FirstOrDefaultAsync(t => t.MaTaiKhoan == maTaiKhoan);
+
+                if (toChuc == null)
+                {
+                    throw new Exception("Không tìm thấy tổ chức với mã tài khoản này");
+                }
+
+                return new ToChucResponseDto
+                {
+                    MaToChuc = toChuc.MaToChuc,
+                    MaTaiKhoan = toChuc.MaTaiKhoan,
+                    TenToChuc = toChuc.TenToChuc,
+                    Email = toChuc.Email,
+                    SoDienThoai = toChuc.SoDienThoai,
+                    DiaChi = toChuc.DiaChi,
+                    NgayTao = toChuc.NgayTao,
+                    GioiThieu = toChuc.GioiThieu,
+                    DiemTrungBinh = toChuc.DiemTrungBinh,
+                    AnhDaiDien = toChuc.AnhDaiDien,
+                    TrangThaiXacMinh = toChuc.TrangThaiXacMinh,
+                    LyDoTuChoi = toChuc.LyDoTuChoi,
+                    GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy tổ chức theo mã tài khoản: {ex.Message}");
                 throw;
             }
         }

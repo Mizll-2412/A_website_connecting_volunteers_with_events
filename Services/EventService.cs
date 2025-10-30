@@ -165,6 +165,48 @@ namespace khoaluantotnghiep.Services
                 throw;
             }
         }
+        
+        public async Task<List<SuKienResponseDto>> GetSuKiensByToChucAsync(int maToChuc)
+        {
+            try
+            {
+                var suKiens = await _context.Event
+                    .Include(s => s.SuKien_LinhVucs)
+                    .Include(s => s.SuKien_KyNangs)
+                    .Where(s => s.MaToChuc == maToChuc)
+                    .ToListAsync();
+
+                if (suKiens == null || !suKiens.Any())
+                {
+                    // Không tìm thấy sự kiện nào
+                    return new List<SuKienResponseDto>();
+                }
+
+                return suKiens.Select(s => new SuKienResponseDto
+                {
+                    MaSuKien = s.MaSuKien,
+                    MaToChuc = s.MaToChuc,
+                    TenSuKien = s.TenSuKien,
+                    NoiDung = s.NoiDung,
+                    SoLuong = s.SoLuong,
+                    DiaChi = s.DiaChi,
+                    NgayBatDau = s.NgayBatDau,
+                    NgayKetThuc = s.NgayKetThuc,
+                    NgayTao = s.NgayTao,
+                    TuyenBatDau = s.TuyenBatDau,
+                    TuyenKetThuc = s.TuyenKetThuc,
+                    TrangThai = s.TrangThai,
+                    HinhAnh = s.HinhAnh,
+                    LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
+                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy danh sách sự kiện theo tổ chức: {ex.Message}");
+                throw;
+            }
+        }
 
 
         public async Task<SuKienResponseDto> GetSuKienAsync(int maSuKien)
