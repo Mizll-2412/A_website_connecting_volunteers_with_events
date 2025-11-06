@@ -67,5 +67,9 @@ namespace khoaluantotnghiep.DTOs
         public List<int>? GiayToPhapLyIds { get; set; }
         public byte? TrangThaiXacMinh { get; set; }
         public string? LyDoTuChoi { get; set; }
+        // Thêm các thuộc tính cho SearchService
+        public string? MoTa { get; set; }
+        public string? Website { get; set; }
+        public string? Logo { get; set; }
     }
 }

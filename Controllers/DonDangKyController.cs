@@ -29,12 +29,19 @@ namespace khoaluantotnghiep.Controllers
         {
             try
             {
+                // Kiểm tra và xử lý dữ liệu đầu vào
+                if (createDto == null || createDto.MaTNV <= 0 || createDto.MaSuKien <= 0)
+                {
+                    return BadRequest(new { message = "Dữ liệu đăng ký không hợp lệ" });
+                }
+                
+                // Gọi service để đăng ký
                 var result = await _service.DangKySuKienAsync(createDto);
                 return Ok(new { message = "Đăng ký thành công", data = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Lỗi: {ex.Message}");
+                _logger.LogError($"Lỗi đăng ký sự kiện: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -116,6 +123,53 @@ namespace khoaluantotnghiep.Controllers
             {
                 await _service.HuyDangKyAsync(maTNV, maSuKien);
                 return Ok(new { message = "Hủy đăng ký thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// Lịch sử tham gia sự kiện của tình nguyện viên
+        [HttpGet("history/{maTNV}")]
+        [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> GetEventHistory(
+            int maTNV, 
+            [FromQuery] int? nam, 
+            [FromQuery] int? thang, 
+            [FromQuery] bool? hoanThanh, 
+            [FromQuery] bool? coGiayChungNhan)
+        {
+            try
+            {
+                var filter = new EventHistoryFilterDto
+                {
+                    Nam = nam,
+                    Thang = thang,
+                    HoanThanh = hoanThanh,
+                    CoGiayChungNhan = coGiayChungNhan
+                };
+
+                var result = await _service.GetEventHistoryAsync(maTNV, filter);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// Thống kê tham gia sự kiện của tình nguyện viên
+        [HttpGet("history/{maTNV}/stats")]
+        [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> GetEventHistoryStats(int maTNV)
+        {
+            try
+            {
+                var result = await _service.GetEventHistoryStatsAsync(maTNV);
+                return Ok(new { data = result });
             }
             catch (Exception ex)
             {

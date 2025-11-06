@@ -72,6 +72,19 @@ namespace khoaluantotnghiep.Controllers
             return Ok(new { Message = "Xóa tài khoản thành công" });
         }
 
+        [HttpPost("users/{id}/reset-password")]
+        public async Task<IActionResult> AdminResetPassword(int id, [FromBody] AdminResetPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _adminService.AdminResetPasswordAsync(id, request.NewPassword);
+            if (!result)
+                return NotFound(new { Message = "Không tìm thấy tài khoản" });
+
+            return Ok(new { Message = "Đặt lại mật khẩu thành công" });
+        }
+
         // API quản lý tổ chức
         [HttpGet("organizations")]
         public async Task<IActionResult> GetAllOrganizations()

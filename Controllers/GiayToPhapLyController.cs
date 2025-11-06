@@ -22,19 +22,27 @@ namespace khoaluantotnghiep.Controllers
             _logger = logger;
         }
 
-        /// Tổ chức upload giấy tờ pháp lý
+        /// Tổ chức upload nhiều giấy tờ pháp lý cùng lúc
         [HttpPost("upload")]
         [Authorize(Roles = "Organization,Admin")]
         public async Task<IActionResult> UploadGiayTo([FromForm] UploadDocument uploadDto)
         {
             try
             {
-                var result = await _service.UploadGiayToAsync(uploadDto);
-                return Ok(new { message = "Upload giấy tờ thành công", data = result });
+                if (uploadDto.Files == null || uploadDto.Files.Length == 0)
+                {
+                    return BadRequest(new { message = "Không có file nào được chọn" });
+                }
+
+                var results = await _service.UploadGiayToAsync(uploadDto);
+                return Ok(new { 
+                    message = $"Upload thành công {results.Count} giấy tờ", 
+                    data = results 
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Lỗi: {ex.Message}");
+                _logger.LogError($"Lỗi upload giấy tờ: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
         }

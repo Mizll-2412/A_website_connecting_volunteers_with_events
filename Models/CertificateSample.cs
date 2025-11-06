@@ -12,9 +12,19 @@ namespace khoaluantotnghiep.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaMau { get; set; }
 
-        [Required]
         [Column("MaSuKien")]
-        public int MaSuKien { get; set; }
+        public int? MaSuKien { get; set; }
+
+        [StringLength(255)]
+        [Column("TenMau")]
+        public string? TenMau { get; set; }
+
+        [StringLength(500)]
+        [Column("MoTa")]
+        public string? MoTa { get; set; }
+
+        [Column("IsDefault")]
+        public bool IsDefault { get; set; }
 
         [Column("NgayGui")]
         public DateTime? NgayGui { get; set; }
@@ -24,6 +34,6 @@ namespace khoaluantotnghiep.Models
         public string? File { get; set; }
 
         [ForeignKey("MaSuKien")]
-        public virtual SuKien SuKien { get; set; }
+        public virtual SuKien? SuKien { get; set; }
     }
 }

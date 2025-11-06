@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace khoaluantotnghiep.Services
@@ -62,6 +64,34 @@ namespace khoaluantotnghiep.Services
                 return false;
 
             _context.User.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AdminResetPasswordAsync(int userId, string newPassword)
+        {
+            var user = await _context.User.FirstOrDefaultAsync(u => u.MaTaiKhoan == userId);
+            if (user == null)
+                return false;
+
+            // Tạo salt mới và hash mật khẩu mới (giống cách AuthService)
+            var saltBytes = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(saltBytes);
+            }
+            var salt = Convert.ToBase64String(saltBytes);
+            
+            using (var sha256 = SHA256.Create())
+            {
+                var passwordBytes = Encoding.UTF8.GetBytes(newPassword + salt);
+                var hashBytes = sha256.ComputeHash(passwordBytes);
+                var hashedPassword = Convert.ToBase64String(hashBytes);
+                
+                user.Password = hashedPassword;
+                user.PasswordSalt = salt;
+            }
+            
             await _context.SaveChangesAsync();
             return true;
         }

@@ -91,6 +91,8 @@ namespace khoaluantotnghiep.DTOs
         public string? GioiThieu { get; set; }
         public string? AnhDaiDien { get; set; }
         public decimal? DiemTrungBinh { get; set; }
+        public string? CapBac { get; set; }
+        public int? TongSuKienThamGia { get; set; }
         public List<int>? LinhVucIds { get; set; }
         public List<int>? KyNangIds { get; set; }
         public List<KyNangDto>? KyNangs { get; set; }

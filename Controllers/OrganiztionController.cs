@@ -149,5 +149,43 @@ namespace khoaluantotnghiep.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // Tổ chức gửi yêu cầu xác minh
+        [HttpPost("request-verification")]
+        [Authorize(Roles = "Organization")]
+        public async Task<IActionResult> RequestVerification([FromBody] RequestVerificationDto requestDto)
+        {
+            try
+            {
+                var result = await _service.RequestVerificationAsync(requestDto);
+                return Ok(new
+                {
+                    message = "Gửi yêu cầu xác minh thành công",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi yêu cầu xác minh: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Kiểm tra trạng thái xác minh
+        [HttpGet("{maToChuc}/verification-status")]
+        [Authorize(Roles = "Organization,Admin")]
+        public async Task<IActionResult> GetVerificationStatus(int maToChuc)
+        {
+            try
+            {
+                var result = await _service.GetVerificationStatusAsync(maToChuc);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi kiểm tra trạng thái xác minh: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

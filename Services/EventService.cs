@@ -38,6 +38,13 @@ namespace khoaluantotnghiep.Services
                     {
                         throw new Exception("Tổ chức không tồn tại");
                     }
+                    
+                    // Kiểm tra xác minh tổ chức
+                    if (toChuc.TrangThaiXacMinh != 1) // 1 = Đã duyệt
+                    {
+                        throw new Exception("Tổ chức chưa được xác minh. Vui lòng hoàn tất quá trình xác minh trước khi tạo sự kiện.");
+                    }
+                    
                     var suKien = new SuKien
                     {
                         MaToChuc = createDto.MaToChuc,
@@ -153,7 +160,7 @@ namespace khoaluantotnghiep.Services
                     NgayTao = s.NgayTao,
                     TuyenBatDau = s.TuyenBatDau,
                     TuyenKetThuc = s.TuyenKetThuc,
-                    TrangThai = s.TrangThai,
+                    TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
@@ -195,7 +202,7 @@ namespace khoaluantotnghiep.Services
                     NgayTao = s.NgayTao,
                     TuyenBatDau = s.TuyenBatDau,
                     TuyenKetThuc = s.TuyenKetThuc,
-                    TrangThai = s.TrangThai,
+                    TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
@@ -234,7 +241,7 @@ namespace khoaluantotnghiep.Services
                     NgayTao = suKien.NgayTao,
                     TuyenBatDau = suKien.TuyenBatDau,
                     TuyenKetThuc = suKien.TuyenKetThuc,
-                    TrangThai = suKien.TrangThai,
+                    TrangThai = int.TryParse(suKien.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = suKien.HinhAnh,
                     LinhVucIds = suKien.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()

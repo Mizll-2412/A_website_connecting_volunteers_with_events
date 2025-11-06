@@ -18,6 +18,9 @@ namespace khoaluantotnghiep.Models
         [Column("MaTNV")]
         public int MaTNV { get; set; }
 
+        [Column("MaSuKien")]
+        public int MaSuKien { get; set; }
+
         [Column("NgayCap")]
         public DateTime? NgayCap { get; set; }
 
@@ -30,5 +33,8 @@ namespace khoaluantotnghiep.Models
 
         [ForeignKey("MaTNV")]
         public virtual TinhNguyenVien TinhNguyenVien { get; set; }
+
+        [ForeignKey("MaSuKien")]
+        public virtual SuKien SuKien { get; set; }
     }
 }

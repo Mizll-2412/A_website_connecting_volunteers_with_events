@@ -27,6 +27,10 @@ namespace khoaluantotnghiep.Models
         [Column("File")]
         public string? File { get; set; }
 
+        [StringLength(500)]
+        [Column("MoTa")]
+        public string? MoTa { get; set; }
+
         [ForeignKey("MaToChuc")]
         public virtual ToChuc ToChuc { get; set; }
     }

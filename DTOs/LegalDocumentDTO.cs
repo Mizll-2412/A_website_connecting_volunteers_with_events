@@ -13,7 +13,10 @@ namespace khoaluantotnghiep.DTOs
         public string TenGiayTo { get; set; }
 
         [Required]
-        public IFormFile File { get; set; }
+        public IFormFile[] Files { get; set; }
+
+        [StringLength(500)]
+        public string? MoTa { get; set; }
     }
     public class XacMinhToChucDto
     {
@@ -31,6 +34,7 @@ namespace khoaluantotnghiep.DTOs
         public string? TenGiayTo { get; set; }
         public DateTime NgayTao { get; set; }
         public string? File { get; set; }
+        public string? MoTa { get; set; }
     }
 
     public class ToChucXacMinhResponseDto

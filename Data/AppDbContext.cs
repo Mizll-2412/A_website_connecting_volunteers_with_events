@@ -25,6 +25,8 @@ namespace khoaluantotnghiep.Data
         public DbSet<DanhGia> DanhGia { get; set; }
         public DbSet<MauGiayChungNhan> MauGiayChungNhan { get; set; }
         public DbSet<GiayChungNhan> GiayChungNhan { get; set; }
+        public DbSet<TokenResetMatKhau> TokenResetMatKhau { get; set; }
+        public DbSet<TokenDoiEmail> TokenDoiEmail { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -41,6 +43,52 @@ namespace khoaluantotnghiep.Data
 
             modelBuilder.Entity<TinhNguyenVien_KyNang>()
                 .HasKey(tl => new { tl.MaTNV, tl.MaKyNang });
+                
+            // Cấu hình NguoiNhanThongBao để tránh multiple cascade paths
+            modelBuilder.Entity<NguoiNhanThongBao>()
+                .HasOne(n => n.ThongBao)
+                .WithMany()
+                .HasForeignKey(n => n.MaThongBao)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            // Cấu hình DanhGia để tránh multiple cascade paths
+            modelBuilder.Entity<DanhGia>()
+                .HasOne(d => d.NguoiDanhGia)
+                .WithMany()
+                .HasForeignKey(d => d.MaNguoiDanhGia)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            modelBuilder.Entity<DanhGia>()
+                .HasOne(d => d.NguoiDuocDanhGia)
+                .WithMany()
+                .HasForeignKey(d => d.MaNguoiDuocDanhGia)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            // Cấu hình DonDangKy để tránh multiple cascade paths
+            modelBuilder.Entity<DonDangKy>()
+                .HasKey(d => new { d.MaTNV, d.MaSuKien });
+                
+            modelBuilder.Entity<DonDangKy>()
+                .HasOne(d => d.SuKien)
+                .WithMany()
+                .HasForeignKey(d => d.MaSuKien)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            // Cấu hình GiayChungNhan để tránh multiple cascade paths
+            modelBuilder.Entity<GiayChungNhan>()
+                .HasOne(g => g.TinhNguyenVien)
+                .WithMany()
+                .HasForeignKey(g => g.MaTNV)
+                .OnDelete(DeleteBehavior.NoAction);
+                
+            // Cấu hình precision cho decimal properties
+            modelBuilder.Entity<TinhNguyenVien>()
+                .Property(t => t.DiemTrungBinh)
+                .HasPrecision(3, 1);
+                
+            modelBuilder.Entity<ToChuc>()
+                .Property(t => t.DiemTrungBinh)
+                .HasPrecision(3, 1);
         }
     }
 

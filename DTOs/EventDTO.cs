@@ -79,6 +79,7 @@ namespace khoaluantotnghiep.DTOs
         public int MaToChuc { get; set; }
         public string TenSuKien { get; set; }
         public string NoiDung { get; set; }
+        public string MoTa { get; set; } // Thêm thuộc tính cho SearchService
         public int? SoLuong { get; set; }
         public string? DiaChi { get; set; }
         public DateTime? NgayBatDau { get; set; }
@@ -86,9 +87,14 @@ namespace khoaluantotnghiep.DTOs
         public DateTime? NgayTao { get; set; }
         public DateTime? TuyenBatDau { get; set; }
         public DateTime? TuyenKetThuc { get; set; }
-        public string? TrangThai { get; set; }
+        public int TrangThai { get; set; } // Chuyển từ string sang int để phù hợp với model
         public string? HinhAnh { get; set; }
         public List<int>? LinhVucIds { get; set; }
         public List<int>? KyNangIds { get; set; }
+        // Thêm các thuộc tính cho SearchService
+        public string? TenToChuc { get; set; }
+        public bool? TrangThaiXacMinhToChuc { get; set; }
+        public List<LinhVucDto>? LinhVucs { get; set; }
+        public List<KyNangDto>? KyNangs { get; set; }
     }
 }

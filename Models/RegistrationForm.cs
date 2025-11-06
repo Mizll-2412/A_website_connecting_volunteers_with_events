@@ -7,7 +7,7 @@ namespace khoaluantotnghiep.Models
     [Table("DonDangKy")]
     public class DonDangKy
     {
-        [Key, Column("MaTNV")]
+        [Column("MaTNV")]
         public int MaTNV { get; set; }
 
         [Required]

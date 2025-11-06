@@ -52,6 +52,15 @@ namespace khoaluantotnghiep.DTOs
         public string? TenNguoi { get; set; }
         public decimal DiemTrungBinh { get; set; }
         public int TongSoDanhGia { get; set; }
+        public string? CapBac { get; set; }
+        public int TongSuKienThamGia { get; set; }
         public List<DanhGiaResponseDto>? DanhSachs { get; set; }
+    }
+    
+    public class CapBacDto
+    {
+        public string Ten { get; set; }
+        public decimal DiemTuongUng { get; set; }
+        public string? MoTa { get; set; }
     }
 }
