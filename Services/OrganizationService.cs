@@ -325,5 +325,96 @@ namespace khoaluantotnghiep.Services
                 }
             }
         }
+        
+        /// <summary>
+        /// Tổ chức gửi yêu cầu xác minh
+        /// </summary>
+        public async Task<VerificationStatusResponseDto> RequestVerificationAsync(RequestVerificationDto requestDto)
+        {
+            try
+            {
+                var toChuc = await _context.Organization
+                    .Include(t => t.GiayToPhapLys)
+                    .FirstOrDefaultAsync(t => t.MaToChuc == requestDto.MaToChuc);
+                    
+                if (toChuc == null)
+                {
+                    throw new Exception("Tổ chức không tồn tại");
+                }
+                
+                // Kiểm tra xem có giấy tờ pháp lý không
+                if (toChuc.GiayToPhapLys == null || !toChuc.GiayToPhapLys.Any())
+                {
+                    throw new Exception("Cần tải lên ít nhất một giấy tờ pháp lý để yêu cầu xác minh");
+                }
+                
+                // Nếu đã xác minh rồi
+                if (toChuc.TrangThaiXacMinh == 1)
+                {
+                    throw new Exception("Tổ chức đã được xác minh");
+                }
+                
+                // Cập nhật trạng thái xác minh
+                toChuc.TrangThaiXacMinh = 2; // 2 = Đang chờ xác minh
+                
+                await _context.SaveChangesAsync();
+                
+                return await GetVerificationStatusAsync(requestDto.MaToChuc);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi yêu cầu xác minh: {ex.Message}");
+                throw;
+            }
+        }
+        
+        /// <summary>
+        /// Lấy thông tin trạng thái xác minh của tổ chức
+        /// </summary>
+        public async Task<VerificationStatusResponseDto> GetVerificationStatusAsync(int maToChuc)
+        {
+            try
+            {
+                var toChuc = await _context.Organization
+                    .FirstOrDefaultAsync(t => t.MaToChuc == maToChuc);
+                    
+                if (toChuc == null)
+                {
+                    throw new Exception("Tổ chức không tồn tại");
+                }
+                
+                string trangThaiText = "Chưa xác minh";
+                switch (toChuc.TrangThaiXacMinh)
+                {
+                    case 1:
+                        trangThaiText = "Đã xác minh";
+                        break;
+                    case 2:
+                        trangThaiText = "Đang chờ xác minh";
+                        break;
+                    case 3:
+                        trangThaiText = "Đã từ chối";
+                        break;
+                    default:
+                        trangThaiText = "Chưa xác minh";
+                        break;
+                }
+                
+                return new VerificationStatusResponseDto
+                {
+                    MaToChuc = toChuc.MaToChuc,
+                    TenToChuc = toChuc.TenToChuc,
+                    TrangThaiXacMinh = toChuc.TrangThaiXacMinh,
+                    TrangThaiXacMinhText = trangThaiText,
+                    LyDoTuChoi = toChuc.LyDoTuChoi,
+                    DaGuiYeuCauXacMinh = toChuc.TrangThaiXacMinh > 0
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy thông tin xác minh: {ex.Message}");
+                throw;
+            }
+        }
     }
 }

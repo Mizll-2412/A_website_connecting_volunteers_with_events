@@ -24,7 +24,7 @@ namespace khoaluantotnghiep.Services
             _env = env;
         }
 
-        public async Task<GiayToPhapLyResponseDto> UploadGiayToAsync(UploadDocument uploadDto)
+        public async Task<List<GiayToPhapLyResponseDto>> UploadGiayToAsync(UploadDocument uploadDto)
         {
             try
             {
@@ -32,51 +32,71 @@ namespace khoaluantotnghiep.Services
                 if (toChuc == null)
                     throw new Exception("Tổ chức không tồn tại");
 
-                if (uploadDto.File == null || uploadDto.File.Length == 0)
-                    throw new Exception("File không hợp lệ");
+                if (uploadDto.Files == null || uploadDto.Files.Length == 0)
+                    throw new Exception("Không có file được chọn");
 
-                if (uploadDto.File.Length > MaxFileSize)
-                    throw new Exception("File quá lớn (tối đa 10MB)");
-
-                var ext = Path.GetExtension(uploadDto.File.FileName).ToLower();
-                if (!AllowedExtensions.Contains(ext))
-                    throw new Exception("Chỉ hỗ trợ file PDF, JPG, PNG");
-
+                // Tạo thư mục lưu trữ nếu chưa tồn tại
                 var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var uploadPath = Path.Combine(webRootPath, "uploads", "avatars"); if (!Directory.Exists(uploadPath))
+                var uploadPath = Path.Combine(webRootPath, "uploads", "documents");
+                if (!Directory.Exists(uploadPath))
                     Directory.CreateDirectory(uploadPath);
 
-                var fileName = $"{uploadDto.MaToChuc}_{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploadPath, fileName);
+                var uploadedFiles = new List<GiayToPhapLyResponseDto>();
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                // Xử lý từng file
+                foreach (var file in uploadDto.Files)
                 {
-                    await uploadDto.File.CopyToAsync(stream);
+                    // Kiểm tra kích thước và định dạng file
+                    if (file.Length == 0)
+                        continue; // Bỏ qua file rỗng
+                        
+                    if (file.Length > MaxFileSize)
+                        throw new Exception($"File '{file.FileName}' quá lớn (tối đa 10MB)");
+
+                    var ext = Path.GetExtension(file.FileName).ToLower();
+                    if (!AllowedExtensions.Contains(ext))
+                        throw new Exception($"File '{file.FileName}' không được hỗ trợ (chỉ hỗ trợ PDF, JPG, PNG)");
+
+                    // Tạo tên file duy nhất và lưu file
+                    var fileName = $"{uploadDto.MaToChuc}_{Guid.NewGuid()}{ext}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Tạo bản ghi giấy tờ pháp lý
+                    var giayTo = new GiayToPhapLy
+                    {
+                        MaToChuc = uploadDto.MaToChuc,
+                        TenGiayTo = uploadDto.TenGiayTo,
+                        NgayTao = DateTime.Now,
+                        File = $"/uploads/documents/{fileName}",
+                        MoTa = uploadDto.MoTa
+                    };
+
+                    _context.GiayToPhapLy.Add(giayTo);
+                    await _context.SaveChangesAsync(); // Lưu ngay để lấy MaGiayTo
+
+                    // Thêm vào danh sách kết quả
+                    uploadedFiles.Add(new GiayToPhapLyResponseDto
+                    {
+                        MaGiayTo = giayTo.MaGiayTo,
+                        MaToChuc = giayTo.MaToChuc,
+                        TenGiayTo = giayTo.TenGiayTo,
+                        NgayTao = giayTo.NgayTao,
+                        File = giayTo.File,
+                        MoTa = giayTo.MoTa
+                    });
                 }
 
-                var giayTo = new GiayToPhapLy
-                {
-                    MaToChuc = uploadDto.MaToChuc,
-                    TenGiayTo = uploadDto.TenGiayTo,
-                    NgayTao = DateTime.Now,
-                    File = $"/uploads/documents/{fileName}"
-                };
-
-                _context.GiayToPhapLy.Add(giayTo);
-
+                // Đặt trạng thái tổ chức về "Chờ duyệt"
                 toChuc.TrangThaiXacMinh = 0;
                 toChuc.LyDoTuChoi = null;
-
                 await _context.SaveChangesAsync();
 
-                return new GiayToPhapLyResponseDto
-                {
-                    MaGiayTo = giayTo.MaGiayTo,
-                    MaToChuc = giayTo.MaToChuc,
-                    TenGiayTo = giayTo.TenGiayTo,
-                    NgayTao = giayTo.NgayTao,
-                    File = giayTo.File
-                };
+                return uploadedFiles;
             }
             catch (Exception ex)
             {
@@ -100,7 +120,8 @@ namespace khoaluantotnghiep.Services
                     MaToChuc = g.MaToChuc,
                     TenGiayTo = g.TenGiayTo,
                     NgayTao = g.NgayTao,
-                    File = g.File
+                    File = g.File,
+                    MoTa = g.MoTa
                 }).ToList();
             }
             catch (Exception ex)
@@ -222,7 +243,8 @@ namespace khoaluantotnghiep.Services
                     MaToChuc = g.MaToChuc,
                     TenGiayTo = g.TenGiayTo,
                     NgayTao = g.NgayTao,
-                    File = g.File
+                    File = g.File,
+                    MoTa = g.MoTa
                 }).ToList()
             };
         }

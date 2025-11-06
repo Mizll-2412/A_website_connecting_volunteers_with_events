@@ -9,7 +9,6 @@ namespace khoaluantotnghiep.Models
     {
         [Key]
         [Column("MaNguoiNhanThongBao")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int MaNguoiNhanThongBao { get; set; }
 
         [Required]

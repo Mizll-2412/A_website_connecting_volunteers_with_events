@@ -81,8 +81,8 @@ namespace khoaluantotnghiep.Services
                     _context.DanhGia.Add(danhGia);
                     await _context.SaveChangesAsync();
 
-                    // 7. Cập nhật điểm trung bình
-                    await CapNhatDiemTrungBinhAsync(createDto.MaNguoiDuocDanhGia);
+                    // 7. Cập nhật điểm trung bình và cấp bậc
+                    await CapNhatDiemVaCapBacAsync(createDto.MaNguoiDuocDanhGia);
 
                     await transaction.CommitAsync();
 
@@ -171,12 +171,25 @@ namespace khoaluantotnghiep.Services
 
             string tenNguoi = "";
             decimal diemTB = 0;
+            string capBac = null;
+            int tongSuKienThamGia = 0;
 
             if (taiKhoan.VaiTro == "User")
             {
                 var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maNguoi);
                 tenNguoi = tnv?.HoTen ?? "";
                 diemTB = tnv?.DiemTrungBinh ?? 0;
+                
+                // Nếu chưa có cấp bậc, cập nhật
+                if (string.IsNullOrEmpty(tnv?.CapBac))
+                {
+                    await CapNhatDiemVaCapBacAsync(maNguoi);
+                    // Refresh từ database sau khi cập nhật
+                    tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maNguoi);
+                }
+                
+                capBac = tnv?.CapBac;
+                tongSuKienThamGia = tnv?.TongSuKienThamGia ?? 0;
             }
             else if (taiKhoan.VaiTro == "Organization")
             {
@@ -191,6 +204,8 @@ namespace khoaluantotnghiep.Services
                 TenNguoi = tenNguoi,
                 DiemTrungBinh = diemTB,
                 TongSoDanhGia = danhGias.Count,
+                CapBac = capBac,
+                TongSuKienThamGia = tongSuKienThamGia,
                 DanhSachs = danhGias
             };
         }
@@ -274,20 +289,21 @@ namespace khoaluantotnghiep.Services
                 throw new InvalidOperationException("Tình nguyện viên chưa tham gia sự kiện này");
         }
 
-        private async Task CapNhatDiemTrungBinhAsync(int maTaiKhoan)
+        private async Task<decimal> CapNhatDiemTrungBinhAsync(int maTaiKhoan)
         {
             var danhGias = await _context.DanhGia
                 .Where(d => d.MaNguoiDuocDanhGia == maTaiKhoan)
                 .ToListAsync();
 
-            if (!danhGias.Any())
-                return;
-
-            decimal diemTB = Math.Round((decimal)danhGias.Average(d => d.DiemSo), 1);
+            decimal diemTB = 0;
+            if (danhGias.Any())
+            {
+                diemTB = Math.Round((decimal)danhGias.Average(d => d.DiemSo), 1);
+            }
 
             var taiKhoan = await _context.User.FindAsync(maTaiKhoan);
             if (taiKhoan == null)
-                return;
+                return diemTB;
 
             if (taiKhoan.VaiTro == "User")
             {
@@ -307,6 +323,78 @@ namespace khoaluantotnghiep.Services
             }
 
             await _context.SaveChangesAsync();
+            return diemTB;
+        }
+        
+        public async Task<decimal> TinhDiemTrungBinhAsync(int maNguoi)
+        {
+            return await CapNhatDiemTrungBinhAsync(maNguoi);
+        }
+        
+        public async Task<List<CapBacDto>> GetDanhSachCapBacAsync()
+        {
+            // Danh sách cấp bậc cố định
+            return new List<CapBacDto>
+            {
+                new CapBacDto { Ten = "Tình nguyện viên Mới", DiemTuongUng = 0, MoTa = "Tình nguyện viên mới tham gia hệ thống" },
+                new CapBacDto { Ten = "Tình nguyện viên Đồng", DiemTuongUng = 2, MoTa = "Đã tham gia ít nhất 1 sự kiện và có đánh giá trung bình từ 2 sao" },
+                new CapBacDto { Ten = "Tình nguyện viên Bạc", DiemTuongUng = 3, MoTa = "Có đánh giá trung bình từ 3 sao" },
+                new CapBacDto { Ten = "Tình nguyện viên Vàng", DiemTuongUng = 4, MoTa = "Có đánh giá trung bình từ 4 sao" },
+                new CapBacDto { Ten = "Tình nguyện viên Kim Cương", DiemTuongUng = 4.5M, MoTa = "Có đánh giá trung bình từ 4.5 sao" }
+            };
+        }
+        
+        public async Task<string> GetCapBacTheoSoSaoAsync(decimal soSao)
+        {
+            var danhSachCapBac = await GetDanhSachCapBacAsync();
+            
+            // Tìm cấp bậc phù hợp dựa trên số sao
+            var capBac = danhSachCapBac
+                .OrderByDescending(c => c.DiemTuongUng)
+                .FirstOrDefault(c => c.DiemTuongUng <= soSao);
+                
+            return capBac?.Ten ?? "Tình nguyện viên Mới";
+        }
+        
+        public async Task<bool> CapNhatDiemVaCapBacAsync(int maNguoi)
+        {
+            try
+            {
+                // Cập nhật điểm trung bình
+                var diemTB = await CapNhatDiemTrungBinhAsync(maNguoi);
+                
+                // Lấy tài khoản
+                var taiKhoan = await _context.User.FindAsync(maNguoi);
+                if (taiKhoan == null)
+                    return false;
+                    
+                // Chỉ cập nhật cấp bậc cho tình nguyện viên
+                if (taiKhoan.VaiTro == "User")
+                {
+                    var tnv = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == maNguoi);
+                    if (tnv != null)
+                    {
+                        // Lấy cấp bậc dựa trên số sao
+                        var capBac = await GetCapBacTheoSoSaoAsync(diemTB);
+                        tnv.CapBac = capBac;
+                        
+                        // Cập nhật tổng số sự kiện đã tham gia
+                        var tongSuKien = await _context.DonDangKy
+                            .CountAsync(d => d.MaTNV == tnv.MaTNV && d.TrangThai == 1); // Đã duyệt
+                            
+                        tnv.TongSuKienThamGia = tongSuKien;
+                        
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi cập nhật điểm và cấp bậc: {ex.Message}");
+                return false;
+            }
         }
 
         private async Task<DanhGiaResponseDto> MapToDtoAsync(DanhGia danhGia)

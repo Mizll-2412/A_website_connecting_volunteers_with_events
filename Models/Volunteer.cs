@@ -35,9 +35,9 @@ namespace khoaluantotnghiep.Models
         [Column("CCCD")]
         public string? CCCD { get; set; }
 
-        // [StringLength(12)]
-        // [Column("SoDienThoai")]
-        // public string? SoDienThoai { get; set; }
+        [StringLength(12)]
+        [Column("SoDienThoai")]
+        public string? SoDienThoai { get; set; }
 
         [StringLength(255)]
         [Column("DiaChi")]
@@ -55,6 +55,13 @@ namespace khoaluantotnghiep.Models
         public virtual TaiKhoan TaiKhoan { get; set; }
         [Column("DiemTrungBinh")]
         public decimal? DiemTrungBinh { get; set; }
+        
+        [StringLength(50)]
+        [Column("CapBac")]
+        public string? CapBac { get; set; }
+        
+        [Column("TongSuKienThamGia")]
+        public int? TongSuKienThamGia { get; set; }
 
         public virtual ICollection<TinhNguyenVien_LinhVuc> TinhNguyenVien_LinhVucs { get; set; } = new List<TinhNguyenVien_LinhVuc>();
         public virtual ICollection<TinhNguyenVien_KyNang> TinhNguyenVien_KyNangs { get; set; } = new List<TinhNguyenVien_KyNang>();

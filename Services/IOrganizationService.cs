@@ -1,4 +1,7 @@
 using khoaluantotnghiep.DTOs;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace khoaluantotnghiep.Services
 {
@@ -11,5 +14,9 @@ namespace khoaluantotnghiep.Services
         Task<List<ToChucResponseDto>> GetAllToChucAsync();
         Task<bool> DeleteToChucAsync(int maTNV);
         Task<string> UploadAnhDaiDienAsync(int maToChuc, IFormFile anhFile);
+        
+        // Chức năng liên quan đến xác minh tổ chức
+        Task<VerificationStatusResponseDto> RequestVerificationAsync(RequestVerificationDto requestDto);
+        Task<VerificationStatusResponseDto> GetVerificationStatusAsync(int maToChuc);
     }
 }

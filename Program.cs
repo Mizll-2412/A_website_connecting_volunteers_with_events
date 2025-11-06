@@ -5,7 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using khoaluantotnghiep.Services;
 using System.Text;
 
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// Đã chuyển sang SQL Server, không cần thiết lập cho PostgreSQL nữa
+// AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +22,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 Console.WriteLine(builder.Configuration.GetConnectionString("DefaultConnection"));
 
@@ -35,6 +36,11 @@ builder.Services.AddScoped<ILegalDocumentService, LegalDocumentService>();
 builder.Services.AddScoped<ILinhVucService, LinhVucService>();
 builder.Services.AddScoped<IKyNangService, KyNangService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 builder.Services.AddAuthentication(options =>
 {

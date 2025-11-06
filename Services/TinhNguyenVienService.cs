@@ -56,10 +56,13 @@ namespace khoaluantotnghiep.Services
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
                     CCCD = tinhNguyenVien.CCCD,
+                    SoDienThoai = tinhNguyenVien.SoDienThoai,
                     DiaChi = tinhNguyenVien.DiaChi,
                     GioiThieu = tinhNguyenVien.GioiThieu,
                     AnhDaiDien = tinhNguyenVien.AnhDaiDien,
                     DiemTrungBinh = tinhNguyenVien.DiemTrungBinh,
+                    CapBac = tinhNguyenVien.CapBac,
+                    TongSuKienThamGia = tinhNguyenVien.TongSuKienThamGia,
                     LinhVucIds = linhVucIds,
                     KyNangIds = kyNangIds
                 };
@@ -100,10 +103,13 @@ namespace khoaluantotnghiep.Services
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
                     CCCD = tinhNguyenVien.CCCD,
+                    SoDienThoai = tinhNguyenVien.SoDienThoai,
                     DiaChi = tinhNguyenVien.DiaChi,
                     GioiThieu = tinhNguyenVien.GioiThieu,
                     AnhDaiDien = tinhNguyenVien.AnhDaiDien,
                     DiemTrungBinh = tinhNguyenVien.DiemTrungBinh,
+                    CapBac = tinhNguyenVien.CapBac,
+                    TongSuKienThamGia = tinhNguyenVien.TongSuKienThamGia,
                     LinhVucIds = linhVucIds,
                     KyNangIds = kyNangIds
                 };
@@ -158,13 +164,15 @@ namespace khoaluantotnghiep.Services
                         GioiTinh = tnv.GioiTinh,
                         Email = tnv.Email,
                         CCCD = tnv.CCCD,
-                        SoDienThoai = null, // Tạm thời để null vì model chưa có trường này
-                        DiaChi = tnv.DiaChi,
-                        GioiThieu = tnv.GioiThieu,
-                        AnhDaiDien = tnv.AnhDaiDien,
-                        DiemTrungBinh = tnv.DiemTrungBinh,
-                        KyNangs = kyNangs,
-                        LinhVucs = linhVucs
+                    SoDienThoai = tnv.SoDienThoai,
+                    DiaChi = tnv.DiaChi,
+                    GioiThieu = tnv.GioiThieu,
+                    AnhDaiDien = tnv.AnhDaiDien,
+                    DiemTrungBinh = tnv.DiemTrungBinh,
+                    CapBac = tnv.CapBac,
+                    TongSuKienThamGia = tnv.TongSuKienThamGia,
+                    KyNangs = kyNangs,
+                    LinhVucs = linhVucs
                     });
                 }
 
@@ -245,7 +253,7 @@ namespace khoaluantotnghiep.Services
                     tinhNguyenVien.GioiTinh = updateDto.GioiTinh ?? tinhNguyenVien.GioiTinh;
                     tinhNguyenVien.Email = updateDto.Email;
                     tinhNguyenVien.CCCD = updateDto.CCCD?? tinhNguyenVien.CCCD;
-                    // tinhNguyenVien.SoDienThoai = updateDto.SoDienThoai ?? tinhNguyenVien.SoDienThoai; // Tạm thời bỏ qua vì model chưa có trường này
+                    tinhNguyenVien.SoDienThoai = updateDto.SoDienThoai ?? tinhNguyenVien.SoDienThoai;
                     tinhNguyenVien.DiaChi = updateDto.DiaChi??tinhNguyenVien.DiaChi;
                     tinhNguyenVien.GioiThieu = updateDto.GioiThieu ?? tinhNguyenVien.GioiThieu;
                     tinhNguyenVien.AnhDaiDien = updateDto.AnhDaiDien ?? tinhNguyenVien.AnhDaiDien;
@@ -387,7 +395,7 @@ namespace khoaluantotnghiep.Services
                         GioiTinh = createDto.GioiTinh,
                         Email = createDto.Email,
                         CCCD = createDto.CCCD,
-                        // SoDienThoai = createDto.SoDienThoai, // Tạm thời bỏ qua vì model chưa có trường này
+                        SoDienThoai = createDto.SoDienThoai,
                         DiaChi = createDto.DiaChi,
                         GioiThieu = createDto.GioiThieu,
                         AnhDaiDien = createDto.AnhDaiDien
@@ -460,11 +468,13 @@ namespace khoaluantotnghiep.Services
                     GioiTinh = t.GioiTinh,
                     Email = t.Email,
                     CCCD = t.CCCD,
-                    SoDienThoai = null, // Tạm thời để null vì model chưa có trường này
+                    SoDienThoai = t.SoDienThoai,
                     DiaChi = t.DiaChi,
                     GioiThieu = t.GioiThieu,
                     AnhDaiDien = t.AnhDaiDien,
                     DiemTrungBinh = t.DiemTrungBinh,
+                    CapBac = t.CapBac,
+                    TongSuKienThamGia = t.TongSuKienThamGia,
                     LinhVucIds = t.TinhNguyenVien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = t.TinhNguyenVien_KyNangs?.Select(k => k.MaKyNang).ToList()
                 }).ToList();
