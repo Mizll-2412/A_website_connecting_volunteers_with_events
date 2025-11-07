@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using khoaluantotnghiep.Data;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Models;
+using khoaluantotnghiep.Helpers;
 namespace khoaluantotnghiep.Services
 {
     public class RegistrationFormService : IRegistrationFormService
@@ -44,18 +45,45 @@ namespace khoaluantotnghiep.Services
                 var existing = await _context.DonDangKy.FirstOrDefaultAsync(d => d.MaTNV == createDto.MaTNV && d.MaSuKien == createDto.MaSuKien);
                 if (existing != null)
                 {
-                    _logger.LogWarning($"Đã tồn tại đơn đăng ký: MaTNV={createDto.MaTNV}, MaSuKien={createDto.MaSuKien}");
-                    throw new Exception("Bạn đã đăng ký tham gia sự kiện này rồi");
+                    // Nếu đơn đăng ký đã bị từ chối (TrangThai = 2), cho phép đăng ký lại
+                    if (existing.TrangThai == 2)
+                    {
+                        _logger.LogInformation($"Đăng ký lại sau khi bị từ chối: MaTNV={createDto.MaTNV}, MaSuKien={createDto.MaSuKien}");
+                        // Cập nhật đơn đăng ký cũ thành trạng thái chờ duyệt
+                        existing.TrangThai = 0; // Chờ duyệt
+                        existing.NgayTao = DateTimeHelper.Now; // Cập nhật ngày đăng ký
+                        existing.GhiChu = createDto.GhiChu ?? existing.GhiChu; // Cập nhật ghi chú nếu có
+                        
+                        await _context.SaveChangesAsync();
+                        
+                        _logger.LogInformation($"Đăng ký lại thành công: MaTNV={createDto.MaTNV}, MaSuKien={createDto.MaSuKien}");
+                        
+                        return new DonDangKyResponseDto
+                        {
+                            MaTNV = existing.MaTNV,
+                            MaSuKien = existing.MaSuKien,
+                            NgayTao = existing.NgayTao,
+                            GhiChu = existing.GhiChu,
+                            TrangThai = existing.TrangThai,
+                            TrangThaiText = GetTrangThaiText(existing.TrangThai)
+                        };
+                    }
+                    else
+                    {
+                        // Nếu đơn đăng ký chưa bị từ chối (đang chờ duyệt hoặc đã duyệt), không cho đăng ký lại
+                        _logger.LogWarning($"Đã tồn tại đơn đăng ký với trạng thái {existing.TrangThai}: MaTNV={createDto.MaTNV}, MaSuKien={createDto.MaSuKien}");
+                        throw new Exception("Bạn đã đăng ký tham gia sự kiện này rồi");
+                    }
                 }
                 
-                // Kiểm tra thời hạn đăng ký
-                if (suKien.NgayBatDau.HasValue && DateTime.Now > suKien.NgayBatDau)
+                // Kiểm tra thời hạn đăng ký - chỉ kiểm tra thời gian tuyển
+                if (suKien.TuyenBatDau.HasValue && DateTimeHelper.Now < suKien.TuyenBatDau)
                 {
-                    _logger.LogWarning($"Sự kiện đã bắt đầu: MaSuKien={createDto.MaSuKien}");
-                    throw new Exception("Sự kiện đã bắt đầu, không thể đăng ký");
+                    _logger.LogWarning($"Chưa đến thời gian tuyển: MaSuKien={createDto.MaSuKien}");
+                    throw new Exception("Chưa đến thời gian tuyển tình nguyện viên");
                 }
                 
-                if (suKien.TuyenKetThuc.HasValue && DateTime.Now > suKien.TuyenKetThuc)
+                if (suKien.TuyenKetThuc.HasValue && DateTimeHelper.Now > suKien.TuyenKetThuc)
                 {
                     _logger.LogWarning($"Sự kiện đã hết hạn đăng ký: MaSuKien={createDto.MaSuKien}");
                     throw new Exception("Sự kiện đã hết hạn đăng ký");
@@ -77,7 +105,7 @@ namespace khoaluantotnghiep.Services
                 {
                     MaTNV = createDto.MaTNV,
                     MaSuKien = createDto.MaSuKien,
-                    NgayTao = DateTime.Now,
+                    NgayTao = DateTimeHelper.Now,
                     GhiChu = createDto.GhiChu,
                     TrangThai = 0 // Chờ duyệt
                 };
@@ -257,7 +285,7 @@ namespace khoaluantotnghiep.Services
                     if (filter.HoanThanh.HasValue)
                     {
                         bool isCompleted = filter.HoanThanh.Value;
-                        var currentTime = DateTime.Now;
+                        var currentTime = DateTimeHelper.Now;
                         
                         if (isCompleted)
                         {
@@ -288,7 +316,7 @@ namespace khoaluantotnghiep.Services
                     .Where(g => g.MaTNV == maTNV)
                     .ToListAsync();
                 
-                DateTime now = DateTime.Now;
+                DateTime now = DateTimeHelper.Now;
                 
                 return donDangKys.Select(d => new EventHistoryDto
                 {
@@ -332,7 +360,7 @@ namespace khoaluantotnghiep.Services
                     .Where(g => g.MaTNV == maTNV)
                     .CountAsync();
                 
-                DateTime now = DateTime.Now;
+                DateTime now = DateTimeHelper.Now;
                 
                 var stats = new EventHistoryStatsDto
                 {
@@ -344,7 +372,7 @@ namespace khoaluantotnghiep.Services
                 };
 
                 // Thống kê theo tháng trong năm hiện tại
-                var currentYear = DateTime.Now.Year;
+                var currentYear = DateTimeHelper.Now.Year;
                 var suKienTheoThang = donDangKys
                     .Where(d => d.SuKien?.NgayBatDau.HasValue == true && 
                               d.SuKien.NgayBatDau.Value.Year == currentYear)

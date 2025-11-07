@@ -4,9 +4,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using khoaluantotnghiep.Services;
 using System.Text;
+using System.Globalization;
 
 // Đã chuyển sang SQL Server, không cần thiết lập cho PostgreSQL nữa
 // AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+// Cấu hình múi giờ Vietnam (UTC+7) cho toàn bộ ứng dụng
+TimeZoneInfo vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("vi-VN");
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("vi-VN");
 
 var builder = WebApplication.CreateBuilder(args);
 

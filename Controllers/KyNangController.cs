@@ -80,9 +80,9 @@ namespace khoaluantotnghiep.Controllers
         }
 
         // POST: api/kynang
-        // Chỉ Admin mới tạo được
+        // Cho phép Admin và User tạo
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,User,Organization")]
         public async Task<IActionResult> Create([FromBody] CreateKyNangRequest request)
         {
             if (!ModelState.IsValid)

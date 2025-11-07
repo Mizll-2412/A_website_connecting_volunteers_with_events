@@ -44,6 +44,10 @@ namespace khoaluantotnghiep.Data
             modelBuilder.Entity<TinhNguyenVien_KyNang>()
                 .HasKey(tl => new { tl.MaTNV, tl.MaKyNang });
                 
+            // Cấu hình NguoiNhanThongBao với composite key (MaNguoiNhanThongBao, MaThongBao)
+            modelBuilder.Entity<NguoiNhanThongBao>()
+                .HasKey(n => new { n.MaNguoiNhanThongBao, n.MaThongBao });
+                
             // Cấu hình NguoiNhanThongBao để tránh multiple cascade paths
             modelBuilder.Entity<NguoiNhanThongBao>()
                 .HasOne(n => n.ThongBao)

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
+using khoaluantotnghiep.Data;
 
 namespace khoaluantotnghiep.Controllers
 {
@@ -14,11 +15,15 @@ namespace khoaluantotnghiep.Controllers
     public class DonDangKyController : ControllerBase
     {
         private readonly IRegistrationFormService _service;
+        private readonly INotificationService _notificationService;
+        private readonly AppDbContext _context;
         private readonly ILogger<DonDangKyController> _logger;
 
-        public DonDangKyController(IRegistrationFormService service, ILogger<DonDangKyController> logger)
+        public DonDangKyController(IRegistrationFormService service, INotificationService notificationService, AppDbContext context, ILogger<DonDangKyController> logger)
         {
             _service = service;
+            _notificationService = notificationService;
+            _context = context;
             _logger = logger;
         }
 
@@ -37,6 +42,25 @@ namespace khoaluantotnghiep.Controllers
                 
                 // Gọi service để đăng ký
                 var result = await _service.DangKySuKienAsync(createDto);
+                
+                // Gửi thông báo cho tổ chức
+                try
+                {
+                    // Lấy MaTaiKhoan của TNV từ database
+                    var tnv = await _context.Volunteer.FindAsync(createDto.MaTNV);
+                    if (tnv != null)
+                    {
+                        // Gọi notification service với action "new_registration"
+                        // userId ở đây là MaTaiKhoan của TNV
+                        await _notificationService.SendRegistrationNotificationAsync(createDto.MaSuKien, tnv.MaTaiKhoan, "new_registration");
+                    }
+                }
+                catch (Exception notifEx)
+                {
+                    // Log lỗi nhưng không fail request
+                    _logger.LogWarning($"Không thể gửi thông báo: {notifEx.Message}");
+                }
+                
                 return Ok(new { message = "Đăng ký thành công", data = result });
             }
             catch (Exception ex)
@@ -105,6 +129,26 @@ namespace khoaluantotnghiep.Controllers
             try
             {
                 var result = await _service.UpdateTrangThaiAsync(maTNV, maSuKien, updateDto);
+                
+                // Gửi thông báo cho TNV khi duyệt hoặc từ chối
+                try
+                {
+                    var tnv = await _context.Volunteer.FindAsync(maTNV);
+                    if (tnv != null)
+                    {
+                        string action = updateDto.TrangThai == 1 ? "approve" : (updateDto.TrangThai == 2 ? "reject" : "");
+                        if (!string.IsNullOrEmpty(action))
+                        {
+                            await _notificationService.SendRegistrationNotificationAsync(maSuKien, tnv.MaTaiKhoan, action);
+                        }
+                    }
+                }
+                catch (Exception notifEx)
+                {
+                    // Log lỗi nhưng không fail request
+                    _logger.LogWarning($"Không thể gửi thông báo: {notifEx.Message}");
+                }
+                
                 return Ok(new { message = "Cập nhật thành công", data = result });
             }
             catch (Exception ex)

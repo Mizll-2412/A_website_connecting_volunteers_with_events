@@ -7,7 +7,6 @@ namespace khoaluantotnghiep.Models
     [Table("NguoiNhanThongBao")]
     public class NguoiNhanThongBao
     {
-        [Key]
         [Column("MaNguoiNhanThongBao")]
         public int MaNguoiNhanThongBao { get; set; }
 

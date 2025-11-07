@@ -21,6 +21,13 @@ namespace khoaluantotnghiep.Services
             _logger = logger;
         }
 
+        // Helper method để format DateTime thành string yyyy-MM-dd
+        private string? FormatDateForResponse(DateTime? date)
+        {
+            if (date == null) return null;
+            return date.Value.ToString("yyyy-MM-dd");
+        }
+
         public async Task<SearchResultPaginationDto<SuKienResponseDto>> SearchEventsAsync(EventSearchFilterDto filter)
         {
             try
@@ -375,7 +382,7 @@ namespace khoaluantotnghiep.Services
                         MaTNV = v.MaTNV,
                         MaTaiKhoan = v.MaTaiKhoan,
                         HoTen = v.HoTen,
-                        NgaySinh = v.NgaySinh,
+                        NgaySinh = FormatDateForResponse(v.NgaySinh),
                         GioiTinh = v.GioiTinh,
                         Email = v.Email,
                         CCCD = v.CCCD,

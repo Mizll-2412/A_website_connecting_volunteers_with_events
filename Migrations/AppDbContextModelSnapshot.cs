@@ -325,7 +325,7 @@ namespace khoaluantotnghiep.Migrations
                         .HasColumnType("tinyint")
                         .HasColumnName("TrangThai");
 
-                    b.HasKey("MaNguoiNhanThongBao");
+                    b.HasKey("MaNguoiNhanThongBao", "MaThongBao");
 
                     b.HasIndex("MaThongBao");
 

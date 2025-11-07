@@ -355,7 +355,8 @@ namespace khoaluantotnghiep.Services
                 }
                 
                 // Cập nhật trạng thái xác minh
-                toChuc.TrangThaiXacMinh = 2; // 2 = Đang chờ xác minh
+                // 0 = Chờ xác minh, 1 = Đã xác minh, 2 = Đã từ chối
+                toChuc.TrangThaiXacMinh = 0; // 0 = Chờ xác minh
                 
                 await _context.SaveChangesAsync();
                 
@@ -386,13 +387,13 @@ namespace khoaluantotnghiep.Services
                 string trangThaiText = "Chưa xác minh";
                 switch (toChuc.TrangThaiXacMinh)
                 {
+                    case 0:
+                        trangThaiText = "Đang chờ xác minh";
+                        break;
                     case 1:
                         trangThaiText = "Đã xác minh";
                         break;
                     case 2:
-                        trangThaiText = "Đang chờ xác minh";
-                        break;
-                    case 3:
                         trangThaiText = "Đã từ chối";
                         break;
                     default:
@@ -407,7 +408,8 @@ namespace khoaluantotnghiep.Services
                     TrangThaiXacMinh = toChuc.TrangThaiXacMinh,
                     TrangThaiXacMinhText = trangThaiText,
                     LyDoTuChoi = toChuc.LyDoTuChoi,
-                    DaGuiYeuCauXacMinh = toChuc.TrangThaiXacMinh > 0
+                    // DaGuiYeuCauXacMinh = true nếu đã gửi yêu cầu (0 = chờ xác minh, 1 = đã xác minh, 2 = từ chối)
+                    DaGuiYeuCauXacMinh = toChuc.TrangThaiXacMinh.HasValue && toChuc.TrangThaiXacMinh >= 0
                 };
             }
             catch (Exception ex)

@@ -27,6 +27,13 @@ namespace khoaluantotnghiep.Services
             _env = env;
         }
 
+        // Helper method để format DateTime thành string yyyy-MM-dd
+        private string? FormatDateForResponse(DateTime? date)
+        {
+            if (date == null) return null;
+            return date.Value.ToString("yyyy-MM-dd");
+        }
+
         public async Task<TinhNguyenVienResponseDto> GetTinhNguyenVienAsync(int maTNV)
         {
             try
@@ -52,7 +59,7 @@ namespace khoaluantotnghiep.Services
                     MaTNV = tinhNguyenVien.MaTNV,
                     MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
                     HoTen = tinhNguyenVien.HoTen,
-                    NgaySinh = tinhNguyenVien.NgaySinh,
+                    NgaySinh = FormatDateForResponse(tinhNguyenVien.NgaySinh),
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
                     CCCD = tinhNguyenVien.CCCD,
@@ -99,7 +106,7 @@ namespace khoaluantotnghiep.Services
                     MaTNV = tinhNguyenVien.MaTNV,
                     MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
                     HoTen = tinhNguyenVien.HoTen,
-                    NgaySinh = tinhNguyenVien.NgaySinh,
+                    NgaySinh = FormatDateForResponse(tinhNguyenVien.NgaySinh),
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
                     CCCD = tinhNguyenVien.CCCD,
@@ -160,7 +167,7 @@ namespace khoaluantotnghiep.Services
                         MaTNV = tnv.MaTNV,
                         MaTaiKhoan = tnv.MaTaiKhoan,
                         HoTen = tnv.HoTen,
-                        NgaySinh = tnv.NgaySinh,
+                        NgaySinh = FormatDateForResponse(tnv.NgaySinh),
                         GioiTinh = tnv.GioiTinh,
                         Email = tnv.Email,
                         CCCD = tnv.CCCD,
@@ -464,7 +471,7 @@ namespace khoaluantotnghiep.Services
                     MaTNV = t.MaTNV,
                     MaTaiKhoan = t.MaTaiKhoan,
                     HoTen = t.HoTen,
-                    NgaySinh = t.NgaySinh,
+                    NgaySinh = FormatDateForResponse(t.NgaySinh),
                     GioiTinh = t.GioiTinh,
                     Email = t.Email,
                     CCCD = t.CCCD,
