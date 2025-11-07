@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using khoaluantotnghiep.Data;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Models;
@@ -18,13 +19,16 @@ namespace khoaluantotnghiep.Services
 
         private readonly AppDbContext _context;
         private readonly ILogger<EventSerVice> _logger;
+        private readonly INotificationService _notificationService;
+        private readonly IConfiguration _configuration;
 
-        public EventSerVice(AppDbContext context, ILogger<EventSerVice> logger, IWebHostEnvironment env)
+        public EventSerVice(AppDbContext context, ILogger<EventSerVice> logger, IWebHostEnvironment env, INotificationService notificationService, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
             _env = env;
-
+            _notificationService = notificationService;
+            _configuration = configuration;
         }
 
         public async Task<SuKienResponseDto> CreateSuKienAsync(CreateSuKienDto createDto)
@@ -39,10 +43,51 @@ namespace khoaluantotnghiep.Services
                         throw new Exception("Tổ chức không tồn tại");
                     }
                     
-                    // Kiểm tra xác minh tổ chức
-                    if (toChuc.TrangThaiXacMinh != 1) // 1 = Đã duyệt
+                    // Validation ngày tháng
+                    if (!createDto.NgayBatDau.HasValue)
                     {
-                        throw new Exception("Tổ chức chưa được xác minh. Vui lòng hoàn tất quá trình xác minh trước khi tạo sự kiện.");
+                        throw new Exception("Ngày bắt đầu sự kiện là bắt buộc");
+                    }
+                    
+                    if (!createDto.NgayKetThuc.HasValue)
+                    {
+                        throw new Exception("Ngày kết thúc sự kiện là bắt buộc");
+                    }
+                    
+                    if (createDto.NgayBatDau.Value > createDto.NgayKetThuc.Value)
+                    {
+                        throw new Exception("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc");
+                    }
+                    
+                    // Validation ngày tuyển phải nằm trong khoảng ngày sự kiện
+                    if (createDto.TuyenBatDau.HasValue || createDto.TuyenKetThuc.HasValue)
+                    {
+                        if (!createDto.TuyenBatDau.HasValue)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển là bắt buộc nếu có ngày kết thúc tuyển");
+                        }
+                        
+                        if (!createDto.TuyenKetThuc.HasValue)
+                        {
+                            throw new Exception("Ngày kết thúc tuyển là bắt buộc nếu có ngày bắt đầu tuyển");
+                        }
+                        
+                        if (createDto.TuyenBatDau.Value > createDto.TuyenKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển phải nhỏ hơn hoặc bằng ngày kết thúc tuyển");
+                        }
+                        
+                        if (createDto.TuyenBatDau.Value < createDto.NgayBatDau.Value || 
+                            createDto.TuyenBatDau.Value > createDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+                        
+                        if (createDto.TuyenKetThuc.Value < createDto.NgayBatDau.Value || 
+                            createDto.TuyenKetThuc.Value > createDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày kết thúc tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
                     }
                     
                     var suKien = new SuKien
@@ -145,6 +190,7 @@ namespace khoaluantotnghiep.Services
                 var suKiens = await _context.Event
                     .Include(s => s.SuKien_LinhVucs)
                     .Include(s => s.SuKien_KyNangs)
+                    .Include(s => s.Organization)
                     .ToListAsync();
 
                 return suKiens.Select(s => new SuKienResponseDto
@@ -163,7 +209,8 @@ namespace khoaluantotnghiep.Services
                     TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
+                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
+                    TenToChuc = s.Organization?.TenToChuc
                 }).ToList();
             }
             catch (Exception ex)
@@ -180,6 +227,7 @@ namespace khoaluantotnghiep.Services
                 var suKiens = await _context.Event
                     .Include(s => s.SuKien_LinhVucs)
                     .Include(s => s.SuKien_KyNangs)
+                    .Include(s => s.Organization)
                     .Where(s => s.MaToChuc == maToChuc)
                     .ToListAsync();
 
@@ -205,7 +253,8 @@ namespace khoaluantotnghiep.Services
                     TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
+                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
+                    TenToChuc = s.Organization?.TenToChuc
                 }).ToList();
             }
             catch (Exception ex)
@@ -223,6 +272,7 @@ namespace khoaluantotnghiep.Services
                 var suKien = await _context.Event
                 .Include(s => s.SuKien_LinhVucs)
                 .Include(s => s.SuKien_KyNangs)
+                .Include(s => s.Organization)
                 .FirstOrDefaultAsync(s => s.MaSuKien == maSuKien);
                 if (suKien == null)
                 {
@@ -244,7 +294,8 @@ namespace khoaluantotnghiep.Services
                     TrangThai = int.TryParse(suKien.TrangThai, out int trangThai) ? trangThai : 0,
                     HinhAnh = suKien.HinhAnh,
                     LinhVucIds = suKien.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList()
+                    KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
+                    TenToChuc = suKien.Organization?.TenToChuc
                 };
 
             }
@@ -257,6 +308,41 @@ namespace khoaluantotnghiep.Services
 
         public async Task<SuKienResponseDto> UpdateSuKienAsync(int maSuKien, UpdateSuKienDto updateDto)
         {
+            _logger.LogInformation($"=== BẮT ĐẦU CẬP NHẬT SỰ KIỆN {maSuKien} tại {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} ===");
+            
+            // Lưu dữ liệu cũ để so sánh trước khi cập nhật
+            // Sử dụng AsNoTracking để tránh tracking entity và đảm bảo dữ liệu không bị thay đổi
+            var suKienOld = await _context.Event
+                .AsNoTracking()
+                .Include(s => s.SuKien_LinhVucs)
+                .Include(s => s.SuKien_KyNangs)
+                .FirstOrDefaultAsync(s => s.MaSuKien == maSuKien);
+
+            if (suKienOld == null)
+            {
+                throw new Exception("Sự kiện không tồn tại");
+            }
+
+            // Lưu dữ liệu cũ vào biến riêng để đảm bảo không bị thay đổi
+            var oldData = new
+            {
+                TenSuKien = suKienOld.TenSuKien ?? "",
+                NoiDung = suKienOld.NoiDung ?? "",
+                SoLuong = suKienOld.SoLuong,
+                DiaChi = suKienOld.DiaChi ?? "",
+                NgayBatDau = suKienOld.NgayBatDau,
+                NgayKetThuc = suKienOld.NgayKetThuc,
+                TuyenBatDau = suKienOld.TuyenBatDau,
+                TuyenKetThuc = suKienOld.TuyenKetThuc,
+                TrangThai = suKienOld.TrangThai ?? "",
+                HinhAnh = suKienOld.HinhAnh ?? "",
+                LinhVucIds = suKienOld.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).OrderBy(x => x).ToList() ?? new List<int>(),
+                KyNangIds = suKienOld.SuKien_KyNangs?.Select(k => k.MaKyNang).OrderBy(x => x).ToList() ?? new List<int>()
+            };
+            
+            _logger.LogInformation($"Dữ liệu cũ - Tên: {oldData.TenSuKien}, Địa chỉ: {oldData.DiaChi}, Số lượng: {oldData.SoLuong}");
+            _logger.LogInformation($"Dữ liệu mới - Tên: {updateDto.TenSuKien}, Địa chỉ: {updateDto.DiaChi}, Số lượng: {updateDto.SoLuong}");
+
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -269,6 +355,53 @@ namespace khoaluantotnghiep.Services
                     if (suKien == null)
                     {
                         throw new Exception("Sự kiện không tồn tại");
+                    }
+
+                    // Validation ngày tháng
+                    if (!updateDto.NgayBatDau.HasValue)
+                    {
+                        throw new Exception("Ngày bắt đầu sự kiện là bắt buộc");
+                    }
+                    
+                    if (!updateDto.NgayKetThuc.HasValue)
+                    {
+                        throw new Exception("Ngày kết thúc sự kiện là bắt buộc");
+                    }
+                    
+                    if (updateDto.NgayBatDau.Value > updateDto.NgayKetThuc.Value)
+                    {
+                        throw new Exception("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc");
+                    }
+                    
+                    // Validation ngày tuyển phải nằm trong khoảng ngày sự kiện
+                    if (updateDto.TuyenBatDau.HasValue || updateDto.TuyenKetThuc.HasValue)
+                    {
+                        if (!updateDto.TuyenBatDau.HasValue)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển là bắt buộc nếu có ngày kết thúc tuyển");
+                        }
+                        
+                        if (!updateDto.TuyenKetThuc.HasValue)
+                        {
+                            throw new Exception("Ngày kết thúc tuyển là bắt buộc nếu có ngày bắt đầu tuyển");
+                        }
+                        
+                        if (updateDto.TuyenBatDau.Value > updateDto.TuyenKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển phải nhỏ hơn hoặc bằng ngày kết thúc tuyển");
+                        }
+                        
+                        if (updateDto.TuyenBatDau.Value < updateDto.NgayBatDau.Value || 
+                            updateDto.TuyenBatDau.Value > updateDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+                        
+                        if (updateDto.TuyenKetThuc.Value < updateDto.NgayBatDau.Value || 
+                            updateDto.TuyenKetThuc.Value > updateDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày kết thúc tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
                     }
 
                     suKien.TenSuKien = updateDto.TenSuKien;
@@ -320,16 +453,200 @@ namespace khoaluantotnghiep.Services
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-
-                    return await GetSuKienAsync(maSuKien);
+                    _logger.LogInformation($"✓ Transaction đã commit thành công cho sự kiện {maSuKien}");
                 }
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError($"Lỗi cập nhật sự kiện: {ex.Message}");
+                    _logger.LogError($"✗ Lỗi cập nhật sự kiện {maSuKien}: {ex.Message}");
+                    _logger.LogError($"Stack trace: {ex.StackTrace}");
                     throw;
                 }
             }
+
+            // Gửi thông báo tới các user đã đăng ký sự kiện khi cập nhật
+            // Luôn gửi thông báo mỗi lần cập nhật, không phụ thuộc vào lần cập nhật trước
+            // Thực hiện sau khi transaction đã commit để đảm bảo dữ liệu đã được lưu
+            _logger.LogInformation($"→ Bắt đầu xử lý gửi thông báo cập nhật cho sự kiện {maSuKien} (sau khi commit transaction)");
+            try
+            {
+                var registrations = await _context.DonDangKy
+                    .Include(d => d.TinhNguyenVien)
+                    .Where(d => d.MaSuKien == maSuKien)
+                    .ToListAsync();
+
+                _logger.LogInformation($"Tìm thấy {registrations.Count} đăng ký cho sự kiện {maSuKien}");
+
+                if (registrations.Any())
+                {
+                    // Lấy lại thông tin sự kiện sau khi đã cập nhật
+                    var suKienUpdated = await _context.Event
+                        .Include(s => s.SuKien_LinhVucs)
+                        .Include(s => s.SuKien_KyNangs)
+                        .FirstOrDefaultAsync(s => s.MaSuKien == maSuKien);
+
+                    if (suKienUpdated != null)
+                    {
+                        // Lấy thông tin tổ chức để làm người tạo thông báo
+                        var toChuc = await _context.Organization
+                            .FirstOrDefaultAsync(o => o.MaToChuc == suKienUpdated.MaToChuc);
+
+                        if (toChuc != null)
+                        {
+                            // Lấy danh sách user IDs từ các đăng ký (bao gồm cả đã duyệt và chưa duyệt)
+                            var userIds = registrations
+                                .Where(r => r.TinhNguyenVien != null && r.TinhNguyenVien.MaTaiKhoan > 0)
+                                .Select(r => r.TinhNguyenVien.MaTaiKhoan)
+                                .Distinct()
+                                .ToList();
+
+                            if (userIds.Any())
+                            {
+                                // So sánh dữ liệu cũ và mới để xác định những gì đã thay đổi
+                                var changes = new List<string>();
+                                
+                                // So sánh tên sự kiện (null-safe)
+                                if (oldData.TenSuKien != (updateDto.TenSuKien ?? ""))
+                                {
+                                    changes.Add($"tên sự kiện");
+                                    _logger.LogInformation($"Phát hiện thay đổi tên: '{oldData.TenSuKien}' -> '{updateDto.TenSuKien}'");
+                                }
+                                
+                                // So sánh nội dung (null-safe)
+                                if (oldData.NoiDung != (updateDto.NoiDung ?? ""))
+                                {
+                                    changes.Add($"nội dung");
+                                    _logger.LogInformation($"Phát hiện thay đổi nội dung");
+                                }
+                                
+                                // So sánh số lượng (nullable int)
+                                if (oldData.SoLuong != updateDto.SoLuong)
+                                {
+                                    changes.Add($"số lượng người tham gia");
+                                    _logger.LogInformation($"Phát hiện thay đổi số lượng: {oldData.SoLuong} -> {updateDto.SoLuong}");
+                                }
+                                
+                                // So sánh địa chỉ (null-safe)
+                                if (oldData.DiaChi != (updateDto.DiaChi ?? ""))
+                                {
+                                    changes.Add($"địa điểm");
+                                    _logger.LogInformation($"Phát hiện thay đổi địa chỉ: '{oldData.DiaChi}' -> '{updateDto.DiaChi}'");
+                                }
+                                
+                                // So sánh ngày bắt đầu (nullable DateTime - so sánh chính xác)
+                                if ((oldData.NgayBatDau?.Ticks ?? 0) != (updateDto.NgayBatDau?.Ticks ?? 0))
+                                {
+                                    changes.Add($"ngày bắt đầu");
+                                }
+                                
+                                // So sánh ngày kết thúc (nullable DateTime - so sánh chính xác)
+                                if ((oldData.NgayKetThuc?.Ticks ?? 0) != (updateDto.NgayKetThuc?.Ticks ?? 0))
+                                {
+                                    changes.Add($"ngày kết thúc");
+                                }
+                                
+                                // So sánh ngày bắt đầu tuyển (nullable DateTime - so sánh chính xác)
+                                if ((oldData.TuyenBatDau?.Ticks ?? 0) != (updateDto.TuyenBatDau?.Ticks ?? 0))
+                                {
+                                    changes.Add($"ngày bắt đầu tuyển");
+                                }
+                                
+                                // So sánh ngày kết thúc tuyển (nullable DateTime - so sánh chính xác)
+                                if ((oldData.TuyenKetThuc?.Ticks ?? 0) != (updateDto.TuyenKetThuc?.Ticks ?? 0))
+                                {
+                                    changes.Add($"ngày kết thúc tuyển");
+                                }
+                                
+                                // So sánh trạng thái (null-safe)
+                                if (oldData.TrangThai != (updateDto.TrangThai ?? ""))
+                                {
+                                    changes.Add($"trạng thái");
+                                    _logger.LogInformation($"Phát hiện thay đổi trạng thái: '{oldData.TrangThai}' -> '{updateDto.TrangThai}'");
+                                }
+                                
+                                // So sánh hình ảnh (null-safe)
+                                if (oldData.HinhAnh != (updateDto.HinhAnh ?? ""))
+                                {
+                                    changes.Add($"hình ảnh");
+                                    _logger.LogInformation($"Phát hiện thay đổi hình ảnh");
+                                }
+                                
+                                // So sánh lĩnh vực
+                                var newLinhVucIds = updateDto.LinhVucIds?.OrderBy(x => x).ToList() ?? new List<int>();
+                                if (!oldData.LinhVucIds.SequenceEqual(newLinhVucIds))
+                                {
+                                    changes.Add($"lĩnh vực");
+                                }
+                                
+                                // So sánh kỹ năng
+                                var newKyNangIds = updateDto.KyNangIds?.OrderBy(x => x).ToList() ?? new List<int>();
+                                if (!oldData.KyNangIds.SequenceEqual(newKyNangIds))
+                                {
+                                    changes.Add($"kỹ năng");
+                                }
+
+                                // Tạo nội dung thông báo chi tiết
+                                // LUÔN gửi thông báo mỗi lần cập nhật, bất kể có thay đổi hay không
+                                string notificationContent;
+                                if (changes.Any())
+                                {
+                                    var changesText = string.Join(", ", changes);
+                                    notificationContent = $"Sự kiện \"{updateDto.TenSuKien}\" đã được cập nhật các thông tin: {changesText}. [EVENT_ID:{maSuKien}]";
+                                    _logger.LogInformation($"Có {changes.Count} thay đổi được phát hiện: {changesText}");
+                                }
+                                else
+                                {
+                                    // Nếu không có thay đổi nào, vẫn gửi thông báo nhưng không liệt kê chi tiết
+                                    notificationContent = $"Sự kiện \"{updateDto.TenSuKien}\" đã được cập nhật. [EVENT_ID:{maSuKien}]";
+                                    _logger.LogWarning($"Không phát hiện thay đổi nào cho sự kiện {maSuKien}, nhưng vẫn gửi thông báo");
+                                }
+                                
+                                _logger.LogInformation($"Đang tạo thông báo mới cho sự kiện {maSuKien} tại {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+
+                                var createNotificationDto = new CreateNotificationDto
+                                {
+                                    MaNguoiTao = toChuc.MaTaiKhoan,
+                                    PhanLoai = 2, // Thông báo sự kiện
+                                    NoiDung = notificationContent,
+                                    MaNguoiNhans = userIds
+                                };
+
+                                var notificationResult = await _notificationService.CreateNotificationAsync(createNotificationDto);
+                                _logger.LogInformation($"✓ Đã tạo thông báo MỚI (ID: {notificationResult.MaThongBao}) cho sự kiện {maSuKien} tới {userIds.Count} người dùng. Nội dung: {notificationContent}");
+                            }
+                            else
+                            {
+                                _logger.LogWarning($"Không tìm thấy user IDs hợp lệ để gửi thông báo cho sự kiện {maSuKien}");
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Không tìm thấy tổ chức cho sự kiện {maSuKien}");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Không tìm thấy sự kiện {maSuKien} sau khi cập nhật");
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"Sự kiện {maSuKien} chưa có người đăng ký, không cần gửi thông báo");
+                }
+            }
+            catch (Exception notifEx)
+            {
+                // Log lỗi chi tiết nhưng không throw để không ảnh hưởng đến việc cập nhật sự kiện
+                _logger.LogError($"✗✗✗ LỖI GỬI THÔNG BÁO cập nhật sự kiện {maSuKien}: {notifEx.Message}");
+                _logger.LogError($"Stack trace: {notifEx.StackTrace}");
+                if (notifEx.InnerException != null)
+                {
+                    _logger.LogError($"Inner exception: {notifEx.InnerException.Message}");
+                }
+            }
+
+            _logger.LogInformation($"=== KẾT THÚC CẬP NHẬT SỰ KIỆN {maSuKien} tại {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} ===");
+            return await GetSuKienAsync(maSuKien);
         }
 
         public async Task<string> UploadAnhAsync(int maSuKien, IFormFile anhFile)

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using khoaluantotnghiep.Data;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Models;
+using khoaluantotnghiep.Helpers;
 
 namespace khoaluantotnghiep.Services
 {
@@ -164,7 +165,7 @@ namespace khoaluantotnghiep.Services
                         MaNguoiTao = createDto.MaNguoiTao,
                         PhanLoai = createDto.PhanLoai,
                         NoiDung = createDto.NoiDung,
-                        NgayGui = DateTime.Now
+                        NgayGui = DateTimeHelper.Now
                     };
 
                     _context.ThongBao.Add(thongBao);
@@ -490,11 +491,11 @@ namespace khoaluantotnghiep.Services
                         recipientIds.Add(userId); // Gửi cho TNV
                         break;
                     case "reject":
-                        noiDung = $"Đơn đăng ký tham gia sự kiện {suKien.TenSuKien} của bạn đã bị từ chối.";
+                        noiDung = $"Đơn đăng ký tham gia sự kiện {suKien.TenSuKien} của bạn đã bị từ chối. [EVENT_ID:{eventId}]";
                         recipientIds.Add(userId); // Gửi cho TNV
                         break;
                     case "new_registration":
-                        noiDung = $"{tnv.HoTen} đã đăng ký tham gia sự kiện {suKien.TenSuKien}.";
+                        noiDung = $"{tnv.HoTen} đã đăng ký tham gia sự kiện {suKien.TenSuKien}. [EVENT_ID:{eventId}]";
                         recipientIds.Add(suKien.Organization?.MaTaiKhoan ?? 0); // Gửi cho BTC
                         break;
                     default:
@@ -652,6 +653,24 @@ namespace khoaluantotnghiep.Services
                         throw new Exception("Tình nguyện viên không tồn tại");
                     }
 
+                    // Kiểm tra xem TNV đã đăng ký sự kiện chưa
+                    var existingRegistration = await _context.DonDangKy
+                        .FirstOrDefaultAsync(d => d.MaTNV == volunteer.MaTNV && d.MaSuKien == inviteDto.MaSuKien);
+                    
+                    if (existingRegistration != null)
+                    {
+                        // Nếu đã đăng ký, kiểm tra trạng thái
+                        string trangThaiText = existingRegistration.TrangThai switch
+                        {
+                            0 => "đang chờ duyệt",
+                            1 => "đã được duyệt",
+                            2 => "đã bị từ chối",
+                            _ => "không xác định"
+                        };
+                        
+                        throw new Exception($"Tình nguyện viên đã đăng ký sự kiện này rồi (Trạng thái: {trangThaiText}). Không cần gửi lời mời.");
+                    }
+
                     // Tạo nội dung thông báo
                     string noiDung = $"Bạn đã được tổ chức {organization.TenToChuc} mời tham gia sự kiện \"{suKien.TenSuKien}\"";
 
@@ -661,7 +680,7 @@ namespace khoaluantotnghiep.Services
                         MaNguoiTao = organizationUserId,
                         PhanLoai = 2, // Thông báo sự kiện
                         NoiDung = noiDung,
-                        NgayGui = DateTime.Now
+                        NgayGui = DateTimeHelper.Now
                     };
 
                     _context.ThongBao.Add(thongBao);

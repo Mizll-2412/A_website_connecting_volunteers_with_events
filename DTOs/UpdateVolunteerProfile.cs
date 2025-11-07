@@ -85,7 +85,7 @@ namespace khoaluantotnghiep.DTOs
         public string Email { get; set; }
         public string? CCCD { get; set; }
         public string? SoDienThoai { get; set; }
-        public DateTime? NgaySinh { get; set; }
+        public string? NgaySinh { get; set; } // Đổi thành string để format yyyy-MM-dd
         public string? GioiTinh { get; set; }
         public string? DiaChi { get; set; }
         public string? GioiThieu { get; set; }

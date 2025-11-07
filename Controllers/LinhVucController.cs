@@ -80,9 +80,9 @@ namespace khoaluantotnghiep.Controllers
         }
 
         // POST: api/linhvuc
-        // Chỉ Admin mới tạo được
+        // Cho phép Admin và User tạo
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,User,Organization")]
         public async Task<IActionResult> Create([FromBody] CreateLinhVucRequest request)
         {
             if (!ModelState.IsValid)
