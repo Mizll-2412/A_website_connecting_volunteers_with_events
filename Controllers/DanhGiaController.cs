@@ -158,6 +158,94 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
+        /// Lấy toàn bộ đánh giá (Admin)
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTatCaDanhGia()
+        {
+            try
+            {
+                var result = await _service.GetAllEvaluationsAsync();
+                return Ok(new
+                {
+                    success = true,
+                    data = result,
+                    count = result.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy toàn bộ đánh giá: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tải danh sách đánh giá" });
+            }
+        }
+
+        /// Lấy danh sách đánh giá theo sự kiện
+        [HttpGet("event/{maSuKien}")]
+        [Authorize(Roles = "User,Organization,Admin")]
+        public async Task<IActionResult> GetDanhGiaByEvent(int maSuKien)
+        {
+            try
+            {
+                var result = await _service.GetDanhGiaByEventAsync(maSuKien);
+                return Ok(new 
+                { 
+                    success = true,
+                    data = result,
+                    count = result.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy đánh giá theo sự kiện: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        /// Lấy các đánh giá mà user nhận được
+        [HttpGet("received/{maUser}")]
+        [Authorize(Roles = "User,Organization,Admin")]
+        public async Task<IActionResult> GetDanhGiaNhanDuoc(int maUser)
+        {
+            try
+            {
+                var result = await _service.GetDanhGiaNhanDuocAsync(maUser);
+                return Ok(new 
+                { 
+                    success = true,
+                    data = result,
+                    count = result.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy đánh giá nhận được: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
+        /// Lấy các đánh giá mà user đã đưa ra
+        [HttpGet("given/{maUser}")]
+        [Authorize(Roles = "User,Organization,Admin")]
+        public async Task<IActionResult> GetDanhGiaDaDuaRa(int maUser)
+        {
+            try
+            {
+                var result = await _service.GetDanhGiaDaDuaRaAsync(maUser);
+                return Ok(new 
+                { 
+                    success = true,
+                    data = result,
+                    count = result.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy đánh giá đã đưa ra: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra" });
+            }
+        }
+
         /// Lấy thống kê đánh giá của một người dùng
         /// User/Organization: Chỉ xem thống kê của chính mình
         /// Admin: Xem tất cả

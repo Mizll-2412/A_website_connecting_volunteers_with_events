@@ -43,9 +43,10 @@ namespace khoaluantotnghiep.Services
                 // Áp dụng các bộ lọc
                 if (!string.IsNullOrEmpty(filter.Keyword))
                 {
-                    query = query.Where(e => e.TenSuKien.Contains(filter.Keyword) || 
-                                          e.NoiDung.Contains(filter.Keyword) ||
-                                          e.DiaChi.Contains(filter.Keyword));
+                    query = query.Where(e =>
+                        (e.TenSuKien ?? string.Empty).Contains(filter.Keyword) ||
+                        (e.NoiDung ?? string.Empty).Contains(filter.Keyword) ||
+                        (e.DiaChi ?? string.Empty).Contains(filter.Keyword));
                 }
 
                 if (filter.FromDate.HasValue)
@@ -60,7 +61,7 @@ namespace khoaluantotnghiep.Services
 
                 if (!string.IsNullOrEmpty(filter.Location))
                 {
-                    query = query.Where(e => e.DiaChi.Contains(filter.Location));
+                    query = query.Where(e => (e.DiaChi ?? string.Empty).Contains(filter.Location));
                 }
 
                 // Filter theo lĩnh vực
@@ -110,8 +111,8 @@ namespace khoaluantotnghiep.Services
                         .Select(g => new { EventId = g.Key, Count = g.Count() })
                         .ToDictionaryAsync(x => x.EventId, x => x.Count);
 
-                    var eventIds = query.Select(e => e.MaSuKien).ToList();
-                    var filteredEventIds = eventIds
+                    var eventIdsForFilter = query.Select(e => e.MaSuKien).ToList();
+                    var filteredEventIds = eventIdsForFilter
                         .Where(id => 
                             (!filter.MinVolunteers.HasValue || 
                              (eventVolunteerCounts.ContainsKey(id) && eventVolunteerCounts[id] >= filter.MinVolunteers)) &&
@@ -143,16 +144,16 @@ namespace khoaluantotnghiep.Services
                             .OrderByDescending(x => x.Count)
                             .ToListAsync();
                         
-                        var eventIds = popularEvents.Select(pe => pe.EventId).ToList();
+                        var popularEventIds = popularEvents.Select(pe => pe.EventId).ToList();
                         var remainingEventIds = query.Select(e => e.MaSuKien)
-                                                    .Where(id => !eventIds.Contains(id))
+                                                    .Where(id => !popularEventIds.Contains(id))
                                                     .ToList();
                         
                         // Kết hợp danh sách để giữ thứ tự
-                        eventIds.AddRange(remainingEventIds);
+                        popularEventIds.AddRange(remainingEventIds);
                         
-                        // Sắp xếp theo thứ tự trong danh sách eventIds
-                        orderedQuery = query.OrderBy(e => eventIds.IndexOf(e.MaSuKien));
+                        // Sắp xếp theo thứ tự trong danh sách popularEventIds
+                        orderedQuery = query.OrderBy(e => popularEventIds.IndexOf(e.MaSuKien));
                         break;
                     case "distance":
                         // Nếu có tọa độ, sắp xếp theo khoảng cách
@@ -179,30 +180,45 @@ namespace khoaluantotnghiep.Services
                     .ToListAsync();
 
                 // Chuyển đổi dữ liệu sang DTO
-                var eventDtos = pagedEvents.Select(e => new SuKienResponseDto
+                // Lấy danh sách ID sự kiện để đếm số đăng ký
+                var eventIdsForCount = pagedEvents.Select(e => e.MaSuKien).ToList();
+                
+                // Đếm số đơn đăng ký đã duyệt theo từng sự kiện (TrangThai = 1)
+                var registrationCounts = await _context.DonDangKy
+                    .Where(d => eventIdsForCount.Contains(d.MaSuKien) && d.TrangThai == 1)
+                    .GroupBy(d => d.MaSuKien)
+                    .Select(g => new { MaSuKien = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.MaSuKien, x => x.Count);
+
+                var eventDtos = pagedEvents.Select(e =>
                 {
-                    MaSuKien = e.MaSuKien,
-                    TenSuKien = e.TenSuKien,
-                    MoTa = e.NoiDung,
-                    NgayBatDau = e.NgayBatDau,
-                    NgayKetThuc = e.NgayKetThuc,
-                    DiaChi = e.DiaChi,
-                    HinhAnh = e.HinhAnh,
-                    SoLuong = e.SoLuong,
-                    MaToChuc = e.MaToChuc,
-                    TenToChuc = e.Organization?.TenToChuc,
-                    TrangThaiXacMinhToChuc = e.Organization?.TrangThaiXacMinh == 1, // Chuyển byte? sang bool?
-                    TrangThai = int.TryParse(e.TrangThai, out int trangThai) ? trangThai : 0,
-                    LinhVucs = e.SuKien_LinhVucs.Select(sl => new LinhVucDto 
+                    var organization = e.Organization;
+                    return new SuKienResponseDto
                     {
-                        MaLinhVuc = sl.MaLinhVuc,
-                        TenLinhVuc = sl.LinhVuc.TenLinhVuc
-                    }).ToList(),
-                    KyNangs = e.SuKien_KyNangs.Select(sk => new KyNangDto
-                    {
-                        MaKyNang = sk.MaKyNang,
-                        TenKyNang = sk.KyNang.TenKyNang
-                    }).ToList()
+                        MaSuKien = e.MaSuKien,
+                        TenSuKien = e.TenSuKien ?? string.Empty,
+                        MoTa = e.NoiDung ?? string.Empty,
+                        NgayBatDau = e.NgayBatDau,
+                        NgayKetThuc = e.NgayKetThuc,
+                        DiaChi = e.DiaChi ?? string.Empty,
+                        HinhAnh = e.HinhAnh ?? string.Empty,
+                        SoLuong = e.SoLuong,
+                        MaToChuc = e.MaToChuc,
+                        TenToChuc = organization?.TenToChuc ?? string.Empty,
+                        TrangThaiXacMinhToChuc = organization?.TrangThaiXacMinh == 1,
+                        TrangThai = int.TryParse(e.TrangThai, out int trangThai) ? trangThai : 0,
+                        LinhVucs = e.SuKien_LinhVucs.Select(sl => new LinhVucDto
+                        {
+                            MaLinhVuc = sl.MaLinhVuc,
+                            TenLinhVuc = sl.LinhVuc?.TenLinhVuc ?? string.Empty
+                        }).ToList(),
+                        KyNangs = e.SuKien_KyNangs.Select(sk => new KyNangDto
+                        {
+                            MaKyNang = sk.MaKyNang,
+                            TenKyNang = sk.KyNang?.TenKyNang ?? string.Empty
+                        }).ToList(),
+                        SoLuongDaDangKy = registrationCounts.ContainsKey(e.MaSuKien) ? registrationCounts[e.MaSuKien] : 0
+                    };
                 }).ToList();
 
                 // Tạo các facet cho bộ lọc
@@ -252,9 +268,10 @@ namespace khoaluantotnghiep.Services
                 // Áp dụng các bộ lọc
                 if (!string.IsNullOrEmpty(filter.Keyword))
                 {
-                    query = query.Where(v => v.HoTen.Contains(filter.Keyword) || 
-                                          v.Email.Contains(filter.Keyword) ||
-                                          v.GioiThieu.Contains(filter.Keyword));
+                    query = query.Where(v =>
+                        (v.HoTen ?? string.Empty).Contains(filter.Keyword) ||
+                        (v.Email ?? string.Empty).Contains(filter.Keyword) ||
+                        (v.GioiThieu ?? string.Empty).Contains(filter.Keyword));
                 }
 
                 // Filter theo độ tuổi
@@ -265,13 +282,13 @@ namespace khoaluantotnghiep.Services
                     if (filter.MinAge.HasValue)
                     {
                         var maxBirthDate = currentDate.AddYears(-filter.MinAge.Value);
-                        query = query.Where(v => v.NgaySinh <= maxBirthDate);
+                        query = query.Where(v => v.NgaySinh.HasValue && v.NgaySinh.Value <= maxBirthDate);
                     }
                     
                     if (filter.MaxAge.HasValue)
                     {
                         var minBirthDate = currentDate.AddYears(-filter.MaxAge.Value - 1).AddDays(1);
-                        query = query.Where(v => v.NgaySinh >= minBirthDate);
+                        query = query.Where(v => v.NgaySinh.HasValue && v.NgaySinh.Value >= minBirthDate);
                     }
                 }
 
@@ -284,7 +301,7 @@ namespace khoaluantotnghiep.Services
                 // Filter theo địa điểm
                 if (!string.IsNullOrEmpty(filter.Location))
                 {
-                    query = query.Where(v => v.DiaChi.Contains(filter.Location));
+                    query = query.Where(v => (v.DiaChi ?? string.Empty).Contains(filter.Location));
                 }
 
                 // Filter theo lĩnh vực
@@ -302,24 +319,24 @@ namespace khoaluantotnghiep.Services
                 // Filter theo điểm uy tín
                 if (filter.MinRating.HasValue)
                 {
-                    query = query.Where(v => v.DiemTrungBinh >= filter.MinRating);
+                    query = query.Where(v => v.DiemTrungBinh.HasValue && v.DiemTrungBinh.Value >= filter.MinRating);
                 }
 
                 if (filter.MaxRating.HasValue)
                 {
-                    query = query.Where(v => v.DiemTrungBinh <= filter.MaxRating);
+                    query = query.Where(v => v.DiemTrungBinh.HasValue && v.DiemTrungBinh.Value <= filter.MaxRating);
                 }
 
                 // Filter theo cấp bậc
                 if (filter.RankNames != null && filter.RankNames.Any())
                 {
-                    query = query.Where(v => filter.RankNames.Contains(v.CapBac));
+                    query = query.Where(v => v.CapBac != null && filter.RankNames.Contains(v.CapBac));
                 }
 
                 // Filter theo số sự kiện tham gia
                 if (filter.MinEvents.HasValue)
                 {
-                    query = query.Where(v => v.TongSuKienThamGia >= filter.MinEvents);
+                    query = query.Where(v => v.TongSuKienThamGia.HasValue && v.TongSuKienThamGia.Value >= filter.MinEvents);
                 }
 
                 // Tính tổng số bản ghi
@@ -354,41 +371,45 @@ namespace khoaluantotnghiep.Services
                 foreach (var v in pagedVolunteers)
                 {
                     var linhVucIds = v.TinhNguyenVien_LinhVucs?
-                        .Select(vl => vl.MaLinhVuc).ToList();
+                        .Select(vl => vl.MaLinhVuc).ToList() ?? new List<int>();
 
                     var kyNangIds = v.TinhNguyenVien_KyNangs?
-                        .Select(vk => vk.MaKyNang).ToList();
+                        .Select(vk => vk.MaKyNang).ToList() ?? new List<int>();
 
-                    var linhVucs = await _context.LinhVuc
-                        .Where(l => linhVucIds.Contains(l.MaLinhVuc))
-                        .Select(l => new LinhVucDto
-                        {
-                            MaLinhVuc = l.MaLinhVuc,
-                            TenLinhVuc = l.TenLinhVuc
-                        })
-                        .ToListAsync();
+                    var linhVucs = linhVucIds.Count == 0
+                        ? new List<LinhVucDto>()
+                        : await _context.LinhVuc
+                            .Where(l => linhVucIds.Contains(l.MaLinhVuc))
+                            .Select(l => new LinhVucDto
+                            {
+                                MaLinhVuc = l.MaLinhVuc,
+                                TenLinhVuc = l.TenLinhVuc ?? string.Empty
+                            })
+                            .ToListAsync();
 
-                    var kyNangs = await _context.KyNang
-                        .Where(k => kyNangIds.Contains(k.MaKyNang))
-                        .Select(k => new KyNangDto
-                        {
-                            MaKyNang = k.MaKyNang,
-                            TenKyNang = k.TenKyNang
-                        })
-                        .ToListAsync();
+                    var kyNangs = kyNangIds.Count == 0
+                        ? new List<KyNangDto>()
+                        : await _context.KyNang
+                            .Where(k => kyNangIds.Contains(k.MaKyNang))
+                            .Select(k => new KyNangDto
+                            {
+                                MaKyNang = k.MaKyNang,
+                                TenKyNang = k.TenKyNang ?? string.Empty
+                            })
+                            .ToListAsync();
 
                     volunteerDtos.Add(new TinhNguyenVienResponseDto
                     {
                         MaTNV = v.MaTNV,
                         MaTaiKhoan = v.MaTaiKhoan,
-                        HoTen = v.HoTen,
+                        HoTen = v.HoTen ?? string.Empty,
                         NgaySinh = FormatDateForResponse(v.NgaySinh),
                         GioiTinh = v.GioiTinh,
-                        Email = v.Email,
+                        Email = v.Email ?? string.Empty,
                         CCCD = v.CCCD,
                         SoDienThoai = v.SoDienThoai,
-                        DiaChi = v.DiaChi,
-                        GioiThieu = v.GioiThieu,
+                        DiaChi = v.DiaChi ?? string.Empty,
+                        GioiThieu = v.GioiThieu ?? string.Empty,
                         AnhDaiDien = v.AnhDaiDien,
                         DiemTrungBinh = v.DiemTrungBinh,
                         CapBac = v.CapBac,
@@ -439,16 +460,17 @@ namespace khoaluantotnghiep.Services
                 // Áp dụng các bộ lọc
                 if (!string.IsNullOrEmpty(filter.Keyword))
                 {
-                    query = query.Where(o => o.TenToChuc.Contains(filter.Keyword) || 
-                                          o.GioiThieu.Contains(filter.Keyword) ||
-                                          o.DiaChi.Contains(filter.Keyword) ||
-                                          o.Email.Contains(filter.Keyword));
+                    query = query.Where(o =>
+                        (o.TenToChuc ?? string.Empty).Contains(filter.Keyword) ||
+                        (o.GioiThieu ?? string.Empty).Contains(filter.Keyword) ||
+                        (o.DiaChi ?? string.Empty).Contains(filter.Keyword) ||
+                        (o.Email ?? string.Empty).Contains(filter.Keyword));
                 }
 
                 // Filter theo địa điểm
                 if (!string.IsNullOrEmpty(filter.Location))
                 {
-                    query = query.Where(o => o.DiaChi.Contains(filter.Location));
+                    query = query.Where(o => (o.DiaChi ?? string.Empty).Contains(filter.Location));
                 }
 
                 // Filter theo trạng thái xác minh
@@ -460,12 +482,12 @@ namespace khoaluantotnghiep.Services
                 // Filter theo điểm uy tín
                 if (filter.MinRating.HasValue)
                 {
-                    query = query.Where(o => o.DiemTrungBinh >= filter.MinRating);
+                    query = query.Where(o => o.DiemTrungBinh.HasValue && o.DiemTrungBinh.Value >= filter.MinRating);
                 }
 
                 if (filter.MaxRating.HasValue)
                 {
-                    query = query.Where(o => o.DiemTrungBinh <= filter.MaxRating);
+                    query = query.Where(o => o.DiemTrungBinh.HasValue && o.DiemTrungBinh.Value <= filter.MaxRating);
                 }
 
                 // Filter theo số sự kiện đã tổ chức
@@ -527,7 +549,7 @@ namespace khoaluantotnghiep.Services
                         orderedQuery = query.OrderBy(o => orgIds.IndexOf(o.MaToChuc));
                         break;
                     case "name_asc":
-                        orderedQuery = query.OrderBy(o => o.TenToChuc);
+                        orderedQuery = query.OrderBy(o => o.TenToChuc ?? string.Empty);
                         break;
                     case "rating_desc":
                     default:
@@ -546,11 +568,11 @@ namespace khoaluantotnghiep.Services
                 {
                     MaToChuc = o.MaToChuc,
                     MaTaiKhoan = o.MaTaiKhoan,
-                    TenToChuc = o.TenToChuc,
+                    TenToChuc = o.TenToChuc ?? string.Empty,
                     MoTa = o.GioiThieu,
-                    Email = o.Email,
+                    Email = o.Email ?? string.Empty,
                     SoDienThoai = o.SoDienThoai,
-                    DiaChi = o.DiaChi,
+                    DiaChi = o.DiaChi ?? string.Empty,
                     Website = null, // o.Website không tồn tại
                     Logo = o.AnhDaiDien,
                     TrangThaiXacMinh = o.TrangThaiXacMinh,
@@ -599,7 +621,9 @@ namespace khoaluantotnghiep.Services
 
                 // Tìm kiếm sự kiện
                 var events = await _context.Event
-                    .Where(e => e.TenSuKien.Contains(keyword) || e.NoiDung.Contains(keyword) || e.DiaChi.Contains(keyword))
+                    .Where(e => (e.TenSuKien ?? string.Empty).Contains(keyword) ||
+                                (e.NoiDung ?? string.Empty).Contains(keyword) ||
+                                (e.DiaChi ?? string.Empty).Contains(keyword))
                     .Include(e => e.Organization)
                     .OrderByDescending(e => e.NgayBatDau)
                     .Take(pageSize)
@@ -607,27 +631,27 @@ namespace khoaluantotnghiep.Services
                     {
                         Type = "event",
                         Id = e.MaSuKien,
-                        Title = e.TenSuKien,
-                        Description = e.NoiDung,
+                        Title = e.TenSuKien ?? string.Empty,
+                        Description = e.NoiDung ?? string.Empty,
                         StartDate = e.NgayBatDau,
                         EndDate = e.NgayKetThuc,
-                        Location = e.DiaChi,
+                        Location = e.DiaChi ?? string.Empty,
                         Image = e.HinhAnh,
-                        OrganizationName = e.Organization.TenToChuc
+                        OrganizationName = e.Organization != null ? (e.Organization.TenToChuc ?? string.Empty) : string.Empty
                     })
                     .ToListAsync();
 
                 // Tìm kiếm tình nguyện viên
                 var volunteers = await _context.Volunteer
-                    .Where(v => v.HoTen.Contains(keyword) || v.GioiThieu.Contains(keyword))
+                    .Where(v => (v.HoTen ?? string.Empty).Contains(keyword) || (v.GioiThieu ?? string.Empty).Contains(keyword))
                     .OrderByDescending(v => v.DiemTrungBinh)
                     .Take(pageSize)
                     .Select(v => new
                     {
                         Type = "volunteer",
                         Id = v.MaTNV,
-                        Name = v.HoTen,
-                        Description = v.GioiThieu,
+                        Name = v.HoTen ?? string.Empty,
+                        Description = v.GioiThieu ?? string.Empty,
                         Image = v.AnhDaiDien,
                         Rating = v.DiemTrungBinh,
                         EventsCount = v.TongSuKienThamGia,
@@ -637,15 +661,17 @@ namespace khoaluantotnghiep.Services
 
                 // Tìm kiếm tổ chức
                 var organizations = await _context.Organization
-                    .Where(o => o.TenToChuc.Contains(keyword) || o.GioiThieu.Contains(keyword) || o.DiaChi.Contains(keyword))
+                    .Where(o => (o.TenToChuc ?? string.Empty).Contains(keyword) ||
+                                (o.GioiThieu ?? string.Empty).Contains(keyword) ||
+                                (o.DiaChi ?? string.Empty).Contains(keyword))
                     .OrderByDescending(o => o.DiemTrungBinh)
                     .Take(pageSize)
                     .Select(o => new
                     {
                         Type = "organization",
                         Id = o.MaToChuc,
-                        Name = o.TenToChuc,
-                        Description = o.GioiThieu,
+                        Name = o.TenToChuc ?? string.Empty,
+                        Description = o.GioiThieu ?? string.Empty,
                         Image = o.AnhDaiDien,
                         Rating = o.DiemTrungBinh,
                         VerificationStatus = o.TrangThaiXacMinh

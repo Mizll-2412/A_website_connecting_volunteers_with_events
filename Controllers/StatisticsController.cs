@@ -135,5 +135,24 @@ namespace khoaluantotnghiep.Controllers
                 return StatusCode(500, new { message = $"Lỗi: {ex.Message}" });
             }
         }
+
+        /// <summary>
+        /// Lấy thống kê riêng cho tổ chức
+        /// </summary>
+        [HttpGet("organization/{organizationId}")]
+        [Authorize(Roles = "Admin,Organization")]
+        public async Task<IActionResult> GetOrganizationSpecificStatistics(int organizationId)
+        {
+            try
+            {
+                var result = await _statisticsService.GetOrganizationSpecificStatisticsAsync(organizationId);
+                return Ok(new { data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy thống kê tổ chức cụ thể: {ex.Message}");
+                return StatusCode(500, new { message = $"Lỗi: {ex.Message}" });
+            }
+        }
     }
 }

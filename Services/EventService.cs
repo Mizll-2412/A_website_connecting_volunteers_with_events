@@ -31,6 +31,39 @@ namespace khoaluantotnghiep.Services
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Tính toán trạng thái hiển thị của sự kiện
+        /// </summary>
+        private string GetTrangThaiHienThi(SuKien suKien)
+        {
+            // Ưu tiên trường TrangThai từ database
+            if (suKien.TrangThai == "Đã kết thúc")
+            {
+                return "Đã kết thúc";
+            }
+
+            // Tính toán dựa trên ngày
+            var now = DateTime.Now;
+            
+            if (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < now)
+            {
+                return "Đã kết thúc";
+            }
+            
+            if (suKien.NgayBatDau.HasValue && suKien.NgayBatDau.Value > now)
+            {
+                return "Sắp diễn ra";
+            }
+            
+            if (suKien.NgayBatDau.HasValue && suKien.NgayBatDau.Value <= now && 
+                (!suKien.NgayKetThuc.HasValue || suKien.NgayKetThuc.Value >= now))
+            {
+                return "Đang diễn ra";
+            }
+            
+            return "Đang tuyển";
+        }
+
         public async Task<SuKienResponseDto> CreateSuKienAsync(CreateSuKienDto createDto)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -159,13 +192,38 @@ namespace khoaluantotnghiep.Services
                 try
                 {
                     var sukien = await _context.Event
-                    .Include(s => s.SuKien_KyNangs)
-                    .Include(s => s.SuKien_LinhVucs)
-                    .FirstOrDefaultAsync(s => s.MaSuKien == maSuKien);
+                        .Include(s => s.SuKien_KyNangs)
+                        .Include(s => s.SuKien_LinhVucs)
+                        .FirstOrDefaultAsync(s => s.MaSuKien == maSuKien);
+
                     if (sukien == null)
                     {
                         throw new Exception("Sự kiện không tồn tại");
                     }
+
+                    var blockingReasons = new List<string>();
+
+                    if (await _context.DonDangKy.AnyAsync(d => d.MaSuKien == maSuKien))
+                    {
+                        blockingReasons.Add("đơn đăng ký của tình nguyện viên");
+                    }
+
+                    if (await _context.GiayChungNhan.AnyAsync(g => g.MaSuKien == maSuKien))
+                    {
+                        blockingReasons.Add("giấy chứng nhận đã phát hành");
+                    }
+
+                    if (await _context.DanhGia.AnyAsync(dg => dg.MaSuKien == maSuKien))
+                    {
+                        blockingReasons.Add("đánh giá liên quan");
+                    }
+
+                    if (blockingReasons.Any())
+                    {
+                        var message = $"Không thể xóa sự kiện vì đang có {string.Join(", ", blockingReasons)}. Vui lòng xử lý các dữ liệu này trước khi xóa.";
+                        throw new InvalidOperationException(message);
+                    }
+
                     _context.SuKien_KyNang.RemoveRange(sukien.SuKien_KyNangs);
                     _context.SuKien_LinhVuc.RemoveRange(sukien.SuKien_LinhVucs);
                     _context.Event.Remove(sukien);
@@ -193,6 +251,16 @@ namespace khoaluantotnghiep.Services
                     .Include(s => s.Organization)
                     .ToListAsync();
 
+                // Lấy danh sách ID sự kiện
+                var eventIds = suKiens.Select(s => s.MaSuKien).ToList();
+                
+                // Đếm số đơn đăng ký đã duyệt theo từng sự kiện (TrangThai = 1)
+                var registrationCounts = await _context.DonDangKy
+                    .Where(d => eventIds.Contains(d.MaSuKien) && d.TrangThai == 1)
+                    .GroupBy(d => d.MaSuKien)
+                    .Select(g => new { MaSuKien = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.MaSuKien, x => x.Count);
+
                 return suKiens.Select(s => new SuKienResponseDto
                 {
                     MaSuKien = s.MaSuKien,
@@ -207,10 +275,13 @@ namespace khoaluantotnghiep.Services
                     TuyenBatDau = s.TuyenBatDau,
                     TuyenKetThuc = s.TuyenKetThuc,
                     TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
+                    TrangThaiHienThi = GetTrangThaiHienThi(s),
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = s.Organization?.TenToChuc
+                    TenToChuc = s.Organization?.TenToChuc,
+                    MaTaiKhoanToChuc = s.Organization?.MaTaiKhoan,
+                    SoLuongDaDangKy = registrationCounts.ContainsKey(s.MaSuKien) ? registrationCounts[s.MaSuKien] : 0
                 }).ToList();
             }
             catch (Exception ex)
@@ -237,6 +308,16 @@ namespace khoaluantotnghiep.Services
                     return new List<SuKienResponseDto>();
                 }
 
+                // Lấy danh sách ID sự kiện
+                var eventIds = suKiens.Select(s => s.MaSuKien).ToList();
+                
+                // Đếm số đơn đăng ký đã duyệt theo từng sự kiện (TrangThai = 1)
+                var registrationCounts = await _context.DonDangKy
+                    .Where(d => eventIds.Contains(d.MaSuKien) && d.TrangThai == 1)
+                    .GroupBy(d => d.MaSuKien)
+                    .Select(g => new { MaSuKien = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.MaSuKien, x => x.Count);
+
                 return suKiens.Select(s => new SuKienResponseDto
                 {
                     MaSuKien = s.MaSuKien,
@@ -251,10 +332,13 @@ namespace khoaluantotnghiep.Services
                     TuyenBatDau = s.TuyenBatDau,
                     TuyenKetThuc = s.TuyenKetThuc,
                     TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
+                    TrangThaiHienThi = GetTrangThaiHienThi(s),
                     HinhAnh = s.HinhAnh,
                     LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = s.Organization?.TenToChuc
+                    TenToChuc = s.Organization?.TenToChuc,
+                    MaTaiKhoanToChuc = s.Organization?.MaTaiKhoan,
+                    SoLuongDaDangKy = registrationCounts.ContainsKey(s.MaSuKien) ? registrationCounts[s.MaSuKien] : 0
                 }).ToList();
             }
             catch (Exception ex)
@@ -278,6 +362,12 @@ namespace khoaluantotnghiep.Services
                 {
                     throw new Exception("Sự kiện không tồn tại");
                 }
+                
+                // Đếm số đơn đăng ký đã được duyệt (TrangThai = 1)
+                var soLuongDaDangKy = await _context.DonDangKy
+                    .Where(d => d.MaSuKien == maSuKien && d.TrangThai == 1)
+                    .CountAsync();
+                
                 return new SuKienResponseDto
                 {
                     MaSuKien = suKien.MaSuKien,
@@ -292,10 +382,13 @@ namespace khoaluantotnghiep.Services
                     TuyenBatDau = suKien.TuyenBatDau,
                     TuyenKetThuc = suKien.TuyenKetThuc,
                     TrangThai = int.TryParse(suKien.TrangThai, out int trangThai) ? trangThai : 0,
+                    TrangThaiHienThi = GetTrangThaiHienThi(suKien),
                     HinhAnh = suKien.HinhAnh,
                     LinhVucIds = suKien.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
                     KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = suKien.Organization?.TenToChuc
+                    TenToChuc = suKien.Organization?.TenToChuc,
+                    MaTaiKhoanToChuc = suKien.Organization?.MaTaiKhoan,
+                    SoLuongDaDangKy = soLuongDaDangKy
                 };
 
             }

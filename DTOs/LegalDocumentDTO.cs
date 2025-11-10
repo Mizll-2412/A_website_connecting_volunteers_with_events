@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace khoaluantotnghiep.DTOs
 {
@@ -10,10 +12,10 @@ namespace khoaluantotnghiep.DTOs
 
         [Required]
         [StringLength(200)]
-        public string TenGiayTo { get; set; }
+        public string TenGiayTo { get; set; } = string.Empty;
 
         [Required]
-        public IFormFile[] Files { get; set; }
+        public IFormFile[] Files { get; set; } = Array.Empty<IFormFile>();
 
         [StringLength(500)]
         public string? MoTa { get; set; }
@@ -41,7 +43,7 @@ namespace khoaluantotnghiep.DTOs
     {
         public int MaToChuc { get; set; }
         public string? TenToChuc { get; set; }
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         public byte? TrangThaiXacMinh { get; set; }
         public string? TrangThaiXacMinhText { get; set; }
         public string? LyDoTuChoi { get; set; }

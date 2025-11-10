@@ -13,7 +13,11 @@ namespace khoaluantotnghiep.DTOs
         public string? MoTa { get; set; }
         public bool IsDefault { get; set; }
         public DateTime? NgayGui { get; set; }
-        public string? File { get; set; }
+        public string? FilePath { get; set; }
+        public string? TemplateConfig { get; set; }
+        public string? BackgroundImage { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 
     public class CreateCertificateSampleDto
@@ -26,14 +30,16 @@ namespace khoaluantotnghiep.DTOs
 
         public bool IsDefault { get; set; }
 
-        [Required(ErrorMessage = "File mẫu giấy chứng nhận là bắt buộc")]
-        public IFormFile File { get; set; }
+        public IFormFile? File { get; set; }
+
+        // Tên file ảnh nền (đã upload qua /upload), nếu có
+        public string? BackgroundImage { get; set; }
     }
 
     public class CertificateDto
     {
         public int MaGiayChungNhan { get; set; }
-        public int MaMau { get; set; }
+        public int? MaMau { get; set; }
         public string? TenMau { get; set; }
         public int MaTNV { get; set; }
         public string? TenTNV { get; set; }
@@ -42,6 +48,10 @@ namespace khoaluantotnghiep.DTOs
         public string? TenToChuc { get; set; }
         public DateTime? NgayCap { get; set; }
         public string? FilePath { get; set; }
+        public string? CertificateData { get; set; } // TemplateConfig đã điền data
+        public string? BackgroundImage { get; set; } // Ảnh nền
+        public int Width { get; set; } = 1200; // Chiều rộng canvas
+        public int Height { get; set; } = 800; // Chiều cao canvas
     }
 
     public class IssueCertificateDto

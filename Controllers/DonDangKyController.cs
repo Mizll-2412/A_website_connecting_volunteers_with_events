@@ -89,7 +89,7 @@ namespace khoaluantotnghiep.Controllers
 
         /// Lấy danh sách đơn đăng ký của tình nguyện viên
         [HttpGet("volunteer/{maTNV}")]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = "User,Admin,Organization")]
         public async Task<IActionResult> GetDonDangKyByTNV(int maTNV)
         {
             try

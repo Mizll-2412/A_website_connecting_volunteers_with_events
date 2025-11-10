@@ -46,6 +46,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<ICertificateGeneratorService, CertificateGeneratorService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 
 builder.Services.AddAuthentication(options =>
@@ -55,16 +56,20 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    var jwtSection = builder.Configuration.GetSection("Jwt");
+    var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer chưa được cấu hình");
+    var audience = jwtSection["Audience"] ?? throw new InvalidOperationException("Jwt:Audience chưa được cấu hình");
+    var key = jwtSection["Key"] ?? throw new InvalidOperationException("Jwt:Key chưa được cấu hình");
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = false,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        ValidIssuer = issuer,
+        ValidAudience = audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
     };
 });
 
@@ -90,10 +95,20 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCors("AllowAll");
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Add CORS headers to static files
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "*");
+    }
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

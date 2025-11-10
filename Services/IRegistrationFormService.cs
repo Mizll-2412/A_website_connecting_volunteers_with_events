@@ -12,7 +12,7 @@ namespace khoaluantotnghiep.Services
         Task<bool> HuyDangKyAsync(int maTNV, int maSuKien);
         
         // Lịch sử tham gia sự kiện
-        Task<List<EventHistoryDto>> GetEventHistoryAsync(int maTNV, EventHistoryFilterDto filter = null);
+        Task<List<EventHistoryDto>> GetEventHistoryAsync(int maTNV, EventHistoryFilterDto? filter = null);
         Task<EventHistoryStatsDto> GetEventHistoryStatsAsync(int maTNV);
     }
 }

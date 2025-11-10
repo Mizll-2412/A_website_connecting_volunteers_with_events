@@ -17,18 +17,18 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("Email")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         [Required]
         [Column("Password")]
-        public string Password { get; set; }
+        public string Password { get; set; } = string.Empty;
 
         [Required]
         [Column("PasswordSalt")]
-        public string PasswordSalt { get; set; }
+        public string PasswordSalt { get; set; } = string.Empty;
 
         [StringLength(50)]
         [Column("VaiTro")]
-        public string VaiTro { get; set; }
+        public string VaiTro { get; set; } = string.Empty;
 
         [Column("TrangThai")]
         public bool TrangThai { get; set; } = true;

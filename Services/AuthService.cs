@@ -1,21 +1,17 @@
 using System;
-using System.Security.Cryptography;
-using System.Text;
-using khoaluantotnghiep.Data;
-using khoaluantotnghiep.DTOs;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using khoaluantotnghiep.Data;
+using khoaluantotnghiep.DTOs;
+using khoaluantotnghiep.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using khoaluantotnghiep.Models;
-using System.Net.Mail;
-using System.Net;
 
 namespace khoaluantotnghiep.Services
 {
@@ -31,9 +27,14 @@ namespace khoaluantotnghiep.Services
 
         public string GenerateJwtToken(int mataikhoan, string email, string vaiTro)
         {
-            var securityKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"])
-            );
+            var jwtKey = _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException("Jwt:Key không được cấu hình");
+            var issuer = _configuration["Jwt:Issuer"]
+                ?? throw new InvalidOperationException("Jwt:Issuer không được cấu hình");
+            var audience = _configuration["Jwt:Audience"]
+                ?? throw new InvalidOperationException("Jwt:Audience không được cấu hình");
+
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]{
                 new Claim(ClaimTypes.NameIdentifier, mataikhoan.ToString()),
@@ -41,8 +42,8 @@ namespace khoaluantotnghiep.Services
                 new Claim(ClaimTypes.Role, vaiTro ?? "User")
             };
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: issuer,
+                audience: audience,
                 claims: claims,
                 expires: DateTime.Now.AddHours(24),
                 signingCredentials: credentials
@@ -89,6 +90,15 @@ namespace khoaluantotnghiep.Services
                     Message = "Tài khoản đã bị khóa"
                 };
             }
+            if (string.IsNullOrEmpty(user.PasswordSalt) || string.IsNullOrEmpty(user.Password) || string.IsNullOrEmpty(user.Email) || string.IsNullOrEmpty(user.VaiTro))
+            {
+                return new LoginRespone
+                {
+                    Success = false,
+                    Message = "Tài khoản không hợp lệ"
+                };
+            }
+
             var hashedPassword = HashPassword(request.Password, user.PasswordSalt);
             if (hashedPassword != user.Password)
             {
@@ -104,13 +114,13 @@ namespace khoaluantotnghiep.Services
             var token = GenerateJwtToken(user.MaTaiKhoan, user.Email, user.VaiTro);
 
             // Lấy thông tin HoTen từ các bảng con tùy theo vai trò
-            string hoTen = null;
+            string hoTen = string.Empty;
             if (user.VaiTro.Equals("User", StringComparison.OrdinalIgnoreCase))
             {
                 var volunteer = await _context.Volunteer.FirstOrDefaultAsync(v => v.MaTaiKhoan == user.MaTaiKhoan);
                 if (volunteer != null)
                 {
-                    hoTen = volunteer.HoTen;
+                    hoTen = volunteer.HoTen ?? string.Empty;
                 }
             }
             else if (user.VaiTro.Equals("Organization", StringComparison.OrdinalIgnoreCase))
@@ -118,7 +128,7 @@ namespace khoaluantotnghiep.Services
                 var org = await _context.Organization.FirstOrDefaultAsync(o => o.MaTaiKhoan == user.MaTaiKhoan);
                 if (org != null)
                 {
-                    hoTen = org.TenToChuc;
+                    hoTen = org.TenToChuc ?? string.Empty;
                 }
             }
             else if (user.VaiTro.Equals("Admin", StringComparison.OrdinalIgnoreCase))
@@ -126,7 +136,7 @@ namespace khoaluantotnghiep.Services
                 var admin = await _context.Admin.FirstOrDefaultAsync(a => a.MaTaiKhoan == user.MaTaiKhoan);
                 if (admin != null)
                 {
-                    hoTen = admin.HoTen;
+                    hoTen = admin.HoTen ?? string.Empty;
                 }
             }
 
@@ -138,7 +148,7 @@ namespace khoaluantotnghiep.Services
                 UserInfo = new UserInfo
                 {
                     MaTaiKhoan = user.MaTaiKhoan,
-                    HoTen = hoTen, // Thêm họ tên vào thông tin trả về
+                    HoTen = hoTen,
                     Email = user.Email,
                     VaiTro = user.VaiTro
                 }
@@ -149,12 +159,20 @@ namespace khoaluantotnghiep.Services
         {
             try
             {
-                var smtpServer = _configuration["EmailSettings:SmtpServer"];
-                var smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"]);
-                var smtpUsername = _configuration["EmailSettings:SmtpUsername"];
-                var smtpPassword = _configuration["EmailSettings:SmtpPassword"];
-                var senderEmail = _configuration["EmailSettings:SenderEmail"];
-                var senderName = _configuration["EmailSettings:SenderName"];
+                var smtpServer = _configuration["EmailSettings:SmtpServer"]
+                    ?? throw new InvalidOperationException("EmailSettings:SmtpServer không được cấu hình");
+                var smtpPortValue = _configuration["EmailSettings:SmtpPort"];
+                if (!int.TryParse(smtpPortValue, out var smtpPort))
+                {
+                    throw new InvalidOperationException("EmailSettings:SmtpPort không hợp lệ");
+                }
+                var smtpUsername = _configuration["EmailSettings:SmtpUsername"]
+                    ?? throw new InvalidOperationException("EmailSettings:SmtpUsername không được cấu hình");
+                var smtpPassword = _configuration["EmailSettings:SmtpPassword"]
+                    ?? throw new InvalidOperationException("EmailSettings:SmtpPassword không được cấu hình");
+                var senderEmail = _configuration["EmailSettings:SenderEmail"]
+                    ?? throw new InvalidOperationException("EmailSettings:SenderEmail không được cấu hình");
+                var senderName = _configuration["EmailSettings:SenderName"] ?? "Hệ thống";
 
                 using (var client = new SmtpClient(smtpServer, smtpPort))
                 {
@@ -183,16 +201,12 @@ namespace khoaluantotnghiep.Services
 
         private string GenerateRandomToken()
         {
-            using (var rng = new RNGCryptoServiceProvider())
-            {
-                var tokenData = new byte[32];
-                rng.GetBytes(tokenData);
-                return Convert.ToBase64String(tokenData)
-                    .Replace("/", "_")
-                    .Replace("+", "-")
-                    .Replace("=", "")
-                    .Substring(0, 20);
-            }
+            var tokenData = RandomNumberGenerator.GetBytes(32);
+            return Convert.ToBase64String(tokenData)
+                .Replace("/", "_")
+                .Replace("+", "-")
+                .Replace("=", "")
+                .Substring(0, 20);
         }
 
         public async Task<BaseResponse> LogoutAsync(int userId)
@@ -578,7 +592,7 @@ namespace khoaluantotnghiep.Services
                     MaAdmin = maAdmin
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
                 throw;

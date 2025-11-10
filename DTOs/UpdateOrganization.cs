@@ -11,7 +11,7 @@ namespace khoaluantotnghiep.DTOs
         [Required]
         [EmailAddress]
         [StringLength(100)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [StringLength(12)]
         public string? SoDienThoai { get; set; }
@@ -36,7 +36,7 @@ namespace khoaluantotnghiep.DTOs
         [Required]
         [EmailAddress]
         [StringLength(100)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [StringLength(12)]
         public string? SoDienThoai { get; set; }
@@ -57,7 +57,7 @@ namespace khoaluantotnghiep.DTOs
         public int MaToChuc { get; set; }
         public int MaTaiKhoan { get; set; }
         public string? TenToChuc { get; set; }
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
         public string? SoDienThoai { get; set; }
         public string? DiaChi { get; set; }
         public DateTime? NgayTao { get; set; }

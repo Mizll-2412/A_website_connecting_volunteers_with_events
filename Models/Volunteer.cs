@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,7 +30,7 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("Email")]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [StringLength(12)]
         [Column("CCCD")]
@@ -52,7 +53,7 @@ namespace khoaluantotnghiep.Models
         public string? AnhDaiDien { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
-        public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; } = null!;
         [Column("DiemTrungBinh")]
         public decimal? DiemTrungBinh { get; set; }
         

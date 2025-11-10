@@ -48,8 +48,25 @@ namespace khoaluantotnghiep.Services
                     }
                 }
 
-                // Upload file
-                string filePath = await UploadCertificateSampleFileAsync(createDto.File);
+                // Upload file (optional)
+                string? filePath = null;
+                string? backgroundImageFileName = createDto.BackgroundImage;
+                if (createDto.File != null)
+                {
+                    var ext = Path.GetExtension(createDto.File.FileName).ToLowerInvariant();
+                    var imageExts = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+
+                    if (imageExts.Contains(ext))
+                    {
+                        // Trường 'file' đang là ảnh nền -> lưu vào /wwwroot/uploads và set BackgroundImage
+                        backgroundImageFileName = await UploadBackgroundImageAsync(createDto.File);
+                    }
+                    else
+                    {
+                        // Các định dạng khác (vd: PDF) được coi là file chứng nhận tĩnh
+                        filePath = await UploadCertificateSampleFileAsync(createDto.File);
+                    }
+                }
 
                 // Nếu đây là mẫu mặc định, bỏ default của mẫu khác
                 if (createDto.IsDefault)
@@ -70,7 +87,8 @@ namespace khoaluantotnghiep.Services
                     MoTa = createDto.MoTa,
                     IsDefault = createDto.IsDefault,
                     NgayGui = DateTime.Now,
-                    File = filePath
+                    File = filePath,
+                    BackgroundImage = backgroundImageFileName
                 };
 
                 _context.MauGiayChungNhan.Add(certificateSample);
@@ -85,7 +103,11 @@ namespace khoaluantotnghiep.Services
                     MoTa = certificateSample.MoTa,
                     IsDefault = certificateSample.IsDefault,
                     NgayGui = certificateSample.NgayGui,
-                    File = certificateSample.File
+                    FilePath = certificateSample.File,
+                    TemplateConfig = certificateSample.TemplateConfig,
+                    BackgroundImage = certificateSample.BackgroundImage,
+                    Width = certificateSample.Width,
+                    Height = certificateSample.Height
                 };
             }
             catch (Exception ex)
@@ -93,6 +115,39 @@ namespace khoaluantotnghiep.Services
                 _logger.LogError($"Lỗi tạo mẫu giấy chứng nhận: {ex.Message}");
                 throw;
             }
+        }
+
+        private async Task<string> UploadBackgroundImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("File không hợp lệ");
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new ArgumentException("Ảnh nền chỉ chấp nhận JPG, JPEG, PNG, GIF, BMP");
+            }
+
+            var uploadsRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!Directory.Exists(uploadsRoot))
+            {
+                Directory.CreateDirectory(uploadsRoot);
+            }
+
+            var fileName = $"{Guid.NewGuid()}{fileExtension}";
+            var filePath = Path.Combine(uploadsRoot, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Lưu BackgroundImage là tên file để phù hợp GeneratorService và FE
+            return fileName;
         }
 
         public async Task<CertificateSampleDto> GetCertificateSampleByIdAsync(int maMau)
@@ -117,7 +172,11 @@ namespace khoaluantotnghiep.Services
                     MoTa = certificateSample.MoTa,
                     IsDefault = certificateSample.IsDefault,
                     NgayGui = certificateSample.NgayGui,
-                    File = certificateSample.File
+                    FilePath = certificateSample.File,
+                    TemplateConfig = certificateSample.TemplateConfig,
+                    BackgroundImage = certificateSample.BackgroundImage,
+                    Width = certificateSample.Width,
+                    Height = certificateSample.Height
                 };
             }
             catch (Exception ex)
@@ -146,7 +205,11 @@ namespace khoaluantotnghiep.Services
                     MoTa = m.MoTa,
                     IsDefault = m.IsDefault,
                     NgayGui = m.NgayGui,
-                    File = m.File
+                    FilePath = m.File,
+                    TemplateConfig = m.TemplateConfig,
+                    BackgroundImage = m.BackgroundImage,
+                    Width = m.Width,
+                    Height = m.Height
                 }).ToList();
             }
             catch (Exception ex)
@@ -175,7 +238,11 @@ namespace khoaluantotnghiep.Services
                     MoTa = m.MoTa,
                     IsDefault = m.IsDefault,
                     NgayGui = m.NgayGui,
-                    File = m.File
+                    FilePath = m.File,
+                    TemplateConfig = m.TemplateConfig,
+                    BackgroundImage = m.BackgroundImage,
+                    Width = m.Width,
+                    Height = m.Height
                 }).ToList();
             }
             catch (Exception ex)
@@ -195,14 +262,7 @@ namespace khoaluantotnghiep.Services
                     return false;
                 }
 
-                // Kiểm tra xem mẫu đã được sử dụng chưa
-                var usedCertificates = await _context.GiayChungNhan
-                    .AnyAsync(c => c.MaMau == maMau);
-
-                if (usedCertificates)
-                {
-                    throw new InvalidOperationException("Không thể xóa mẫu giấy chứng nhận đã được sử dụng");
-                }
+                // Cho phép xóa mẫu đã được sử dụng; ràng buộc FK sẽ SET NULL cho các chứng nhận cũ
 
                 // Xóa file nếu tồn tại
                 if (!string.IsNullOrEmpty(certificateSample.File))
@@ -221,6 +281,50 @@ namespace khoaluantotnghiep.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi xóa mẫu giấy chứng nhận: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<CertificateSampleDto> SetDefaultCertificateSampleAsync(int maMau)
+        {
+            try
+            {
+                var certificateSample = await _context.MauGiayChungNhan.FindAsync(maMau);
+                if (certificateSample == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy mẫu giấy chứng nhận");
+                }
+
+                // Bỏ mặc định mẫu hiện tại (nếu có)
+                var existingDefault = await _context.MauGiayChungNhan
+                    .Where(m => m.IsDefault && m.MaMau != maMau)
+                    .ToListAsync();
+                foreach (var sample in existingDefault)
+                {
+                    sample.IsDefault = false;
+                }
+
+                certificateSample.IsDefault = true;
+                await _context.SaveChangesAsync();
+
+                return new CertificateSampleDto
+                {
+                    MaMau = certificateSample.MaMau,
+                    MaSuKien = certificateSample.MaSuKien,
+                    TenMau = certificateSample.TenMau,
+                    MoTa = certificateSample.MoTa,
+                    IsDefault = certificateSample.IsDefault,
+                    NgayGui = certificateSample.NgayGui,
+                    FilePath = certificateSample.File,
+                    TemplateConfig = certificateSample.TemplateConfig,
+                    BackgroundImage = certificateSample.BackgroundImage,
+                    Width = certificateSample.Width,
+                    Height = certificateSample.Height
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi đặt mẫu chứng nhận mặc định: {ex.Message}");
                 throw;
             }
         }
@@ -320,17 +424,53 @@ namespace khoaluantotnghiep.Services
                     throw new InvalidOperationException("Đã tồn tại giấy chứng nhận cho tình nguyện viên này");
                 }
 
-                string filePath;
+                string filePath = null;
                 if (issueDto.File != null)
                 {
                     // Nếu có file riêng, upload file đó
                     filePath = await UploadCertificateFileAsync(issueDto.File);
                 }
+                else if (!string.IsNullOrEmpty(certificateSample.TemplateConfig))
+                {
+                    // Mẫu động (có TemplateConfig) - sẽ generate khi cần
+                    // Không cần file tĩnh, set null và generate on-demand
+                    filePath = null;
+                }
                 else
                 {
-                    // Sử dụng file mẫu
-                    filePath = certificateSample.File;
+                    // Mẫu tĩnh - cần file
+                    filePath = certificateSample.File
+                        ?? throw new InvalidOperationException("Mẫu giấy chứng nhận chưa có file đính kèm");
                 }
+
+                // Tạo snapshot dữ liệu tại thời điểm cấp
+                var ngayCap = DateTime.Now;
+                var ngayBatDau = suKien.NgayBatDau;
+                var ngayKetThuc = suKien.NgayKetThuc ?? ngayBatDau;
+                int? soGioThamGia = null;
+                
+                if (ngayBatDau != null && ngayKetThuc != null)
+                {
+                    var timeSpan = ngayKetThuc.Value - ngayBatDau.Value;
+                    soGioThamGia = (int)Math.Ceiling(timeSpan.TotalHours);
+                }
+
+                // Chuẩn bị dữ liệu để điền vào template
+                var dataValues = new Dictionary<string, string>
+                {
+                    { "TenTNV", tinhNguyenVien.HoTen ?? "Tình nguyện viên" },
+                    { "TenSuKien", suKien.TenSuKien ?? "Sự kiện" },
+                    { "TenToChuc", suKien.Organization?.TenToChuc ?? "Tổ chức" },
+                    { "NgayCap", ngayCap.ToString("dd/MM/yyyy") },
+                    { "NgayBatDau", ngayBatDau?.ToString("dd/MM/yyyy") ?? "" },
+                    { "NgayKetThuc", ngayKetThuc?.ToString("dd/MM/yyyy") ?? "" },
+                    { "ThoiGian", ngayBatDau != null && ngayKetThuc != null 
+                        ? $"{ngayBatDau.Value:dd/MM/yyyy} - {ngayKetThuc.Value:dd/MM/yyyy}" 
+                        : "" },
+                    { "DiaChi", suKien.DiaChi ?? "" },
+                    { "SoGioThamGia", soGioThamGia?.ToString() ?? "" },
+                    { "MaChungNhan", "" } // Sẽ được set sau khi có ID
+                };
 
                 // Tạo giấy chứng nhận mới
                 var certificate = new GiayChungNhan
@@ -338,11 +478,69 @@ namespace khoaluantotnghiep.Services
                     MaMau = issueDto.MaMau,
                     MaTNV = issueDto.MaTNV,
                     MaSuKien = issueDto.MaSuKien,
-                    NgayCap = DateTime.Now,
-                    File = filePath
+                    NgayCap = ngayCap,
+                    File = filePath,
+                    BackgroundImage = certificateSample.BackgroundImage, // Lưu ảnh nền
+                    CertificateData = null // Sẽ update sau
                 };
 
                 _context.GiayChungNhan.Add(certificate);
+                await _context.SaveChangesAsync();
+
+                // Update mã chứng nhận
+                var maChungNhan = $"CERT-{certificate.MaGiayChungNhan}-{ngayCap.Year}";
+                dataValues["MaChungNhan"] = maChungNhan;
+
+                // Tạo TemplateConfig đã điền data từ mẫu
+                string? filledTemplateConfig = null;
+                if (!string.IsNullOrEmpty(certificateSample.TemplateConfig))
+                {
+                    try
+                    {
+                        var templateConfig = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(certificateSample.TemplateConfig);
+                        if (templateConfig != null && templateConfig.ContainsKey("fields"))
+                        {
+                            var fieldsJson = System.Text.Json.JsonSerializer.Serialize(templateConfig["fields"]);
+                            var fields = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(fieldsJson);
+                            
+                            if (fields != null)
+                            {
+                                // Điền value vào mỗi field
+                                foreach (var field in fields)
+                                {
+                                    if (field.ContainsKey("key") && field["key"] != null)
+                                    {
+                                        var key = field["key"].ToString();
+                                        if (dataValues.ContainsKey(key))
+                                        {
+                                            field["value"] = dataValues[key];
+                                        }
+                                    }
+                                }
+                                
+                                // Tạo lại TemplateConfig với fields đã điền data
+                                var filledConfig = new Dictionary<string, object>
+                                {
+                                    { "fields", fields }
+                                };
+                                
+                                filledTemplateConfig = System.Text.Json.JsonSerializer.Serialize(filledConfig);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Cannot parse template config, will use simple data format: {ex.Message}");
+                    }
+                }
+
+                // Nếu không có TemplateConfig hoặc parse lỗi, dùng format đơn giản
+                if (string.IsNullOrEmpty(filledTemplateConfig))
+                {
+                    filledTemplateConfig = System.Text.Json.JsonSerializer.Serialize(new { fields = new List<object>() });
+                }
+
+                certificate.CertificateData = filledTemplateConfig;
                 await _context.SaveChangesAsync();
 
                 return new CertificateDto
@@ -383,6 +581,10 @@ namespace khoaluantotnghiep.Services
                     throw new KeyNotFoundException("Không tìm thấy giấy chứng nhận");
                 }
 
+                // Lấy width/height từ template (fallback về default nếu không có)
+                var width = certificate.MauGiayChungNhan?.Width ?? 1200;
+                var height = certificate.MauGiayChungNhan?.Height ?? 800;
+
                 return new CertificateDto
                 {
                     MaGiayChungNhan = certificate.MaGiayChungNhan,
@@ -393,7 +595,11 @@ namespace khoaluantotnghiep.Services
                     TenSuKien = certificate.SuKien?.TenSuKien ?? certificate.MauGiayChungNhan?.SuKien?.TenSuKien,
                     TenToChuc = certificate.SuKien?.Organization?.TenToChuc,
                     NgayCap = certificate.NgayCap,
-                    FilePath = certificate.File
+                    FilePath = certificate.File,
+                    CertificateData = certificate.CertificateData, // TemplateConfig đã điền data
+                    BackgroundImage = certificate.BackgroundImage, // Ảnh nền
+                    Width = width,
+                    Height = height
                 };
             }
             catch (Exception ex)
@@ -644,6 +850,17 @@ namespace khoaluantotnghiep.Services
                     .Select(c => c.MaTNV)
                     .ToListAsync();
 
+                // Tính toán dữ liệu chung cho tất cả chứng nhận
+                var ngayBatDau = suKien.NgayBatDau;
+                var ngayKetThuc = suKien.NgayKetThuc ?? ngayBatDau;
+                int? soGioThamGia = null;
+                
+                if (ngayBatDau != null && ngayKetThuc != null)
+                {
+                    var timeSpan = ngayKetThuc.Value - ngayBatDau.Value;
+                    soGioThamGia = (int)Math.Ceiling(timeSpan.TotalHours);
+                }
+
                 foreach (var volunteer in approvedVolunteers)
                 {
                     // Bỏ qua TNV đã có giấy chứng nhận
@@ -652,6 +869,23 @@ namespace khoaluantotnghiep.Services
                         continue;
                     }
 
+                    // Chuẩn bị dữ liệu cho TNV này
+                    var dataValues = new Dictionary<string, string>
+                    {
+                        { "TenTNV", volunteer.TinhNguyenVien?.HoTen ?? "Tình nguyện viên" },
+                        { "TenSuKien", suKien.TenSuKien ?? "Sự kiện" },
+                        { "TenToChuc", suKien.Organization?.TenToChuc ?? "Tổ chức" },
+                        { "NgayCap", now.ToString("dd/MM/yyyy") },
+                        { "NgayBatDau", ngayBatDau?.ToString("dd/MM/yyyy") ?? "" },
+                        { "NgayKetThuc", ngayKetThuc?.ToString("dd/MM/yyyy") ?? "" },
+                        { "ThoiGian", ngayBatDau != null && ngayKetThuc != null 
+                            ? $"{ngayBatDau.Value:dd/MM/yyyy} - {ngayKetThuc.Value:dd/MM/yyyy}" 
+                            : "" },
+                        { "DiaChi", suKien.DiaChi ?? "" },
+                        { "SoGioThamGia", soGioThamGia?.ToString() ?? "" },
+                        { "MaChungNhan", "" } // Sẽ được set sau
+                    };
+
                     // Tạo giấy chứng nhận mới
                     var certificate = new GiayChungNhan
                     {
@@ -659,10 +893,65 @@ namespace khoaluantotnghiep.Services
                         MaTNV = volunteer.MaTNV,
                         MaSuKien = maSuKien,
                         NgayCap = now,
-                        File = certificateSample.File // Sử dụng file mẫu
+                        File = !string.IsNullOrEmpty(certificateSample.TemplateConfig) ? null : certificateSample.File,
+                        BackgroundImage = certificateSample.BackgroundImage,
+                        CertificateData = null // Sẽ update sau
                     };
 
                     _context.GiayChungNhan.Add(certificate);
+                    await _context.SaveChangesAsync();
+
+                    // Update mã chứng nhận
+                    var maChungNhan = $"CERT-{certificate.MaGiayChungNhan}-{now.Year}";
+                    dataValues["MaChungNhan"] = maChungNhan;
+
+                    // Tạo TemplateConfig đã điền data
+                    string? filledTemplateConfig = null;
+                    if (!string.IsNullOrEmpty(certificateSample.TemplateConfig))
+                    {
+                        try
+                        {
+                            var templateConfig = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(certificateSample.TemplateConfig);
+                            if (templateConfig != null && templateConfig.ContainsKey("fields"))
+                            {
+                                var fieldsJson = System.Text.Json.JsonSerializer.Serialize(templateConfig["fields"]);
+                                var fields = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(fieldsJson);
+                                
+                                if (fields != null)
+                                {
+                                    foreach (var field in fields)
+                                    {
+                                        if (field.ContainsKey("key") && field["key"] != null)
+                                        {
+                                            var key = field["key"].ToString();
+                                            if (dataValues.ContainsKey(key))
+                                            {
+                                                field["value"] = dataValues[key];
+                                            }
+                                        }
+                                    }
+                                    
+                                    var filledConfig = new Dictionary<string, object>
+                                    {
+                                        { "fields", fields }
+                                    };
+                                    
+                                    filledTemplateConfig = System.Text.Json.JsonSerializer.Serialize(filledConfig);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"Cannot parse template config for certificate {certificate.MaGiayChungNhan}: {ex.Message}");
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(filledTemplateConfig))
+                    {
+                        filledTemplateConfig = System.Text.Json.JsonSerializer.Serialize(new { fields = new List<object>() });
+                    }
+
+                    certificate.CertificateData = filledTemplateConfig;
                     await _context.SaveChangesAsync();
 
                     issuedCertificates.Add(new CertificateDto
@@ -685,6 +974,66 @@ namespace khoaluantotnghiep.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi phát hành hàng loạt giấy chứng nhận: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<CertificateSampleDto> UpdateTemplateConfigAsync(int maMau, TemplateConfigDto configDto)
+        {
+            try
+            {
+                var template = await _context.MauGiayChungNhan.FindAsync(maMau);
+                if (template == null)
+                    throw new KeyNotFoundException("Mẫu chứng nhận không tồn tại");
+
+                template.TemplateConfig = configDto.TemplateConfig;
+                template.BackgroundImage = configDto.BackgroundImage ?? template.BackgroundImage;
+                template.Width = configDto.Width > 0 ? configDto.Width : template.Width;
+                template.Height = configDto.Height > 0 ? configDto.Height : template.Height;
+
+                await _context.SaveChangesAsync();
+
+                return new CertificateSampleDto
+                {
+                    MaMau = template.MaMau,
+                    MaSuKien = template.MaSuKien,
+                    TenMau = template.TenMau,
+                    MoTa = template.MoTa,
+                    IsDefault = template.IsDefault,
+                    NgayGui = template.NgayGui,
+                    FilePath = template.File,
+                    TemplateConfig = template.TemplateConfig,
+                    BackgroundImage = template.BackgroundImage,
+                    Width = template.Width,
+                    Height = template.Height
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi cập nhật cấu hình template: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<TemplateConfigDto> GetTemplateConfigAsync(int maMau)
+        {
+            try
+            {
+                var template = await _context.MauGiayChungNhan.FindAsync(maMau);
+                if (template == null)
+                    throw new KeyNotFoundException("Mẫu chứng nhận không tồn tại");
+
+                return new TemplateConfigDto
+                {
+                    TemplateConfig = template.TemplateConfig,
+                    BackgroundImage = template.BackgroundImage,
+                    Width = template.Width,
+                    Height = template.Height
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi lấy cấu hình template: {ex.Message}");
                 throw;
             }
         }

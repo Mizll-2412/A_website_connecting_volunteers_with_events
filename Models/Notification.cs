@@ -21,12 +21,12 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(1000)]
         [Column("NoiDung")]
-        public string NoiDung { get; set; }
+        public string NoiDung { get; set; } = string.Empty;
 
         [Column("NgayGui")]
         public DateTime NgayGui { get; set; } = DateTime.Now;
 
         [ForeignKey("MaNguoiTao")]
-        public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; } = null!;
     }
 }
