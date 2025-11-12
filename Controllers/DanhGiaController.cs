@@ -49,17 +49,17 @@ namespace khoaluantotnghiep.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning($"Not found: {ex.Message}");
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogWarning($"Invalid operation: {ex.Message}");
+                _logger.LogWarning($"Thao tác không hợp lệ: {ex.Message}");
                 return BadRequest(new { success = false, message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning($"Unauthorized: {ex.Message}");
+                _logger.LogWarning($"Không được phép: {ex.Message}");
                 return StatusCode(403, new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -93,12 +93,12 @@ namespace khoaluantotnghiep.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning($"Not found: {ex.Message}");
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning($"Unauthorized: {ex.Message}");
+                _logger.LogWarning($"Không được phép: {ex.Message}");
                 return StatusCode(403, new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -125,7 +125,7 @@ namespace khoaluantotnghiep.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning($"Not found: {ex.Message}");
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -161,11 +161,11 @@ namespace khoaluantotnghiep.Controllers
         /// Lấy toàn bộ đánh giá (Admin)
         [HttpGet("all")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTatCaDanhGia()
+        public async Task<IActionResult> GetTatCaDanhGia([FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _service.GetAllEvaluationsAsync();
+                var result = await _service.GetAllEvaluationsAsync(filter);
                 return Ok(new
                 {
                     success = true,
@@ -205,11 +205,11 @@ namespace khoaluantotnghiep.Controllers
         /// Lấy các đánh giá mà user nhận được
         [HttpGet("received/{maUser}")]
         [Authorize(Roles = "User,Organization,Admin")]
-        public async Task<IActionResult> GetDanhGiaNhanDuoc(int maUser)
+        public async Task<IActionResult> GetDanhGiaNhanDuoc(int maUser, [FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _service.GetDanhGiaNhanDuocAsync(maUser);
+                var result = await _service.GetDanhGiaNhanDuocAsync(maUser, filter);
                 return Ok(new 
                 { 
                     success = true,
@@ -227,11 +227,11 @@ namespace khoaluantotnghiep.Controllers
         /// Lấy các đánh giá mà user đã đưa ra
         [HttpGet("given/{maUser}")]
         [Authorize(Roles = "User,Organization,Admin")]
-        public async Task<IActionResult> GetDanhGiaDaDuaRa(int maUser)
+        public async Task<IActionResult> GetDanhGiaDaDuaRa(int maUser, [FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _service.GetDanhGiaDaDuaRaAsync(maUser);
+                var result = await _service.GetDanhGiaDaDuaRaAsync(maUser, filter);
                 return Ok(new 
                 { 
                     success = true,
@@ -277,7 +277,7 @@ namespace khoaluantotnghiep.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning($"Not found: {ex.Message}");
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
@@ -310,18 +310,63 @@ namespace khoaluantotnghiep.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning($"Not found: {ex.Message}");
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
                 return NotFound(new { success = false, message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning($"Unauthorized: {ex.Message}");
+                _logger.LogWarning($"Không được phép: {ex.Message}");
                 return StatusCode(403, new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi xóa đánh giá: {ex.Message}");
                 return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi xóa đánh giá" });
+            }
+        }
+
+        /// Đánh giá nhiều tình nguyện viên cùng lúc (dành cho Tổ chức)
+        [HttpPost("bulk")]
+        [Authorize(Roles = "Organization,Admin")]
+        public async Task<IActionResult> TaoNhieuDanhGia([FromBody] BulkCreateDanhGiaDto bulkDto)
+        {
+            try
+            {
+                // Lấy thông tin người dùng hiện tại từ JWT token
+                var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                
+                if (currentUserId == 0)
+                    return Unauthorized(new { message = "Không thể xác thực người dùng" });
+
+                if (bulkDto == null || bulkDto.MaTNVs == null || bulkDto.MaTNVs.Count == 0)
+                {
+                    return BadRequest(new { success = false, message = "Danh sách tình nguyện viên không được để trống" });
+                }
+
+                var result = await _service.TaoNhieuDanhGiaAsync(bulkDto, currentUserId);
+                
+                return Ok(new 
+                { 
+                    success = true,
+                    message = $"Đã tạo {result.Count} đánh giá thành công",
+                    data = result,
+                    count = result.Count
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning($"Không tìm thấy: {ex.Message}");
+                return NotFound(new { success = false, message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning($"Thao tác không hợp lệ: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi tạo đánh giá hàng loạt: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi tạo đánh giá hàng loạt" });
             }
         }
     }

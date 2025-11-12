@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using khoaluantotnghiep.Services;
 using khoaluantotnghiep.DTOs;
 using Microsoft.AspNetCore.Authorization;
+using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace khoaluantotnghiep.Controllers
@@ -116,11 +118,21 @@ namespace khoaluantotnghiep.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _adminService.VerifyOrganizationAsync(id, request.DaXacMinh, request.LyDoTuChoi);
+            var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var action = request.HanhDong?.Trim().ToLowerInvariant() ?? (request.DaXacMinh ? "approve" : "reject");
+
+            var result = await _adminService.VerifyOrganizationAsync(adminUserId, id, action, request.LyDoTuChoi);
             if (!result)
                 return NotFound(new { Message = "Không tìm thấy tổ chức" });
 
-            return Ok(new { Message = request.DaXacMinh ? "Xác minh tổ chức thành công" : "Từ chối xác minh tổ chức thành công" });
+            string message = action switch
+            {
+                "approve" => "Xác minh tổ chức thành công",
+                "revoke" => "Thu hồi xác minh tổ chức thành công",
+                _ => "Từ chối xác minh tổ chức thành công"
+            };
+
+            return Ok(new { Message = message });
         }
     }
 }

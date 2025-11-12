@@ -30,6 +30,11 @@ namespace khoaluantotnghiep.DTOs
 
         public DateTime? TuyenKetThuc { get; set; }
 
+        public DateTime? NgayDienRaBatDau { get; set; }
+
+        public DateTime? NgayDienRaKetThuc { get; set; }
+
+        public int? ThoiGianKhoaHuy { get; set; }
 
         [StringLength(200)]
         public string? TrangThai { get; set; }
@@ -62,6 +67,12 @@ namespace khoaluantotnghiep.DTOs
         public DateTime? TuyenBatDau { get; set; }
 
         public DateTime? TuyenKetThuc { get; set; }
+
+        public DateTime? NgayDienRaBatDau { get; set; }
+
+        public DateTime? NgayDienRaKetThuc { get; set; }
+
+        public int? ThoiGianKhoaHuy { get; set; }
 
         [StringLength(200)]
         public string? TrangThai { get; set; }
@@ -100,5 +111,42 @@ namespace khoaluantotnghiep.DTOs
         public List<LinhVucDto>? LinhVucs { get; set; }
         public List<KyNangDto>? KyNangs { get; set; }
         public int? SoLuongDaDangKy { get; set; } // Số lượng đã đăng ký (đã duyệt)
+        
+        // Thêm các trường formatted và date format pattern
+        public string DateFormat { get; set; } = "dd/MM/yyyy HH:mm";
+        public string? NgayBatDauFormatted { get; set; }
+        public string? NgayKetThucFormatted { get; set; }
+        public string? TuyenBatDauFormatted { get; set; }
+        public string? TuyenKetThucFormatted { get; set; }
+        public string? NgayTaoFormatted { get; set; }
+        
+        // Trạng thái tuyển dụng (2 trạng thái độc lập)
+        public string? TrangThaiTuyen { get; set; }        // "Chưa mở đăng ký", "Đang tuyển", "Đã đủ người", "Hết hạn tuyển", "Đóng"
+        public string? TrangThaiTuyenMau { get; set; }     // CSS class: "info", "success", "warning", "danger", "secondary"
+        
+        // Trạng thái sự kiện
+        public string? TrangThaiSuKien { get; set; }       // "Sắp diễn ra", "Đang diễn ra", "Đã kết thúc"
+        public string? TrangThaiSuKienMau { get; set; }    // CSS class
+        
+        // Thông tin chi tiết
+        public bool ChoPhepDangKy { get; set; }            // true/false - cho phép đăng ký hay không
+        public int SoLuongConLai { get; set; }             // soLuong - soLuongDaDangKy
+        
+        // Thời gian diễn ra thực tế
+        public DateTime? NgayDienRaBatDau { get; set; }
+        public DateTime? NgayDienRaKetThuc { get; set; }
+        public string? NgayDienRaBatDauFormatted { get; set; }
+        public string? NgayDienRaKetThucFormatted { get; set; }
+        public int ThoiGianKhoaHuy { get; set; } // Giờ
+        
+        // Thống kê đăng ký chi tiết (3 loại)
+        public int SoLuongDaDuyet { get; set; }      // TrangThai = 1
+        public int SoLuongChoDuyet { get; set; }     // TrangThai = 0
+        public int TongSoDangKy { get; set; }        // DaDuyet + ChoDuyet
+        public int GioiHanDangKy { get; set; }       // SoLuong × 1.5
+        
+        // Thông tin hủy đăng ký
+        public bool CoTheHuyDangKy { get; set; }     // Logic kiểm tra
+        public int SoGioConLaiDeHuy { get; set; }    // Cho countdown
     }
 }

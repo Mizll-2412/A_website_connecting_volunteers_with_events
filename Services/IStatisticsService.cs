@@ -9,8 +9,8 @@ namespace khoaluantotnghiep.Services
         Task<VolunteerStatisticsDto> GetVolunteerStatisticsAsync(StatisticFilterDto? filter = null);
         Task<OrganizationStatisticsDto> GetOrganizationStatisticsAsync(StatisticFilterDto? filter = null);
         Task<dynamic> GetDashboardStatisticsAsync(); // Thống kê tổng quan cho dashboard
-        Task<dynamic> GetOverallStatisticsAsync(); // Thống kê tổng quan hệ thống
-        Task<dynamic> GetRatingStatisticsAsync(); // Thống kê đánh giá
-        Task<OrganizationSpecificStatisticsDto> GetOrganizationSpecificStatisticsAsync(int organizationId); // Thống kê riêng cho tổ chức
+        Task<dynamic> GetOverallStatisticsAsync(StatisticFilterDto? filter = null); // Thống kê tổng quan hệ thống
+        Task<dynamic> GetRatingStatisticsAsync(StatisticFilterDto? filter = null); // Thống kê đánh giá
+        Task<OrganizationSpecificStatisticsDto> GetOrganizationSpecificStatisticsAsync(int organizationId, StatisticFilterDto? filter = null); // Thống kê riêng cho tổ chức
     }
 }

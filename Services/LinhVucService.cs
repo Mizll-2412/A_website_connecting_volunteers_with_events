@@ -17,13 +17,14 @@ namespace khoaluantotnghiep.Services
         public async Task<IEnumerable<LinhVucResponse>> GetAllAsync()
         {
             var linhVucs = await _context.LinhVuc
-                .OrderBy(l => l.TenLinhVuc)
+                .OrderBy(l => l.MaLinhVuc)
                 .ToListAsync();
 
             return linhVucs.Select(l => new LinhVucResponse
             {
                 MaLinhVuc = l.MaLinhVuc,
-                TenLinhVuc = l.TenLinhVuc
+                TenLinhVuc = l.TenLinhVuc,
+                MoTa = l.MoTa
             });
         }
 
@@ -37,7 +38,8 @@ namespace khoaluantotnghiep.Services
             return new LinhVucResponse
             {
                 MaLinhVuc = linhVuc.MaLinhVuc,
-                TenLinhVuc = linhVuc.TenLinhVuc
+                TenLinhVuc = linhVuc.TenLinhVuc,
+                MoTa = linhVuc.MoTa
             };
         }
 
@@ -52,7 +54,8 @@ namespace khoaluantotnghiep.Services
 
             var linhVuc = new LinhVuc
             {
-                TenLinhVuc = request.TenLinhVuc.Trim()
+                TenLinhVuc = request.TenLinhVuc.Trim(),
+                MoTa = request.MoTa?.Trim()
             };
 
             _context.LinhVuc.Add(linhVuc);
@@ -61,7 +64,8 @@ namespace khoaluantotnghiep.Services
             return new LinhVucResponse
             {
                 MaLinhVuc = linhVuc.MaLinhVuc,
-                TenLinhVuc = linhVuc.TenLinhVuc
+                TenLinhVuc = linhVuc.TenLinhVuc,
+                MoTa = linhVuc.MoTa
             };
         }
 
@@ -81,13 +85,15 @@ namespace khoaluantotnghiep.Services
                 throw new InvalidOperationException($"Lĩnh vực '{request.TenLinhVuc}' đã tồn tại");
 
             linhVuc.TenLinhVuc = request.TenLinhVuc.Trim();
+            linhVuc.MoTa = request.MoTa?.Trim();
             
             await _context.SaveChangesAsync();
 
             return new LinhVucResponse
             {
                 MaLinhVuc = linhVuc.MaLinhVuc,
-                TenLinhVuc = linhVuc.TenLinhVuc
+                TenLinhVuc = linhVuc.TenLinhVuc,
+                MoTa = linhVuc.MoTa
             };
         }
 

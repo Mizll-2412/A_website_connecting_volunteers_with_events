@@ -66,4 +66,21 @@ namespace khoaluantotnghiep.DTOs
         public decimal DiemTuongUng { get; set; }
         public string? MoTa { get; set; }
     }
+
+    public class BulkCreateDanhGiaDto
+    {
+        [Required]
+        public int MaSuKien { get; set; }
+
+        [Required]
+        [Range(1, 5)]
+        public int DiemSo { get; set; }
+
+        [StringLength(500)]
+        public string? NoiDung { get; set; }
+
+        [Required]
+        [MinLength(1, ErrorMessage = "Phải có ít nhất một tình nguyện viên")]
+        public List<int> MaTNVs { get; set; } = new List<int>();
+    }
 }

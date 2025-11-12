@@ -8,5 +8,7 @@ namespace khoaluantotnghiep.DTOs
         public bool DaXacMinh { get; set; }
         
         public string LyDoTuChoi { get; set; } = "";
+
+        public string? HanhDong { get; set; }
     }
 }

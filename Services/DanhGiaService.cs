@@ -195,15 +195,40 @@ namespace khoaluantotnghiep.Services
         /// <summary>
         /// Lấy các đánh giá mà user nhận được (người khác đánh giá mình)
         /// </summary>
-        public async Task<List<DanhGiaResponseDto>> GetDanhGiaNhanDuocAsync(int maUser)
+        public async Task<List<DanhGiaResponseDto>> GetDanhGiaNhanDuocAsync(int maUser, StatisticFilterDto? filter = null)
         {
-            var danhGias = await _context.DanhGia
+            var query = _context.DanhGia
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.Event)
                 .Where(d => d.MaNguoiDuocDanhGia == maUser)
+                .AsQueryable();
+
+            // Áp dụng filter nếu có - filter theo NgayTao và DiemSo của đánh giá
+            if (filter != null)
+            {
+                if (filter.FromDate.HasValue)
+                    query = query.Where(d => d.NgayTao >= filter.FromDate.Value);
+
+                if (filter.ToDate.HasValue)
+                    query = query.Where(d => d.NgayTao <= filter.ToDate.Value);
+
+                if (filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.Month.HasValue && filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Month == filter.Month.Value && d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.MinScore.HasValue)
+                    query = query.Where(d => d.DiemSo >= filter.MinScore.Value);
+
+                if (filter.MaxScore.HasValue)
+                    query = query.Where(d => d.DiemSo <= filter.MaxScore.Value);
+            }
+
+            var danhGias = await query
                 .OrderByDescending(d => d.NgayTao)
                 .ToListAsync();
 
@@ -218,15 +243,40 @@ namespace khoaluantotnghiep.Services
         /// <summary>
         /// Lấy các đánh giá mà user đã đưa ra (đánh giá người khác)
         /// </summary>
-        public async Task<List<DanhGiaResponseDto>> GetDanhGiaDaDuaRaAsync(int maUser)
+        public async Task<List<DanhGiaResponseDto>> GetDanhGiaDaDuaRaAsync(int maUser, StatisticFilterDto? filter = null)
         {
-            var danhGias = await _context.DanhGia
+            var query = _context.DanhGia
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.Event)
                 .Where(d => d.MaNguoiDanhGia == maUser)
+                .AsQueryable();
+
+            // Áp dụng filter nếu có - filter theo NgayTao và DiemSo của đánh giá
+            if (filter != null)
+            {
+                if (filter.FromDate.HasValue)
+                    query = query.Where(d => d.NgayTao >= filter.FromDate.Value);
+
+                if (filter.ToDate.HasValue)
+                    query = query.Where(d => d.NgayTao <= filter.ToDate.Value);
+
+                if (filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.Month.HasValue && filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Month == filter.Month.Value && d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.MinScore.HasValue)
+                    query = query.Where(d => d.DiemSo >= filter.MinScore.Value);
+
+                if (filter.MaxScore.HasValue)
+                    query = query.Where(d => d.DiemSo <= filter.MaxScore.Value);
+            }
+
+            var danhGias = await query
                 .OrderByDescending(d => d.NgayTao)
                 .ToListAsync();
 
@@ -238,14 +288,39 @@ namespace khoaluantotnghiep.Services
             return result;
         }
 
-        public async Task<List<DanhGiaResponseDto>> GetAllEvaluationsAsync()
+        public async Task<List<DanhGiaResponseDto>> GetAllEvaluationsAsync(StatisticFilterDto? filter = null)
         {
-            var danhGias = await _context.DanhGia
+            var query = _context.DanhGia
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Volunteer)
                 .Include(d => d.NguoiDuocDanhGia).ThenInclude(u => u.Organization)
                 .Include(d => d.Event)
+                .AsQueryable();
+
+            // Áp dụng filter nếu có - filter theo NgayTao và DiemSo của đánh giá
+            if (filter != null)
+            {
+                if (filter.FromDate.HasValue)
+                    query = query.Where(d => d.NgayTao >= filter.FromDate.Value);
+
+                if (filter.ToDate.HasValue)
+                    query = query.Where(d => d.NgayTao <= filter.ToDate.Value);
+
+                if (filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.Month.HasValue && filter.Year.HasValue)
+                    query = query.Where(d => d.NgayTao.Month == filter.Month.Value && d.NgayTao.Year == filter.Year.Value);
+
+                if (filter.MinScore.HasValue)
+                    query = query.Where(d => d.DiemSo >= filter.MinScore.Value);
+
+                if (filter.MaxScore.HasValue)
+                    query = query.Where(d => d.DiemSo <= filter.MaxScore.Value);
+            }
+
+            var danhGias = await query
                 .OrderByDescending(d => d.NgayTao)
                 .ToListAsync();
 
@@ -532,6 +607,122 @@ namespace khoaluantotnghiep.Services
                 NoiDung = danhGia.NoiDung,
                 NgayTao = danhGia.NgayTao
             };
+        }
+
+        public async Task<List<DanhGiaResponseDto>> TaoNhieuDanhGiaAsync(BulkCreateDanhGiaDto bulkDto, int maNguoiDanhGia)
+        {
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // 1. Kiểm tra sự kiện
+                    var suKien = await _context.Event.FindAsync(bulkDto.MaSuKien);
+                    if (suKien == null)
+                        throw new KeyNotFoundException("Sự kiện không tồn tại");
+
+                    // Kiểm tra sự kiện đã kết thúc
+                    if (suKien.NgayKetThuc > DateTime.Now)
+                        throw new InvalidOperationException("Sự kiện chưa kết thúc, chưa thể đánh giá");
+
+                    // 2. Kiểm tra tài khoản đánh giá (tổ chức)
+                    var taiKhoanDanhGia = await _context.User.FindAsync(maNguoiDanhGia);
+                    if (taiKhoanDanhGia == null || taiKhoanDanhGia.VaiTro != "Organization")
+                        throw new InvalidOperationException("Chỉ tổ chức mới có thể đánh giá hàng loạt");
+
+                    var results = new List<DanhGiaResponseDto>();
+                    var updatedVolunteers = new HashSet<int>();
+
+                    // 3. Lấy danh sách TNV và kiểm tra
+                    var tnvs = await _context.Volunteer
+                        .Where(v => bulkDto.MaTNVs.Contains(v.MaTNV))
+                        .Include(v => v.TaiKhoan)
+                        .ToListAsync();
+
+                    if (tnvs.Count == 0)
+                        throw new KeyNotFoundException("Không tìm thấy tình nguyện viên nào trong danh sách");
+
+                    if (tnvs.Count < bulkDto.MaTNVs.Count)
+                    {
+                        var foundIds = tnvs.Select(t => t.MaTNV).ToList();
+                        var missingIds = bulkDto.MaTNVs.Except(foundIds).ToList();
+                        _logger.LogWarning($"Một số tình nguyện viên không tồn tại: {string.Join(", ", missingIds)}");
+                    }
+
+                    // 4. Kiểm tra từng TNV có tham gia sự kiện và đã được duyệt chưa
+                    foreach (var tnv in tnvs)
+                    {
+                        var donDangKy = await _context.DonDangKy
+                            .FirstOrDefaultAsync(d => d.MaTNV == tnv.MaTNV && d.MaSuKien == bulkDto.MaSuKien && d.TrangThai == 1);
+
+                        if (donDangKy == null)
+                        {
+                            _logger.LogWarning($"TNV {tnv.MaTNV} chưa tham gia hoặc chưa được duyệt trong sự kiện {bulkDto.MaSuKien}");
+                            continue; // Bỏ qua TNV này
+                        }
+
+                        // 5. Kiểm tra đã đánh giá chưa
+                        var daDanhGia = await _context.DanhGia
+                            .AnyAsync(d => d.MaNguoiDanhGia == maNguoiDanhGia &&
+                                          d.MaNguoiDuocDanhGia == tnv.MaTaiKhoan &&
+                                          d.MaSuKien == bulkDto.MaSuKien);
+
+                        if (daDanhGia)
+                        {
+                            _logger.LogWarning($"Đã đánh giá TNV {tnv.MaTNV} trong sự kiện {bulkDto.MaSuKien}");
+                            continue; // Bỏ qua TNV đã được đánh giá
+                        }
+
+                        // 6. Tạo đánh giá
+                        var danhGia = new DanhGia
+                        {
+                            MaNguoiDanhGia = maNguoiDanhGia,
+                            MaNguoiDuocDanhGia = tnv.MaTaiKhoan,
+                            MaSuKien = bulkDto.MaSuKien,
+                            DiemSo = bulkDto.DiemSo,
+                            NoiDung = bulkDto.NoiDung?.Trim(),
+                            NgayTao = DateTime.UtcNow
+                        };
+
+                        _context.DanhGia.Add(danhGia);
+                        updatedVolunteers.Add(tnv.MaTaiKhoan);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    // 7. Cập nhật điểm trung bình và cấp bậc cho các TNV đã được đánh giá
+                    foreach (var maTaiKhoan in updatedVolunteers)
+                    {
+                        await CapNhatDiemVaCapBacAsync(maTaiKhoan);
+                    }
+
+                    // 8. Lấy danh sách đánh giá vừa tạo
+                    var maDanhGias = await _context.DanhGia
+                        .Where(d => d.MaNguoiDanhGia == maNguoiDanhGia &&
+                                   d.MaSuKien == bulkDto.MaSuKien &&
+                                   updatedVolunteers.Contains(d.MaNguoiDuocDanhGia) &&
+                                   d.NgayTao >= DateTime.UtcNow.AddMinutes(-1)) // Lấy các đánh giá vừa tạo
+                        .Select(d => d.MaDanhGia)
+                        .ToListAsync();
+
+                    foreach (var maDanhGia in maDanhGias)
+                    {
+                        var danhGia = await GetDanhGiaAsync(maDanhGia);
+                        results.Add(danhGia);
+                    }
+
+                    await transaction.CommitAsync();
+
+                    _logger.LogInformation($"Đã tạo {results.Count} đánh giá cho {bulkDto.MaTNVs.Count} TNV trong sự kiện {bulkDto.MaSuKien}");
+
+                    return results;
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Lỗi tạo đánh giá hàng loạt: {ex.Message}");
+                    throw;
+                }
+            }
         }
     }
 }

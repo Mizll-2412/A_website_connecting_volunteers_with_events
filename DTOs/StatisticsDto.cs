@@ -93,5 +93,7 @@ namespace khoaluantotnghiep.DTOs
         public int? Month { get; set; }
         public List<int>? FieldIds { get; set; }
         public List<int>? OrganizationIds { get; set; }
+        public int? MinScore { get; set; }
+        public int? MaxScore { get; set; }
     }
 }

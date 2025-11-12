@@ -79,7 +79,7 @@ namespace khoaluantotnghiep.Services
                 return new LoginRespone
                 {
                     Success = false,
-                    Message = "Email hoặc Mặt khẩu không chính xác"
+                    Message = "Email hoặc Mật khẩu không chính xác"
                 };
             }
             if (!user.TrangThai)

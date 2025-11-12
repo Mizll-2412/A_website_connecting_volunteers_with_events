@@ -11,6 +11,9 @@ namespace khoaluantotnghiep.Services
         Task<DonDangKyResponseDto> UpdateTrangThaiAsync(int maTNV, int maSuKien, UpdateDonDangKyDto updateDto);
         Task<bool> HuyDangKyAsync(int maTNV, int maSuKien);
         
+        // Auto-reject pending registrations
+        Task<int> AutoRejectPendingRegistrationsAsync();
+        
         // Lịch sử tham gia sự kiện
         Task<List<EventHistoryDto>> GetEventHistoryAsync(int maTNV, EventHistoryFilterDto? filter = null);
         Task<EventHistoryStatsDto> GetEventHistoryStatsAsync(int maTNV);
