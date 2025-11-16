@@ -956,9 +956,11 @@ namespace khoaluantotnghiep.Services
                     ? eventRatings.Average(r => r.DiemSo)
                     : 0;
 
-                // Thống kê đánh giá tổ chức
+                // Thống kê đánh giá tổ chức - chỉ lấy đánh giá nhận được (NguoiDuocDanhGia = maTaiKhoan của tổ chức)
+                var organizationAccountId = organization.MaTaiKhoan;
                 var orgRatings = await _context.DanhGia
-                    .Where(d => eventIds.Contains(d.MaSuKien))
+                    .Include(d => d.NguoiDuocDanhGia)
+                    .Where(d => eventIds.Contains(d.MaSuKien) && d.MaNguoiDuocDanhGia == organizationAccountId)
                     .ToListAsync();
                 var avgRating = orgRatings.Any()
                     ? orgRatings.Average(r => r.DiemSo)

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
 using System.Security.Claims;
@@ -54,6 +55,21 @@ namespace khoaluantotnghiep.Controllers
                 sk.TrangThai = "Đã kết thúc";
                 sk.NgayKetThuc = DateTime.Now; // Cập nhật ngày kết thúc
                 await _context.SaveChangesAsync();
+                
+                // Tự động từ chối các đơn đăng ký chưa duyệt
+                try
+                {
+                    var registrationService = HttpContext.RequestServices.GetRequiredService<IRegistrationFormService>();
+                    var rejectedCount = await registrationService.AutoRejectPendingRegistrationsAsync();
+                    if (rejectedCount > 0)
+                    {
+                        _logger.LogInformation($"Đã tự động từ chối {rejectedCount} đơn đăng ký chưa duyệt khi sự kiện kết thúc");
+                    }
+                }
+                catch (Exception rejectEx)
+                {
+                    _logger.LogWarning($"Không thể tự động từ chối đơn đăng ký: {rejectEx.Message}");
+                }
                 
                 // Gửi thông báo cho TNV đã đăng ký
                 try
