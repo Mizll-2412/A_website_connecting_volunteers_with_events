@@ -16,9 +16,9 @@ namespace khoaluantotnghiep.Models
         public int MaLinhVuc { get; set; }
 
         [ForeignKey("MaTNV")]
-        public virtual TinhNguyenVien TinhNguyenVien { get; set; }
+        public virtual TinhNguyenVien TinhNguyenVien { get; set; } = null!;
 
         [ForeignKey("MaLinhVuc")]
-        public virtual LinhVuc LinhVuc { get; set; }
+        public virtual LinhVuc LinhVuc { get; set; } = null!;
     }
 }

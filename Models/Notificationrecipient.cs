@@ -18,9 +18,9 @@ namespace khoaluantotnghiep.Models
         public byte? TrangThai { get; set; }
 
         [ForeignKey("MaThongBao")]
-        public virtual ThongBao ThongBao { get; set; }
+        public virtual ThongBao ThongBao { get; set; } = null!;
 
         [ForeignKey("MaNguoiNhanThongBao")]
-        public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; } = null!;
     }
 }

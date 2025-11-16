@@ -16,9 +16,9 @@ namespace khoaluantotnghiep.Models
         public int MaKyNang { get; set; }
 
         [ForeignKey("MaSuKien")]
-        public virtual SuKien SuKien { get; set; }
+        public virtual SuKien SuKien { get; set; } = null!;
 
         [ForeignKey("MaKyNang")]
-        public virtual KyNang KyNang { get; set; }
+        public virtual KyNang KyNang { get; set; } = null!;
     }
 }

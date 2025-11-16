@@ -14,7 +14,7 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("TenLinhVuc")]
-        public string TenLinhVuc { get; set; }
+        public string TenLinhVuc { get; set; } = string.Empty;
 
     }
 }

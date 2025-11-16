@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,11 +19,11 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("TenSuKien")]
-        public string TenSuKien { get; set; }
+        public string TenSuKien { get; set; } = string.Empty;
         [Required]
         [StringLength(500)]
         [Column("NoiDung")]
-        public string NoiDung { get; set; }
+        public string NoiDung { get; set; } = string.Empty;
         [Column("SoLuong")]
         public int? SoLuong { get; set; }
 
@@ -53,7 +54,7 @@ namespace khoaluantotnghiep.Models
         public string? HinhAnh { get; set; }
 
         [ForeignKey("MaToChuc")]
-        public virtual ToChuc Organization { get; set; }
+        public virtual ToChuc Organization { get; set; } = null!;
 
         public virtual ICollection<SuKien_LinhVuc> SuKien_LinhVucs { get; set; } = new List<SuKien_LinhVuc>();
         public virtual ICollection<SuKien_KyNang> SuKien_KyNangs { get; set; } = new List<SuKien_KyNang>();

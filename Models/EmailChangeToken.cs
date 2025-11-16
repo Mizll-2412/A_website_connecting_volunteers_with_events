@@ -34,7 +34,7 @@ namespace khoaluantotnghiep.Models
         public bool DaSuDung { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
-        public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; } = null!;
     }
 }
 

@@ -79,13 +79,21 @@ namespace khoaluantotnghiep.Services
                         MoTa = ev.NoiDung,
                         NgayBatDau = ev.NgayBatDau,
                         NgayKetThuc = ev.NgayKetThuc,
-                        DiaChi = ev.DiaChi,
-                        HinhAnh = ev.HinhAnh,
+                        DiaChi = ev.DiaChi ?? string.Empty,
+                        HinhAnh = ev.HinhAnh ?? string.Empty,
                         MaToChuc = ev.MaToChuc,
-                        TenToChuc = ev.Organization?.TenToChuc,
+                        TenToChuc = ev.Organization?.TenToChuc ?? string.Empty,
                         DiemTrungBinhToChuc = ev.Organization?.DiemTrungBinh,
-                        KyNangs = ev.SuKien_KyNangs?.Select(k => k.KyNang?.TenKyNang).Where(n => n != null).ToList(),
-                        LinhVucs = ev.SuKien_LinhVucs?.Select(l => l.LinhVuc?.TenLinhVuc).Where(n => n != null).ToList(),
+                        KyNangs = ev.SuKien_KyNangs?
+                            .Select(k => k.KyNang?.TenKyNang)
+                            .Where(n => !string.IsNullOrWhiteSpace(n))
+                            .Select(n => n!)
+                            .ToList() ?? new List<string>(),
+                        LinhVucs = ev.SuKien_LinhVucs?
+                            .Select(l => l.LinhVuc?.TenLinhVuc)
+                            .Where(n => !string.IsNullOrWhiteSpace(n))
+                            .Select(n => n!)
+                            .ToList() ?? new List<string>(),
                         MatchScore = matchScore
                     });
                 }
@@ -179,7 +187,7 @@ namespace khoaluantotnghiep.Services
                         skillScore = 0.5; // Điểm trung bình nếu sự kiện không yêu cầu kỹ năng
                     }
                 }
-                else if (!suKien.SuKien_KyNangs.Any())
+                else if (suKien.SuKien_KyNangs == null || !suKien.SuKien_KyNangs.Any())
                 {
                     // Nếu sự kiện không yêu cầu kỹ năng, mặc định cho điểm tốt
                     skillScore = 0.8;
@@ -210,7 +218,7 @@ namespace khoaluantotnghiep.Services
                         interestScore = 0.5;
                     }
                 }
-                else if (!suKien.SuKien_LinhVucs.Any())
+                else if (suKien.SuKien_LinhVucs == null || !suKien.SuKien_LinhVucs.Any())
                 {
                     // Nếu sự kiện không yêu cầu lĩnh vực, mặc định cho điểm khá
                     interestScore = 0.7;

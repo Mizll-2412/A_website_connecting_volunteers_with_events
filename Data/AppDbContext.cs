@@ -84,6 +84,13 @@ namespace khoaluantotnghiep.Data
                 .WithMany()
                 .HasForeignKey(g => g.MaTNV)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Cho phép xóa mẫu chứng nhận mà không xóa chứng nhận đã cấp
+            modelBuilder.Entity<GiayChungNhan>()
+                .HasOne(g => g.MauGiayChungNhan)
+                .WithMany()
+                .HasForeignKey(g => g.MaMau)
+                .OnDelete(DeleteBehavior.SetNull);
                 
             // Cấu hình precision cho decimal properties
             modelBuilder.Entity<TinhNguyenVien>()

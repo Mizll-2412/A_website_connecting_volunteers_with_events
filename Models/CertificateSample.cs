@@ -33,6 +33,19 @@ namespace khoaluantotnghiep.Models
         [Column("File")]
         public string? File { get; set; }
 
+        [Column("TemplateConfig", TypeName = "nvarchar(max)")]
+        public string? TemplateConfig { get; set; }
+
+        [StringLength(255)]
+        [Column("BackgroundImage")]
+        public string? BackgroundImage { get; set; }
+
+        [Column("Width")]
+        public int Width { get; set; } = 1200;
+
+        [Column("Height")]
+        public int Height { get; set; } = 800;
+
         [ForeignKey("MaSuKien")]
         public virtual SuKien? SuKien { get; set; }
     }

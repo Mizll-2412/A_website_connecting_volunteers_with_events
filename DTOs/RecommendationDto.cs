@@ -6,17 +6,17 @@ namespace khoaluantotnghiep.DTOs
     public class EventRecommendationDto
     {
         public int MaSuKien { get; set; }
-        public string TenSuKien { get; set; }
-        public string MoTa { get; set; }
+        public string TenSuKien { get; set; } = string.Empty;
+        public string MoTa { get; set; } = string.Empty;
         public DateTime? NgayBatDau { get; set; }
         public DateTime? NgayKetThuc { get; set; }
-        public string DiaChi { get; set; }
-        public string HinhAnh { get; set; }
+        public string DiaChi { get; set; } = string.Empty;
+        public string HinhAnh { get; set; } = string.Empty;
         public int MaToChuc { get; set; }
-        public string TenToChuc { get; set; }
+        public string TenToChuc { get; set; } = string.Empty;
         public decimal? DiemTrungBinhToChuc { get; set; }
-        public List<string> KyNangs { get; set; }
-        public List<string> LinhVucs { get; set; }
+        public List<string> KyNangs { get; set; } = new();
+        public List<string> LinhVucs { get; set; } = new();
         public decimal MatchScore { get; set; } // Điểm phù hợp
     }
     

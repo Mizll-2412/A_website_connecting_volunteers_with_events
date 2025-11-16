@@ -6,14 +6,14 @@ namespace khoaluantotnghiep.DTOs
     public class EventSearchFilterDto
     {
         // Tìm kiếm cơ bản
-        public string Keyword { get; set; }
+        public string Keyword { get; set; } = string.Empty;
 
         // Lọc theo thời gian
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 
         // Lọc theo địa điểm
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public int? RadiusKm { get; set; } // Bán kính tìm kiếm theo km
@@ -34,7 +34,7 @@ namespace khoaluantotnghiep.DTOs
         public int? MaxVolunteers { get; set; }
 
         // Sắp xếp
-        public string SortBy { get; set; } // date_asc, date_desc, popularity, distance
+        public string SortBy { get; set; } = string.Empty; // date_asc, date_desc, popularity, distance
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
@@ -42,13 +42,13 @@ namespace khoaluantotnghiep.DTOs
     public class VolunteerSearchFilterDto
     {
         // Tìm kiếm cơ bản
-        public string Keyword { get; set; }
+        public string Keyword { get; set; } = string.Empty;
 
         // Lọc theo thông tin cá nhân
         public int? MinAge { get; set; }
         public int? MaxAge { get; set; }
-        public string Gender { get; set; }
-        public string Location { get; set; }
+        public string Gender { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
 
         // Lọc theo lĩnh vực và kỹ năng
         public List<int>? FieldIds { get; set; }
@@ -63,7 +63,7 @@ namespace khoaluantotnghiep.DTOs
         public int? MinEvents { get; set; }
 
         // Sắp xếp
-        public string SortBy { get; set; } // rating_desc, events_desc, name_asc
+        public string SortBy { get; set; } = string.Empty; // rating_desc, events_desc, name_asc
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
@@ -71,10 +71,10 @@ namespace khoaluantotnghiep.DTOs
     public class OrganizationSearchFilterDto
     {
         // Tìm kiếm cơ bản
-        public string Keyword { get; set; }
+        public string Keyword { get; set; } = string.Empty;
 
         // Lọc theo địa điểm
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty;
 
         // Lọc theo lĩnh vực
         public List<int>? FieldIds { get; set; }
@@ -90,18 +90,18 @@ namespace khoaluantotnghiep.DTOs
         public int? MinEvents { get; set; }
 
         // Sắp xếp
-        public string SortBy { get; set; } // rating_desc, events_desc, name_asc
+        public string SortBy { get; set; } = string.Empty; // rating_desc, events_desc, name_asc
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
 
     public class SearchResultPaginationDto<T>
     {
-        public List<T> Items { get; set; }
+        public List<T> Items { get; set; } = new();
         public int TotalItems { get; set; }
         public int TotalPages { get; set; }
         public int CurrentPage { get; set; }
         public int PageSize { get; set; }
-        public Dictionary<string, dynamic> Facets { get; set; } // Thông tin thống kê cho bộ lọc
+        public Dictionary<string, dynamic> Facets { get; set; } = new(); // Thông tin thống kê cho bộ lọc
     }
 }

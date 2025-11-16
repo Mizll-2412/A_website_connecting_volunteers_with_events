@@ -58,7 +58,7 @@ namespace khoaluantotnghiep.Services
                 {
                     MaTNV = tinhNguyenVien.MaTNV,
                     MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
-                    HoTen = tinhNguyenVien.HoTen,
+                    HoTen = tinhNguyenVien.HoTen ?? string.Empty,
                     NgaySinh = FormatDateForResponse(tinhNguyenVien.NgaySinh),
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
@@ -105,7 +105,7 @@ namespace khoaluantotnghiep.Services
                 {
                     MaTNV = tinhNguyenVien.MaTNV,
                     MaTaiKhoan = tinhNguyenVien.MaTaiKhoan,
-                    HoTen = tinhNguyenVien.HoTen,
+                    HoTen = tinhNguyenVien.HoTen ?? string.Empty,
                     NgaySinh = FormatDateForResponse(tinhNguyenVien.NgaySinh),
                     GioiTinh = tinhNguyenVien.GioiTinh,
                     Email = tinhNguyenVien.Email,
@@ -166,7 +166,7 @@ namespace khoaluantotnghiep.Services
                     {
                         MaTNV = tnv.MaTNV,
                         MaTaiKhoan = tnv.MaTaiKhoan,
-                        HoTen = tnv.HoTen,
+                        HoTen = tnv.HoTen ?? string.Empty,
                         NgaySinh = FormatDateForResponse(tnv.NgaySinh),
                         GioiTinh = tnv.GioiTinh,
                         Email = tnv.Email,
@@ -255,7 +255,7 @@ namespace khoaluantotnghiep.Services
                     }
 
                     // Cập nhật thông tin cơ bản
-                    tinhNguyenVien.HoTen = updateDto.HoTen?? tinhNguyenVien.HoTen;
+                    tinhNguyenVien.HoTen = updateDto.HoTen ?? tinhNguyenVien.HoTen;
                     tinhNguyenVien.NgaySinh = updateDto.NgaySinh ?? tinhNguyenVien.NgaySinh;
                     tinhNguyenVien.GioiTinh = updateDto.GioiTinh ?? tinhNguyenVien.GioiTinh;
                     tinhNguyenVien.Email = updateDto.Email;
@@ -397,7 +397,7 @@ namespace khoaluantotnghiep.Services
                     var tinhNguyenVien = new TinhNguyenVien
                     {
                         MaTaiKhoan = createDto.MaTaiKhoan,
-                        HoTen = createDto.HoTen,
+                        HoTen = createDto.HoTen ?? string.Empty,
                         NgaySinh = createDto.NgaySinh,
                         GioiTinh = createDto.GioiTinh,
                         Email = createDto.Email,
@@ -470,7 +470,7 @@ namespace khoaluantotnghiep.Services
                 {
                     MaTNV = t.MaTNV,
                     MaTaiKhoan = t.MaTaiKhoan,
-                    HoTen = t.HoTen,
+                    HoTen = t.HoTen ?? string.Empty,
                     NgaySinh = FormatDateForResponse(t.NgaySinh),
                     GioiTinh = t.GioiTinh,
                     Email = t.Email,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace khoaluantotnghiep.DTOs
@@ -37,8 +38,10 @@ namespace khoaluantotnghiep.DTOs
         public int MaDanhGia { get; set; }
         public int MaNguoiDanhGia { get; set; }
         public string? TenNguoiDanhGia { get; set; }
+        public string? VaiTroNguoiDanhGia { get; set; }
         public int MaNguoiDuocDanhGia { get; set; }
         public string? TenNguoiDuocDanhGia { get; set; }
+        public string? VaiTroNguoiDuocDanhGia { get; set; }
         public int MaSuKien { get; set; }
         public string? TenSuKien { get; set; }
         public int DiemSo { get; set; }
@@ -59,7 +62,7 @@ namespace khoaluantotnghiep.DTOs
     
     public class CapBacDto
     {
-        public string Ten { get; set; }
+        public string Ten { get; set; } = string.Empty;
         public decimal DiemTuongUng { get; set; }
         public string? MoTa { get; set; }
     }

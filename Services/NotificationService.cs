@@ -41,18 +41,21 @@ namespace khoaluantotnghiep.Services
                 }
 
                 var notifications = await query
-                    .OrderByDescending(n => n.ThongBao.NgayGui)
+                    .OrderByDescending(n => n.ThongBao != null ? n.ThongBao.NgayGui : DateTime.MinValue)
                     .ToListAsync();
 
-                return notifications.Select(n => 
+                return notifications
+                    .Where(n => n.ThongBao != null)
+                    .Select(n => 
                 {
+                    var thongBao = n.ThongBao!;
                     // Lấy thông tin người tạo
                     string tenNguoiTao = "Hệ thống";
-                    string anhDaiDienNguoiTao = null;
+                    string? anhDaiDienNguoiTao = null;
                     
-                    if (n.ThongBao.MaNguoiTao > 0)
+                    if (thongBao.MaNguoiTao > 0)
                     {
-                        var taiKhoanNguoiTao = n.ThongBao.TaiKhoan;
+                        var taiKhoanNguoiTao = thongBao.TaiKhoan;
                         if (taiKhoanNguoiTao != null)
                         {
                             if (taiKhoanNguoiTao.VaiTro == "Organization")
@@ -62,7 +65,7 @@ namespace khoaluantotnghiep.Services
                                 
                                 if (toChuc != null)
                                 {
-                                    tenNguoiTao = toChuc.TenToChuc;
+                                    tenNguoiTao = toChuc.TenToChuc ?? tenNguoiTao;
                                     anhDaiDienNguoiTao = toChuc.AnhDaiDien;
                                 }
                             }
@@ -73,7 +76,7 @@ namespace khoaluantotnghiep.Services
                                 
                                 if (tnv != null)
                                 {
-                                    tenNguoiTao = tnv.HoTen;
+                                    tenNguoiTao = tnv.HoTen ?? tenNguoiTao;
                                     anhDaiDienNguoiTao = tnv.AnhDaiDien;
                                 }
                             }
@@ -84,7 +87,7 @@ namespace khoaluantotnghiep.Services
                                 
                                 if (admin != null)
                                 {
-                                    tenNguoiTao = admin.HoTen;
+                                    tenNguoiTao = admin.HoTen ?? tenNguoiTao;
                                     anhDaiDienNguoiTao = null; // Admin không có ảnh đại diện
                                 }
                                 else
@@ -97,14 +100,14 @@ namespace khoaluantotnghiep.Services
                     
                     return new NotificationResponseDto
                     {
-                        MaThongBao = n.ThongBao.MaThongBao,
-                        MaNguoiTao = n.ThongBao.MaNguoiTao,
+                        MaThongBao = thongBao.MaThongBao,
+                        MaNguoiTao = thongBao.MaNguoiTao,
                         TenNguoiTao = tenNguoiTao,
                         AnhDaiDienNguoiTao = anhDaiDienNguoiTao,
-                        PhanLoai = n.ThongBao.PhanLoai,
-                        PhanLoaiText = GetPhanLoaiText(n.ThongBao.PhanLoai),
-                        NoiDung = n.ThongBao.NoiDung,
-                        NgayGui = n.ThongBao.NgayGui,
+                        PhanLoai = thongBao.PhanLoai,
+                        PhanLoaiText = GetPhanLoaiText(thongBao.PhanLoai),
+                        NoiDung = thongBao.NoiDung ?? string.Empty,
+                        NgayGui = thongBao.NgayGui,
                         TrangThai = n.TrangThai,
                         TrangThaiText = GetTrangThaiText(n.TrangThai),
                         MaNguoiNhanThongBao = n.MaNguoiNhanThongBao
@@ -192,7 +195,7 @@ namespace khoaluantotnghiep.Services
 
                     // Lấy thông tin người tạo
                     string tenNguoiTao = "Hệ thống";
-                    string anhDaiDienNguoiTao = null;
+                    string? anhDaiDienNguoiTao = null;
                     
                     if (nguoiTao.VaiTro == "Organization")
                     {
@@ -201,7 +204,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (toChuc != null)
                         {
-                            tenNguoiTao = toChuc.TenToChuc;
+                            tenNguoiTao = toChuc.TenToChuc ?? tenNguoiTao;
                             anhDaiDienNguoiTao = toChuc.AnhDaiDien;
                         }
                     }
@@ -212,7 +215,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (tnv != null)
                         {
-                            tenNguoiTao = tnv.HoTen;
+                            tenNguoiTao = tnv.HoTen ?? tenNguoiTao;
                             anhDaiDienNguoiTao = tnv.AnhDaiDien;
                         }
                     }
@@ -223,7 +226,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (admin != null)
                         {
-                            tenNguoiTao = admin.HoTen;
+                            tenNguoiTao = admin.HoTen ?? tenNguoiTao;
                         }
                         else
                         {
@@ -239,7 +242,7 @@ namespace khoaluantotnghiep.Services
                         AnhDaiDienNguoiTao = anhDaiDienNguoiTao,
                         PhanLoai = thongBao.PhanLoai,
                         PhanLoaiText = GetPhanLoaiText(thongBao.PhanLoai),
-                        NoiDung = thongBao.NoiDung,
+                        NoiDung = thongBao.NoiDung ?? string.Empty,
                         NgayGui = thongBao.NgayGui,
                         TrangThai = 0, // Mặc định là chưa đọc
                         TrangThaiText = "Chưa đọc",
@@ -276,11 +279,13 @@ namespace khoaluantotnghiep.Services
                 notification.TrangThai = updateDto.TrangThai;
                 await _context.SaveChangesAsync();
 
+                var thongBao = notification.ThongBao ?? throw new InvalidOperationException("Thông báo không hợp lệ");
+
                 // Lấy thông tin người tạo
                 string tenNguoiTao = "Hệ thống";
-                string anhDaiDienNguoiTao = null;
+                string? anhDaiDienNguoiTao = null;
                 
-                var nguoiTao = await _context.User.FindAsync(notification.ThongBao.MaNguoiTao);
+                var nguoiTao = await _context.User.FindAsync(thongBao.MaNguoiTao);
                 if (nguoiTao != null)
                 {
                     if (nguoiTao.VaiTro == "Organization")
@@ -290,7 +295,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (toChuc != null)
                         {
-                            tenNguoiTao = toChuc.TenToChuc;
+                            tenNguoiTao = toChuc.TenToChuc ?? tenNguoiTao;
                             anhDaiDienNguoiTao = toChuc.AnhDaiDien;
                         }
                     }
@@ -301,7 +306,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (tnv != null)
                         {
-                            tenNguoiTao = tnv.HoTen;
+                            tenNguoiTao = tnv.HoTen ?? tenNguoiTao;
                             anhDaiDienNguoiTao = tnv.AnhDaiDien;
                         }
                     }
@@ -312,7 +317,7 @@ namespace khoaluantotnghiep.Services
                         
                         if (admin != null)
                         {
-                            tenNguoiTao = admin.HoTen;
+                            tenNguoiTao = admin.HoTen ?? tenNguoiTao;
                         }
                         else
                         {
@@ -323,14 +328,14 @@ namespace khoaluantotnghiep.Services
 
                 return new NotificationResponseDto
                 {
-                    MaThongBao = notification.ThongBao.MaThongBao,
-                    MaNguoiTao = notification.ThongBao.MaNguoiTao,
+                    MaThongBao = thongBao.MaThongBao,
+                    MaNguoiTao = thongBao.MaNguoiTao,
                     TenNguoiTao = tenNguoiTao,
                     AnhDaiDienNguoiTao = anhDaiDienNguoiTao,
-                    PhanLoai = notification.ThongBao.PhanLoai,
-                    PhanLoaiText = GetPhanLoaiText(notification.ThongBao.PhanLoai),
-                    NoiDung = notification.ThongBao.NoiDung,
-                    NgayGui = notification.ThongBao.NgayGui,
+                    PhanLoai = thongBao.PhanLoai,
+                    PhanLoaiText = GetPhanLoaiText(thongBao.PhanLoai),
+                    NoiDung = thongBao.NoiDung ?? string.Empty,
+                    NgayGui = thongBao.NgayGui,
                     TrangThai = notification.TrangThai,
                     TrangThaiText = GetTrangThaiText(notification.TrangThai),
                     MaNguoiNhanThongBao = notification.MaNguoiNhanThongBao
@@ -395,6 +400,29 @@ namespace khoaluantotnghiep.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi đánh dấu tất cả thông báo: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Xóa tất cả thông báo của user
+        /// </summary>
+        public async Task<bool> DeleteAllNotificationsAsync(int userId)
+        {
+            try
+            {
+                var notifications = await _context.NguoiNhanThongBao
+                    .Where(n => n.MaNguoiNhanThongBao == userId)
+                    .ToListAsync();
+
+                _context.NguoiNhanThongBao.RemoveRange(notifications);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi xóa tất cả thông báo: {ex.Message}");
                 throw;
             }
         }
@@ -545,20 +573,20 @@ namespace khoaluantotnghiep.Services
                     var toChuc = await _context.Organization
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == danhGia.MaNguoiDanhGia);
                     
-                    if (toChuc != null)
-                    {
-                        tenNguoiDanhGia = toChuc.TenToChuc;
-                    }
+                        if (toChuc != null)
+                        {
+                            tenNguoiDanhGia = toChuc.TenToChuc ?? tenNguoiDanhGia;
+                        }
                 }
                 else if (danhGia.NguoiDanhGia.VaiTro == "User")
                 {
                     var tnv = await _context.Volunteer
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == danhGia.MaNguoiDanhGia);
                     
-                    if (tnv != null)
-                    {
-                        tenNguoiDanhGia = tnv.HoTen;
-                    }
+                        if (tnv != null)
+                        {
+                            tenNguoiDanhGia = tnv.HoTen ?? tenNguoiDanhGia;
+                        }
                 }
 
                 string noiDung = $"{tenNguoiDanhGia} đã đánh giá bạn {danhGia.DiemSo} sao.";
@@ -672,7 +700,9 @@ namespace khoaluantotnghiep.Services
                     }
 
                     // Tạo nội dung thông báo
-                    string noiDung = $"Bạn đã được tổ chức {organization.TenToChuc} mời tham gia sự kiện \"{suKien.TenSuKien}\"";
+                    string tenToChuc = organization.TenToChuc ?? "Tổ chức của bạn";
+                    string tenSuKien = suKien.TenSuKien ?? "Sự kiện";
+                    string noiDung = $"Bạn đã được tổ chức {tenToChuc} mời tham gia sự kiện \"{tenSuKien}\"";
 
                     // Tạo thông báo
                     var thongBao = new ThongBao
@@ -702,11 +732,11 @@ namespace khoaluantotnghiep.Services
                     {
                         MaThongBao = thongBao.MaThongBao,
                         MaNguoiTao = thongBao.MaNguoiTao,
-                        TenNguoiTao = organization.TenToChuc,
+                        TenNguoiTao = tenToChuc,
                         AnhDaiDienNguoiTao = organization.AnhDaiDien,
                         PhanLoai = thongBao.PhanLoai,
                         PhanLoaiText = GetPhanLoaiText(thongBao.PhanLoai),
-                        NoiDung = thongBao.NoiDung,
+                        NoiDung = thongBao.NoiDung ?? string.Empty,
                         NgayGui = thongBao.NgayGui,
                         TrangThai = 0,
                         TrangThaiText = "Chưa đọc",
@@ -719,6 +749,214 @@ namespace khoaluantotnghiep.Services
                     _logger.LogError($"Lỗi mời TNV tham gia sự kiện: {ex.Message}");
                     throw;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gửi thông báo khi tạo sự kiện mới - gửi cho Admin
+        /// </summary>
+        public async Task<bool> SendEventCreatedNotificationAsync(int eventId)
+        {
+            try
+            {
+                var suKien = await _context.Event
+                    .Include(s => s.Organization)
+                    .FirstOrDefaultAsync(s => s.MaSuKien == eventId);
+
+                if (suKien == null)
+                {
+                    _logger.LogError($"Không tìm thấy sự kiện: {eventId}");
+                    return false;
+                }
+
+                // Lấy danh sách admin
+                var admins = await _context.Admin.ToListAsync();
+                if (!admins.Any())
+                {
+                    _logger.LogWarning("Không có admin nào trong hệ thống");
+                    return false;
+                }
+
+                var adminUserIds = admins.Select(a => a.MaTaiKhoan).ToList();
+                string tenToChuc = suKien.Organization?.TenToChuc ?? "Một tổ chức";
+                string noiDung = $"Tổ chức \"{tenToChuc}\" đã tạo sự kiện mới: {suKien.TenSuKien}. [EVENT_ID:{eventId}]";
+
+                var createDto = new CreateNotificationDto
+                {
+                    MaNguoiTao = suKien.Organization?.MaTaiKhoan ?? 0,
+                    PhanLoai = 2, // Thông báo sự kiện
+                    NoiDung = noiDung,
+                    MaNguoiNhans = adminUserIds
+                };
+
+                await CreateNotificationAsync(createDto);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi thông báo tạo sự kiện: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gửi thông báo khi kết thúc sự kiện - gửi cho TNV đã đăng ký
+        /// </summary>
+        public async Task<bool> SendEventFinishedNotificationAsync(int eventId)
+        {
+            try
+            {
+                var suKien = await _context.Event
+                    .Include(s => s.Organization)
+                    .FirstOrDefaultAsync(s => s.MaSuKien == eventId);
+
+                if (suKien == null)
+                {
+                    _logger.LogError($"Không tìm thấy sự kiện: {eventId}");
+                    return false;
+                }
+
+                // Lấy danh sách TNV đã đăng ký sự kiện (tất cả trạng thái)
+                var registrations = await _context.DonDangKy
+                    .Include(d => d.TinhNguyenVien)
+                    .Where(d => d.MaSuKien == eventId)
+                    .ToListAsync();
+
+                if (!registrations.Any())
+                {
+                    _logger.LogInformation($"Sự kiện {eventId} chưa có người đăng ký");
+                    return true;
+                }
+
+                var volunteerUserIds = registrations
+                    .Where(r => r.TinhNguyenVien != null)
+                    .Select(r => r.TinhNguyenVien.MaTaiKhoan)
+                    .Distinct()
+                    .ToList();
+
+                if (!volunteerUserIds.Any())
+                {
+                    _logger.LogWarning($"Không tìm thấy user ID cho TNV đã đăng ký sự kiện {eventId}");
+                    return false;
+                }
+
+                string noiDung = $"Sự kiện \"{suKien.TenSuKien}\" đã kết thúc. Cảm ơn bạn đã tham gia! [EVENT_ID:{eventId}]";
+
+                var createDto = new CreateNotificationDto
+                {
+                    MaNguoiTao = suKien.Organization?.MaTaiKhoan ?? 0,
+                    PhanLoai = 2, // Thông báo sự kiện
+                    NoiDung = noiDung,
+                    MaNguoiNhans = volunteerUserIds
+                };
+
+                await CreateNotificationAsync(createDto);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi thông báo kết thúc sự kiện: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gửi thông báo khi phát chứng nhận - gửi cho TNV được nhận
+        /// </summary>
+        public async Task<bool> SendCertificateIssuedNotificationAsync(int certificateId, int volunteerId)
+        {
+            try
+            {
+                var certificate = await _context.GiayChungNhan
+                    .Include(c => c.TinhNguyenVien)
+                    .Include(c => c.SuKien)
+                    .ThenInclude(s => s.Organization)
+                    .FirstOrDefaultAsync(c => c.MaGiayChungNhan == certificateId);
+
+                if (certificate == null)
+                {
+                    _logger.LogError($"Không tìm thấy chứng nhận: {certificateId}");
+                    return false;
+                }
+
+                var volunteer = await _context.Volunteer.FindAsync(volunteerId);
+                if (volunteer == null)
+                {
+                    _logger.LogError($"Không tìm thấy tình nguyện viên: {volunteerId}");
+                    return false;
+                }
+
+                string tenSuKien = certificate.SuKien?.TenSuKien ?? "Sự kiện";
+                string noiDung = $"Bạn đã nhận được chứng nhận tham gia sự kiện \"{tenSuKien}\". Hãy kiểm tra trong hồ sơ của bạn!";
+
+                var createDto = new CreateNotificationDto
+                {
+                    MaNguoiTao = certificate.SuKien?.Organization?.MaTaiKhoan ?? 0,
+                    PhanLoai = 4, // Thông báo chứng nhận
+                    NoiDung = noiDung,
+                    MaNguoiNhans = new List<int> { volunteer.MaTaiKhoan }
+                };
+
+                await CreateNotificationAsync(createDto);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi thông báo phát chứng nhận: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gửi thông báo khi xóa sự kiện - gửi cho TNV đã đăng ký
+        /// </summary>
+        public async Task<bool> SendEventDeletedNotificationAsync(int eventId, string eventName)
+        {
+            try
+            {
+                var suKien = await _context.Event
+                    .Include(s => s.Organization)
+                    .FirstOrDefaultAsync(s => s.MaSuKien == eventId);
+
+                // Lấy danh sách TNV đã đăng ký trước khi xóa
+                var registrations = await _context.DonDangKy
+                    .Include(d => d.TinhNguyenVien)
+                    .Where(d => d.MaSuKien == eventId)
+                    .ToListAsync();
+
+                if (!registrations.Any())
+                {
+                    return true;
+                }
+
+                var volunteerUserIds = registrations
+                    .Where(r => r.TinhNguyenVien != null)
+                    .Select(r => r.TinhNguyenVien.MaTaiKhoan)
+                    .Distinct()
+                    .ToList();
+
+                if (!volunteerUserIds.Any())
+                {
+                    return false;
+                }
+
+                string noiDung = $"Sự kiện \"{eventName}\" đã bị hủy bởi ban tổ chức. Chúng tôi rất tiếc về sự bất tiện này.";
+
+                var createDto = new CreateNotificationDto
+                {
+                    MaNguoiTao = suKien?.Organization?.MaTaiKhoan ?? 0,
+                    PhanLoai = 2, // Thông báo sự kiện
+                    NoiDung = noiDung,
+                    MaNguoiNhans = volunteerUserIds
+                };
+
+                await CreateNotificationAsync(createDto);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi thông báo xóa sự kiện: {ex.Message}");
+                return false;
             }
         }
     }

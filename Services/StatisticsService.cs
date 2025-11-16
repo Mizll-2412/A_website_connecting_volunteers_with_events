@@ -21,7 +21,7 @@ namespace khoaluantotnghiep.Services
             _logger = logger;
         }
 
-        public async Task<EventStatisticsDto> GetEventStatisticsAsync(StatisticFilterDto filter = null)
+        public async Task<EventStatisticsDto> GetEventStatisticsAsync(StatisticFilterDto? filter = null)
         {
             try
             {
@@ -65,12 +65,36 @@ namespace khoaluantotnghiep.Services
                 var cancelled = events.Count(e => e.TrangThai == "2"); // Đã hủy (TrangThai = "2")
 
                 // Thống kê theo tháng
-                var eventsByMonth = events.Where(e => e.NgayBatDau.HasValue)
-                                          .GroupBy(e => new { e.NgayBatDau.Value.Year, e.NgayBatDau.Value.Month })
-                                          .ToDictionary(
-                                              g => $"{g.Key.Year}-{g.Key.Month.ToString().PadLeft(2, '0')}",
-                                              g => g.Count()
-                                          );
+                var eventsWithStartDate = events.Where(e => e.NgayBatDau.HasValue).ToList();
+
+                var eventsByMonth = eventsWithStartDate
+                    .GroupBy(e => new
+                    {
+                        Year = e.NgayBatDau!.Value.Year,
+                        Month = e.NgayBatDau!.Value.Month
+                    })
+                    .ToDictionary(
+                        g => $"{g.Key.Year}-{g.Key.Month:00}",
+                        g => g.Count()
+                    );
+
+                var eventsByMonthDetailed = eventsWithStartDate
+                    .GroupBy(e => new
+                    {
+                        Year = e.NgayBatDau!.Value.Year,
+                        Month = e.NgayBatDau!.Value.Month
+                    })
+                    .ToDictionary(
+                        g => $"{g.Key.Year}-{g.Key.Month:00}",
+                        g => new EventMonthlyBreakdownDto
+                        {
+                            Total = g.Count(),
+                            Pending = g.Count(e => e.NgayBatDau > now),
+                            Active = g.Count(e => e.NgayBatDau <= now && (!e.NgayKetThuc.HasValue || e.NgayKetThuc >= now)),
+                            Completed = g.Count(e => e.NgayKetThuc.HasValue && e.NgayKetThuc < now),
+                            Cancelled = g.Count(e => e.TrangThai == "2")
+                        }
+                    );
 
                 // Thống kê theo lĩnh vực
                 var eventsByField = new Dictionary<string, int>();
@@ -80,7 +104,7 @@ namespace khoaluantotnghiep.Services
                     {
                         if (field != null)
                         {
-                            string fieldName = field.TenLinhVuc;
+                            string fieldName = field.TenLinhVuc ?? "Khác";
                             if (eventsByField.ContainsKey(fieldName))
                                 eventsByField[fieldName]++;
                             else
@@ -124,6 +148,7 @@ namespace khoaluantotnghiep.Services
                     CancelledEvents = cancelled,
                     EventsByMonth = eventsByMonth,
                     EventsByField = eventsByField,
+                    EventsByMonthDetailed = eventsByMonthDetailed,
                     AverageVolunteersPerEvent = Math.Round(avgVolunteers, 2),
                     AverageRating = Math.Round(avgRating, 2)
                 };
@@ -135,7 +160,7 @@ namespace khoaluantotnghiep.Services
             }
         }
 
-        public async Task<VolunteerStatisticsDto> GetVolunteerStatisticsAsync(StatisticFilterDto filter = null)
+        public async Task<VolunteerStatisticsDto> GetVolunteerStatisticsAsync(StatisticFilterDto? filter = null)
         {
             try
             {
@@ -166,6 +191,21 @@ namespace khoaluantotnghiep.Services
                                                     g => g.Count()
                                                 );
 
+                // Thống kê theo giới tính
+                var volunteersByGender = volunteers
+                    .Select(v => NormalizeGender(v.GioiTinh))
+                    .GroupBy(g => g)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                // Ensure full gender keys are present
+                foreach (var key in new[] { "Nam", "Nữ", "Khác" })
+                {
+                    if (!volunteersByGender.ContainsKey(key))
+                    {
+                        volunteersByGender[key] = 0;
+                    }
+                }
+
                 // Thống kê theo lĩnh vực quan tâm
                 var volunteersByField = new Dictionary<string, int>();
                 foreach (var volunteer in volunteers)
@@ -174,7 +214,7 @@ namespace khoaluantotnghiep.Services
                     {
                         if (field != null)
                         {
-                            string fieldName = field.TenLinhVuc;
+                            string fieldName = field.TenLinhVuc ?? "Khác";
                             if (volunteersByField.ContainsKey(fieldName))
                                 volunteersByField[fieldName]++;
                             else
@@ -222,7 +262,7 @@ namespace khoaluantotnghiep.Services
 
                 // Tính điểm đánh giá trung bình
                 double avgRating = (double)volunteers.Where(v => v.DiemTrungBinh.HasValue)
-                                           .Select(v => v.DiemTrungBinh.Value)
+                                           .Select(v => v.DiemTrungBinh!.Value)
                                            .DefaultIfEmpty(0)
                                            .Average();
 
@@ -244,6 +284,7 @@ namespace khoaluantotnghiep.Services
                     TotalVolunteers = totalVolunteers,
                     ActiveVolunteers = activeVolunteers,
                     VolunteersByRank = volunteersByRank,
+                    VolunteersByGender = volunteersByGender,
                     VolunteersByField = volunteersByField,
                     VolunteersByAge = volunteersByAge,
                     AverageRating = Math.Round(avgRating, 2),
@@ -257,7 +298,23 @@ namespace khoaluantotnghiep.Services
             }
         }
 
-        public async Task<OrganizationStatisticsDto> GetOrganizationStatisticsAsync(StatisticFilterDto filter = null)
+        private static string NormalizeGender(string? gender)
+        {
+            if (string.IsNullOrWhiteSpace(gender))
+            {
+                return "Khác";
+            }
+
+            var normalized = gender.Trim().ToLower();
+            return normalized switch
+            {
+                "nam" or "male" => "Nam",
+                "nữ" or "nu" or "female" => "Nữ",
+                _ => "Khác"
+            };
+        }
+
+        public async Task<OrganizationStatisticsDto> GetOrganizationStatisticsAsync(StatisticFilterDto? filter = null)
         {
             try
             {
@@ -288,9 +345,9 @@ namespace khoaluantotnghiep.Services
 
                     foreach (var evt in orgEvents)
                     {
-                        foreach (var field in evt.SuKien_LinhVucs.Select(sl => sl.LinhVuc?.TenLinhVuc).Where(f => f != null))
+                        foreach (var field in evt.SuKien_LinhVucs.Select(sl => sl.LinhVuc?.TenLinhVuc).Where(f => !string.IsNullOrWhiteSpace(f)))
                         {
-                            orgFields.Add(field);
+                            orgFields.Add(field!);
                         }
                     }
 
@@ -305,7 +362,7 @@ namespace khoaluantotnghiep.Services
 
                 // Tính điểm đánh giá trung bình
                 double avgRating = (double)organizations.Where(o => o.DiemTrungBinh.HasValue)
-                                             .Select(o => o.DiemTrungBinh.Value)
+                                             .Select(o => o.DiemTrungBinh!.Value)
                                              .DefaultIfEmpty(0)
                                              .Average();
 
@@ -404,8 +461,8 @@ namespace khoaluantotnghiep.Services
                 // Thống kê sự kiện theo tháng trong năm hiện tại
                 var currentYear = now.Year;
                 var eventsByMonth = await _context.Event
-                                          .Where(e => e.NgayBatDau.HasValue && e.NgayBatDau.Value.Year == currentYear)
-                                          .GroupBy(e => e.NgayBatDau.Value.Month)
+                                          .Where(e => e.NgayBatDau.HasValue && e.NgayBatDau!.Value.Year == currentYear)
+                                          .GroupBy(e => e.NgayBatDau!.Value.Month)
                                           .Select(g => new { Month = g.Key, Count = g.Count() })
                                           .ToDictionaryAsync(
                                               g => g.Month.ToString(), 
@@ -512,14 +569,14 @@ namespace khoaluantotnghiep.Services
                 // Điểm đánh giá trung bình của tình nguyện viên
                 var volunteerRatings = await _context.Volunteer
                     .Where(v => v.DiemTrungBinh.HasValue)
-                    .Select(v => v.DiemTrungBinh.Value)
+                    .Select(v => v.DiemTrungBinh!.Value)
                     .ToListAsync();
                 var averageVolunteerRating = volunteerRatings.Any() ? volunteerRatings.Average() : 0;
 
                 // Điểm đánh giá trung bình của tổ chức
                 var organizationRatings = await _context.Organization
                     .Where(o => o.DiemTrungBinh.HasValue)
-                    .Select(o => o.DiemTrungBinh.Value)
+                    .Select(o => o.DiemTrungBinh!.Value)
                     .ToListAsync();
                 var averageOrganizationRating = organizationRatings.Any() ? organizationRatings.Average() : 0;
 
@@ -548,6 +605,201 @@ namespace khoaluantotnghiep.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi khi lấy thống kê đánh giá: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<OrganizationSpecificStatisticsDto> GetOrganizationSpecificStatisticsAsync(int organizationId)
+        {
+            try
+            {
+                var organization = await _context.Organization
+                    .FirstOrDefaultAsync(o => o.MaToChuc == organizationId);
+
+                if (organization == null)
+                {
+                    throw new Exception($"Không tìm thấy tổ chức với ID: {organizationId}");
+                }
+
+                var now = DateTime.Now;
+                var currentYear = now.Year;
+                var currentMonth = now.Month;
+                var firstDayOfMonth = new DateTime(currentYear, currentMonth, 1);
+
+                // Lấy tất cả sự kiện của tổ chức
+                var events = await _context.Event
+                    .Where(e => e.MaToChuc == organizationId)
+                    .Include(e => e.SuKien_LinhVucs)
+                    .ThenInclude(sl => sl.LinhVuc)
+                    .ToListAsync();
+
+                // Thống kê sự kiện
+                var pendingEvents = events.Count(e => e.NgayBatDau > now);
+                var activeEvents = events.Count(e => e.NgayBatDau <= now && (!e.NgayKetThuc.HasValue || e.NgayKetThuc >= now));
+                var completedEvents = events.Count(e => e.NgayKetThuc.HasValue && e.NgayKetThuc < now);
+                var cancelledEvents = events.Count(e => e.TrangThai == "2");
+
+                // Sự kiện theo tháng
+                var eventsByMonth = events
+                    .Where(e => e.NgayBatDau.HasValue)
+                    .GroupBy(e => new { Year = e.NgayBatDau!.Value.Year, Month = e.NgayBatDau!.Value.Month })
+                    .ToDictionary(
+                        g => $"{g.Key.Year}-{g.Key.Month:00}",
+                        g => g.Count()
+                    );
+
+                // Sự kiện theo lĩnh vực
+                var eventsByField = new Dictionary<string, int>();
+                foreach (var evt in events)
+                {
+                    foreach (var field in evt.SuKien_LinhVucs.Select(sl => sl.LinhVuc))
+                    {
+                        if (field != null)
+                        {
+                            string fieldName = field.TenLinhVuc ?? "Khác";
+                            if (eventsByField.ContainsKey(fieldName))
+                                eventsByField[fieldName]++;
+                            else
+                                eventsByField[fieldName] = 1;
+                        }
+                    }
+                }
+
+                // Lấy tất cả đơn đăng ký của các sự kiện thuộc tổ chức
+                var eventIds = events.Select(e => e.MaSuKien).ToList();
+                var registrations = await _context.DonDangKy
+                    .Where(d => eventIds.Contains(d.MaSuKien))
+                    .ToListAsync();
+
+                // Thống kê đăng ký
+                var pendingRegistrations = registrations.Count(d => d.TrangThai == 0);
+                var approvedRegistrations = registrations.Count(d => d.TrangThai == 1);
+                var rejectedRegistrations = registrations.Count(d => d.TrangThai == 2);
+                var approvalRate = registrations.Any() 
+                    ? (double)approvedRegistrations / registrations.Count * 100 
+                    : 0;
+
+                // Đăng ký theo tháng
+                var registrationsByMonth = registrations
+                    .Where(d => d.NgayTao.Year == currentYear)
+                    .GroupBy(d => d.NgayTao.Month)
+                    .ToDictionary(
+                        g => g.Key.ToString(),
+                        g => g.Count()
+                    );
+
+                // Đảm bảo đủ 12 tháng
+                for (int i = 1; i <= 12; i++)
+                {
+                    var monthKey = i.ToString();
+                    if (!registrationsByMonth.ContainsKey(monthKey))
+                        registrationsByMonth[monthKey] = 0;
+                }
+
+                // Lấy danh sách tình nguyện viên đã tham gia (đã duyệt đơn)
+                var volunteerIds = registrations
+                    .Where(d => d.TrangThai == 1)
+                    .Select(d => d.MaTNV)
+                    .Distinct()
+                    .ToList();
+
+                var volunteers = await _context.Volunteer
+                    .Where(v => volunteerIds.Contains(v.MaTNV))
+                    .ToListAsync();
+
+                // TNV mới trong tháng (đăng ký lần đầu trong tháng này)
+                var newVolunteerIdsThisMonth = registrations
+                    .Where(d => d.TrangThai == 1 && d.NgayTao >= firstDayOfMonth)
+                    .Select(d => d.MaTNV)
+                    .Distinct()
+                    .ToList();
+                var newVolunteersThisMonth = newVolunteerIdsThisMonth.Count;
+
+                // TNV theo cấp bậc
+                var volunteersByRank = volunteers
+                    .GroupBy(v => v.CapBac ?? "Chưa xác định")
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                // TNV theo giới tính
+                var volunteersByGender = volunteers
+                    .Select(v => NormalizeGender(v.GioiTinh))
+                    .GroupBy(g => g)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                // Đảm bảo đủ các key giới tính
+                foreach (var key in new[] { "Nam", "Nữ", "Khác" })
+                {
+                    if (!volunteersByGender.ContainsKey(key))
+                        volunteersByGender[key] = 0;
+                }
+
+                // Điểm đánh giá trung bình của TNV
+                var avgVolunteerRating = volunteers
+                    .Where(v => v.DiemTrungBinh.HasValue)
+                    .Select(v => (double)v.DiemTrungBinh!.Value)
+                    .DefaultIfEmpty(0)
+                    .Average();
+
+                // Tính số TNV trung bình mỗi sự kiện
+                var avgVolunteersPerEvent = events.Any()
+                    ? (double)approvedRegistrations / events.Count
+                    : 0;
+
+                // Điểm đánh giá trung bình của sự kiện
+                var eventRatings = await _context.DanhGia
+                    .Where(d => eventIds.Contains(d.MaSuKien))
+                    .ToListAsync();
+                var avgEventRating = eventRatings.Any()
+                    ? eventRatings.Average(r => r.DiemSo)
+                    : 0;
+
+                // Thống kê đánh giá tổ chức
+                var orgRatings = await _context.DanhGia
+                    .Where(d => eventIds.Contains(d.MaSuKien))
+                    .ToListAsync();
+                var avgRating = orgRatings.Any()
+                    ? orgRatings.Average(r => r.DiemSo)
+                    : 0;
+
+                // Phân bố điểm đánh giá
+                var ratingsDistribution = new Dictionary<int, int>();
+                for (int i = 1; i <= 5; i++)
+                {
+                    ratingsDistribution[i] = orgRatings.Count(r => Math.Round((double)r.DiemSo) == i);
+                }
+
+                return new OrganizationSpecificStatisticsDto
+                {
+                    OrganizationId = organizationId,
+                    OrganizationName = organization.TenToChuc ?? string.Empty,
+                    TotalEvents = events.Count,
+                    PendingEvents = pendingEvents,
+                    ActiveEvents = activeEvents,
+                    CompletedEvents = completedEvents,
+                    CancelledEvents = cancelledEvents,
+                    EventsByMonth = eventsByMonth,
+                    EventsByField = eventsByField,
+                    AverageVolunteersPerEvent = Math.Round(avgVolunteersPerEvent, 2),
+                    AverageEventRating = Math.Round(avgEventRating, 2),
+                    TotalRegistrations = registrations.Count,
+                    PendingRegistrations = pendingRegistrations,
+                    ApprovedRegistrations = approvedRegistrations,
+                    RejectedRegistrations = rejectedRegistrations,
+                    RegistrationsByMonth = registrationsByMonth,
+                    ApprovalRate = Math.Round(approvalRate, 2),
+                    TotalVolunteers = volunteers.Count,
+                    NewVolunteersThisMonth = newVolunteersThisMonth,
+                    VolunteersByRank = volunteersByRank,
+                    VolunteersByGender = volunteersByGender,
+                    AverageVolunteerRating = Math.Round(avgVolunteerRating, 2),
+                    AverageRating = Math.Round(avgRating, 2),
+                    RatingsDistribution = ratingsDistribution,
+                    TotalRatings = orgRatings.Count
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi khi lấy thống kê tổ chức cụ thể: {ex.Message}");
                 throw;
             }
         }

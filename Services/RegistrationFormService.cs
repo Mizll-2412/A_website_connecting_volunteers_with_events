@@ -152,6 +152,7 @@ namespace khoaluantotnghiep.Services
                 var dons = await _context.DonDangKy
                     .Include(d => d.TinhNguyenVien)
                     .Include(d => d.SuKien)
+                    .ThenInclude(s => s.Organization)
                     .Where(d => d.MaTNV == maTNV)
                     .ToListAsync();
 
@@ -233,13 +234,28 @@ namespace khoaluantotnghiep.Services
             return new DonDangKyResponseDto
             {
                 MaTNV = don.MaTNV,
+                MaTaiKhoan = don.TinhNguyenVien?.MaTaiKhoan ?? 0,
                 MaSuKien = don.MaSuKien,
                 NgayTao = don.NgayTao,
                 GhiChu = don.GhiChu,
                 TrangThai = don.TrangThai,
                 TrangThaiText = GetTrangThaiText(don.TrangThai),
                 TenTNV = don.TinhNguyenVien?.HoTen,
-                TenSuKien = don.SuKien?.TenSuKien
+                TenSuKien = don.SuKien?.TenSuKien,
+                Email = don.TinhNguyenVien?.Email,
+                SoDienThoai = don.TinhNguyenVien?.SoDienThoai,
+                Event = don.SuKien != null ? new EventBasicInfo
+                {
+                    MaSuKien = don.SuKien.MaSuKien,
+                    TenSuKien = don.SuKien.TenSuKien,
+                    NgayBatDau = don.SuKien.NgayBatDau,
+                    NgayKetThuc = don.SuKien.NgayKetThuc,
+                    DiaChi = don.SuKien.DiaChi,
+                    MaToChuc = don.SuKien.MaToChuc,
+                    MaTaiKhoanToChuc = don.SuKien.Organization?.MaTaiKhoan,
+                    TrangThai = don.SuKien.TrangThai,
+                    TrangThaiHienThi = GetEventStatusText(don.SuKien)
+                } : null
             };
         }
         private string GetTrangThaiText(int? trangThai)
@@ -253,10 +269,37 @@ namespace khoaluantotnghiep.Services
             };
         }
         
+        private string GetEventStatusText(SuKien suKien)
+        {
+            var now = DateTime.Now;
+            
+            // Kiểm tra ngày kết thúc
+            if (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < now)
+            {
+                return "Đã kết thúc";
+            }
+            
+            // Kiểm tra ngày bắt đầu
+            if (suKien.NgayBatDau.HasValue && suKien.NgayBatDau.Value <= now && 
+                suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value >= now)
+            {
+                return "Đang diễn ra";
+            }
+            
+            // Kiểm tra thời gian tuyển
+            if (suKien.TuyenBatDau.HasValue && suKien.TuyenKetThuc.HasValue &&
+                suKien.TuyenBatDau.Value <= now && suKien.TuyenKetThuc.Value >= now)
+            {
+                return "Đang tuyển";
+            }
+            
+            return "Sắp diễn ra";
+        }
+        
         /// <summary>
         /// Lấy lịch sử tham gia sự kiện của tình nguyện viên
         /// </summary>
-        public async Task<List<EventHistoryDto>> GetEventHistoryAsync(int maTNV, EventHistoryFilterDto filter = null)
+        public async Task<List<EventHistoryDto>> GetEventHistoryAsync(int maTNV, EventHistoryFilterDto? filter = null)
         {
             try
             {
@@ -318,22 +361,31 @@ namespace khoaluantotnghiep.Services
                 
                 DateTime now = DateTimeHelper.Now;
                 
-                return donDangKys.Select(d => new EventHistoryDto
+                return donDangKys.Select(d =>
                 {
-                    MaSuKien = d.MaSuKien,
-                    TenSuKien = d.SuKien?.TenSuKien,
-                    NgayBatDau = d.SuKien?.NgayBatDau,
-                    NgayKetThuc = d.SuKien?.NgayKetThuc,
-                    DiaChi = d.SuKien?.DiaChi,
-                    HinhAnh = d.SuKien?.HinhAnh,
-                    TrangThaiDangKy = d.TrangThai,
-                    TrangThaiDangKyText = GetTrangThaiText(d.TrangThai),
-                    NgayDangKy = d.NgayTao,
-                    DaHoanThanh = d.SuKien?.NgayKetThuc < now && d.TrangThai == 1, // Đã duyệt và đã kết thúc
-                    DaDanhGia = danhGias.Any(dg => dg.MaSuKien == d.MaSuKien),
-                    CoGiayChungNhan = giayChungNhans.Any(g => g.MaGiayChungNhan > 0), // Kiểm tra xem có giấy chứng nhận hay không
-                    TenToChuc = d.SuKien?.Organization?.TenToChuc,
-                    MaToChuc = d.SuKien?.MaToChuc ?? 0
+                    var suKien = d.SuKien;
+                    var organization = suKien?.Organization;
+                    var ngayKetThuc = suKien?.NgayKetThuc;
+                    var daHoanThanh = ngayKetThuc.HasValue && ngayKetThuc.Value < now && d.TrangThai == 1;
+                    var hasCertificate = giayChungNhans.Any(g => g.MaSuKien == d.MaSuKien);
+
+                    return new EventHistoryDto
+                    {
+                        MaSuKien = d.MaSuKien,
+                        TenSuKien = suKien?.TenSuKien ?? string.Empty,
+                        NgayBatDau = suKien?.NgayBatDau,
+                        NgayKetThuc = ngayKetThuc,
+                        DiaChi = suKien?.DiaChi ?? string.Empty,
+                        HinhAnh = suKien?.HinhAnh ?? string.Empty,
+                        TrangThaiDangKy = d.TrangThai,
+                        TrangThaiDangKyText = GetTrangThaiText(d.TrangThai),
+                        NgayDangKy = d.NgayTao,
+                        DaHoanThanh = daHoanThanh,
+                        DaDanhGia = danhGias.Any(dg => dg.MaSuKien == d.MaSuKien),
+                        CoGiayChungNhan = hasCertificate,
+                        TenToChuc = organization?.TenToChuc ?? string.Empty,
+                        MaToChuc = suKien?.MaToChuc ?? 0
+                    };
                 }).ToList();
             }
             catch (Exception ex)
@@ -365,7 +417,7 @@ namespace khoaluantotnghiep.Services
                 var stats = new EventHistoryStatsDto
                 {
                     TongSuKien = donDangKys.Count,
-                    SuKienDaHoanThanh = donDangKys.Count(d => d.TrangThai == 1 && d.SuKien?.NgayKetThuc < now),
+                    SuKienDaHoanThanh = donDangKys.Count(d => d.TrangThai == 1 && d.SuKien?.NgayKetThuc.HasValue == true && d.SuKien.NgayKetThuc.Value < now),
                     SuKienDangCho = donDangKys.Count(d => d.TrangThai == 0),
                     SuKienDaHuy = donDangKys.Count(d => d.TrangThai == 2),
                     SoGiayChungNhan = giayChungNhans
@@ -374,9 +426,9 @@ namespace khoaluantotnghiep.Services
                 // Thống kê theo tháng trong năm hiện tại
                 var currentYear = DateTimeHelper.Now.Year;
                 var suKienTheoThang = donDangKys
-                    .Where(d => d.SuKien?.NgayBatDau.HasValue == true && 
-                              d.SuKien.NgayBatDau.Value.Year == currentYear)
-                    .GroupBy(d => d.SuKien.NgayBatDau.Value.Month)
+                    .Select(d => d.SuKien)
+                    .Where(s => s?.NgayBatDau.HasValue == true && s.NgayBatDau.Value.Year == currentYear)
+                    .GroupBy(s => s!.NgayBatDau!.Value.Month)
                     .ToDictionary(g => g.Key, g => g.Count());
                 
                 // Đảm bảo có đủ 12 tháng

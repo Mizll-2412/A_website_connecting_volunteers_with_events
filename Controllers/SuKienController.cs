@@ -52,7 +52,19 @@ namespace khoaluantotnghiep.Controllers
                 }
 
                 sk.TrangThai = "Đã kết thúc";
+                sk.NgayKetThuc = DateTime.Now; // Cập nhật ngày kết thúc
                 await _context.SaveChangesAsync();
+                
+                // Gửi thông báo cho TNV đã đăng ký
+                try
+                {
+                    await _notificationService.SendEventFinishedNotificationAsync(maSuKien);
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogWarning($"Không thể gửi thông báo kết thúc sự kiện: {notifEx.Message}");
+                }
+                
                 return Ok(new { message = "Sự kiện đã kết thúc" });
             }
             catch (Exception ex)
@@ -75,6 +87,17 @@ namespace khoaluantotnghiep.Controllers
                     createDto.HinhAnh = imagePath;
                 }
                 var result = await _service.CreateSuKienAsync(createDto);
+                
+                // Gửi thông báo cho Admin
+                try
+                {
+                    await _notificationService.SendEventCreatedNotificationAsync(result.MaSuKien);
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogWarning($"Không thể gửi thông báo tạo sự kiện: {notifEx.Message}");
+                }
+                
                 return CreatedAtAction(nameof(GetSuKien), new { maSuKien = result.MaSuKien }, 
                     new { message = "Tạo sự kiện thành công", data = result });
             }
@@ -201,6 +224,20 @@ namespace khoaluantotnghiep.Controllers
         {
             try
             {
+                // Lấy tên sự kiện trước khi xóa
+                var suKien = await _context.Event.FindAsync(maSuKien);
+                string eventName = suKien?.TenSuKien ?? "Sự kiện";
+                
+                // Gửi thông báo cho TNV đã đăng ký trước khi xóa
+                try
+                {
+                    await _notificationService.SendEventDeletedNotificationAsync(maSuKien, eventName);
+                }
+                catch (Exception notifEx)
+                {
+                    _logger.LogWarning($"Không thể gửi thông báo xóa sự kiện: {notifEx.Message}");
+                }
+                
                 await _service.DeleteSuKienAsync(maSuKien);
                 return Ok(new { message = "Xóa sự kiện thành công" });
             }

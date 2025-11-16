@@ -13,7 +13,7 @@ namespace khoaluantotnghiep.Models
         public int MaGiayChungNhan { get; set; }
 
         [Column("MaMau")]
-        public int MaMau { get; set; }
+        public int? MaMau { get; set; }
 
         [Column("MaTNV")]
         public int MaTNV { get; set; }
@@ -28,13 +28,20 @@ namespace khoaluantotnghiep.Models
         [Column("File")]
         public string? File { get; set; }
 
+        [Column("CertificateData", TypeName = "nvarchar(max)")]
+        public string? CertificateData { get; set; }
+
+        [StringLength(255)]
+        [Column("BackgroundImage")]
+        public string? BackgroundImage { get; set; }
+
         [ForeignKey("MaMau")]
-        public virtual MauGiayChungNhan MauGiayChungNhan { get; set; }
+        public virtual MauGiayChungNhan? MauGiayChungNhan { get; set; }
 
         [ForeignKey("MaTNV")]
-        public virtual TinhNguyenVien TinhNguyenVien { get; set; }
+        public virtual TinhNguyenVien TinhNguyenVien { get; set; } = null!;
 
         [ForeignKey("MaSuKien")]
-        public virtual SuKien SuKien { get; set; }
+        public virtual SuKien SuKien { get; set; } = null!;
     }
 }

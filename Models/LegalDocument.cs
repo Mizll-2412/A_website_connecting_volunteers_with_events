@@ -32,6 +32,6 @@ namespace khoaluantotnghiep.Models
         public string? MoTa { get; set; }
 
         [ForeignKey("MaToChuc")]
-        public virtual ToChuc ToChuc { get; set; }
+        public virtual ToChuc ToChuc { get; set; } = null!;
     }
 }

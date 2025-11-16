@@ -25,10 +25,10 @@ namespace khoaluantotnghiep.Models
         public int? TrangThai { get; set; }
 
         [ForeignKey("MaTNV")]
-        public virtual TinhNguyenVien TinhNguyenVien { get; set; }
+        public virtual TinhNguyenVien TinhNguyenVien { get; set; } = null!;
 
         [ForeignKey("MaSuKien")]
-        public virtual SuKien SuKien { get; set; }
+        public virtual SuKien SuKien { get; set; } = null!;
 
     }
 }

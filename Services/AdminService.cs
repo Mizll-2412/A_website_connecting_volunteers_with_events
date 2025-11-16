@@ -26,7 +26,7 @@ namespace khoaluantotnghiep.Services
             return await _context.User.ToListAsync();
         }
 
-        public async Task<TaiKhoan> GetUserByIdAsync(int id)
+        public async Task<TaiKhoan?> GetUserByIdAsync(int id)
         {
             return await _context.User.FirstOrDefaultAsync(u => u.MaTaiKhoan == id);
         }

@@ -157,12 +157,21 @@ namespace khoaluantotnghiep.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaGiayChungNhan"));
 
+                    b.Property<string>("BackgroundImage")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("BackgroundImage");
+
+                    b.Property<string>("CertificateData")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("CertificateData");
+
                     b.Property<string>("File")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("File");
 
-                    b.Property<int>("MaMau")
+                    b.Property<int?>("MaMau")
                         .HasColumnType("int")
                         .HasColumnName("MaMau");
 
@@ -277,10 +286,19 @@ namespace khoaluantotnghiep.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaMau"));
 
+                    b.Property<string>("BackgroundImage")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("BackgroundImage");
+
                     b.Property<string>("File")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("File");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int")
+                        .HasColumnName("Height");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit")
@@ -299,10 +317,18 @@ namespace khoaluantotnghiep.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("NgayGui");
 
+                    b.Property<string>("TemplateConfig")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("TemplateConfig");
+
                     b.Property<string>("TenMau")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("TenMau");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int")
+                        .HasColumnName("Width");
 
                     b.HasKey("MaMau");
 
@@ -835,8 +861,7 @@ namespace khoaluantotnghiep.Migrations
                     b.HasOne("khoaluantotnghiep.Models.MauGiayChungNhan", "MauGiayChungNhan")
                         .WithMany()
                         .HasForeignKey("MaMau")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("khoaluantotnghiep.Models.SuKien", "SuKien")
                         .WithMany()

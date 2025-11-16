@@ -36,12 +36,12 @@ namespace khoaluantotnghiep.Models
         [Column("NgayTao")]
         public DateTime NgayTao { get; set; } = DateTime.Now;
         [ForeignKey("MaNguoiDanhGia")]
-        public virtual TaiKhoan NguoiDanhGia { get; set; }
+        public virtual TaiKhoan NguoiDanhGia { get; set; } = null!;
 
         [ForeignKey("MaNguoiDuocDanhGia")]
-        public virtual TaiKhoan NguoiDuocDanhGia { get; set; }
+        public virtual TaiKhoan NguoiDuocDanhGia { get; set; } = null!;
 
         [ForeignKey("MaSuKien")]
-        public virtual SuKien Event { get; set; }
+        public virtual SuKien Event { get; set; } = null!;
     }
 }

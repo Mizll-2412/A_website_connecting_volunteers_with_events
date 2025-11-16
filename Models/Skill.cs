@@ -14,6 +14,6 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("TenKyNang")]
-        public string TenKyNang { get; set; }
+        public string TenKyNang { get; set; } = string.Empty;
     }
 }

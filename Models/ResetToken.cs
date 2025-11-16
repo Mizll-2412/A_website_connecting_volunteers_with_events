@@ -18,7 +18,7 @@ namespace khoaluantotnghiep.Models
         [Required]
         [StringLength(100)]
         [Column("Token")]
-        public string Token { get; set; }
+        public string Token { get; set; } = string.Empty;
 
         [Required]
         [Column("NgayHetHan")]
@@ -29,6 +29,6 @@ namespace khoaluantotnghiep.Models
         public bool DaSuDung { get; set; }
 
         [ForeignKey("MaTaiKhoan")]
-        public virtual TaiKhoan TaiKhoan { get; set; }
+        public virtual TaiKhoan TaiKhoan { get; set; } = null!;
     }
 }

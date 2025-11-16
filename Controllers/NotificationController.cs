@@ -126,6 +126,27 @@ namespace khoaluantotnghiep.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        // Xóa tất cả thông báo
+        [HttpDelete("delete-all")]
+        public async Task<IActionResult> DeleteAllNotifications()
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                
+                if (userId == 0)
+                    return Unauthorized(new { message = "Không thể xác thực người dùng" });
+                
+                await _service.DeleteAllNotificationsAsync(userId);
+                return Ok(new { message = "Xóa tất cả thông báo thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi xóa tất cả thông báo: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         
         // API cho Admin tạo thông báo
         [HttpPost]
@@ -170,6 +191,37 @@ namespace khoaluantotnghiep.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Lỗi gửi lời mời: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // API TNV yêu cầu tổ chức đánh giá (dành cho User/TNV)
+        [HttpPost("request-evaluation")]
+        [Authorize(Roles = "User")]
+        public async Task<IActionResult> RequestEvaluationFromOrganization([FromBody] RequestEvaluationDto requestDto)
+        {
+            try
+            {
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                
+                if (userId == 0)
+                    return Unauthorized(new { message = "Không thể xác thực người dùng" });
+
+                // Tạo notification yêu cầu đánh giá
+                var createDto = new CreateNotificationDto
+                {
+                    MaNguoiTao = userId,
+                    PhanLoai = 3, // Thông báo đánh giá
+                    NoiDung = requestDto.NoiDung,
+                    MaNguoiNhans = new List<int> { requestDto.MaTaiKhoanToChuc }
+                };
+
+                var result = await _service.CreateNotificationAsync(createDto);
+                return Ok(new { message = "Đã gửi yêu cầu đánh giá thành công", data = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi gửi yêu cầu đánh giá: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
         }

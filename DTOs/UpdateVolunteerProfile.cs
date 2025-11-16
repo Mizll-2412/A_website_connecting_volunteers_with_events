@@ -13,7 +13,7 @@ namespace khoaluantotnghiep.DTOs
         [EmailAddress]
         [Required]
         [StringLength(100)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [StringLength(12)]
         public string? CCCD { get; set; }
@@ -46,12 +46,12 @@ namespace khoaluantotnghiep.DTOs
 
         [Required]
         [StringLength(100)]
-        public string HoTen { get; set; }
+        public string HoTen { get; set; } = string.Empty;
 
         [EmailAddress]
         [Required]
         [StringLength(100)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [StringLength(12)]
         public string? CCCD { get; set; }
@@ -81,8 +81,8 @@ namespace khoaluantotnghiep.DTOs
     {
         public int MaTNV { get; set; }
         public int MaTaiKhoan { get; set; }
-        public string HoTen { get; set; }
-        public string Email { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         public string? CCCD { get; set; }
         public string? SoDienThoai { get; set; }
         public string? NgaySinh { get; set; } // Đổi thành string để format yyyy-MM-dd
@@ -114,6 +114,6 @@ namespace khoaluantotnghiep.DTOs
     public class UpdateAnhDaiDienDto
     {
         [Required]
-        public IFormFile AnhFile { get; set; }
+        public required IFormFile AnhFile { get; set; }
     }
 }

@@ -13,6 +13,7 @@ namespace khoaluantotnghiep.Services
         Task<List<CertificateSampleDto>> GetAllCertificateSamplesAsync();
         Task<List<CertificateSampleDto>> GetCertificateSamplesByEventAsync(int maSuKien);
         Task<bool> DeleteCertificateSampleAsync(int maMau);
+        Task<CertificateSampleDto> SetDefaultCertificateSampleAsync(int maMau);
         Task<string> UploadCertificateSampleFileAsync(IFormFile file);
 
         // Các phương thức cho giấy chứng nhận cụ thể
@@ -26,5 +27,9 @@ namespace khoaluantotnghiep.Services
         
         // Phương thức phát hành hàng loạt
         Task<List<CertificateDto>> IssueCertificatesToEventParticipantsAsync(int maSuKien, int maMau);
+        
+        // Template config methods
+        Task<CertificateSampleDto> UpdateTemplateConfigAsync(int maMau, TemplateConfigDto configDto);
+        Task<TemplateConfigDto> GetTemplateConfigAsync(int maMau);
     }
 }

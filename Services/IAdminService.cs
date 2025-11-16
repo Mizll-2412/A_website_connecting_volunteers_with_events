@@ -9,7 +9,7 @@ namespace khoaluantotnghiep.Services
     {
         // Quản lý tài khoản
         Task<List<TaiKhoan>> GetAllUsersAsync();
-        Task<TaiKhoan> GetUserByIdAsync(int id);
+        Task<TaiKhoan?> GetUserByIdAsync(int id);
         Task<bool> UpdateUserRoleAsync(int id, string role);
         Task<bool> UpdateUserStatusAsync(int id, bool status);
         Task<bool> DeleteUserAsync(int id);
