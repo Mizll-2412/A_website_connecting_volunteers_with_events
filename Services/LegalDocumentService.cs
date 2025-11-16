@@ -91,10 +91,8 @@ namespace khoaluantotnghiep.Services
                     });
                 }
 
-                // Đặt trạng thái tổ chức về "Chờ duyệt"
-                toChuc.TrangThaiXacMinh = 0;
-                toChuc.LyDoTuChoi = null;
-                await _context.SaveChangesAsync();
+                // KHÔNG tự động đổi trạng thái xác minh khi chỉ tải giấy tờ
+                // Trạng thái sẽ chỉ thay đổi khi tổ chức bấm "Gửi yêu cầu xác minh"
 
                 return uploadedFiles;
             }

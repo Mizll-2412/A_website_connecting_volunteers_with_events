@@ -530,7 +530,7 @@ namespace khoaluantotnghiep.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning($"Cannot parse template config, will use simple data format: {ex.Message}");
+                        _logger.LogWarning($"Không thể phân tích cấu hình template, sẽ sử dụng định dạng dữ liệu đơn giản: {ex.Message}");
                     }
                 }
 
@@ -942,7 +942,7 @@ namespace khoaluantotnghiep.Services
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"Cannot parse template config for certificate {certificate.MaGiayChungNhan}: {ex.Message}");
+                            _logger.LogWarning($"Không thể phân tích cấu hình template cho giấy chứng nhận {certificate.MaGiayChungNhan}: {ex.Message}");
                         }
                     }
 

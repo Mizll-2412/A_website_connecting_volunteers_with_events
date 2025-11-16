@@ -246,6 +246,11 @@ namespace khoaluantotnghiep.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaKyNang"));
 
+                    b.Property<string>("MoTa")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("MoTa");
+
                     b.Property<string>("TenKyNang")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -265,6 +270,11 @@ namespace khoaluantotnghiep.Migrations
                         .HasColumnName("MaLinhVuc");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLinhVuc"));
+
+                    b.Property<string>("MoTa")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("MoTa");
 
                     b.Property<string>("TenLinhVuc")
                         .IsRequired()
@@ -385,6 +395,14 @@ namespace khoaluantotnghiep.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("NgayBatDau");
 
+                    b.Property<DateTime?>("NgayDienRaBatDau")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("NgayDienRaBatDau");
+
+                    b.Property<DateTime?>("NgayDienRaKetThuc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("NgayDienRaKetThuc");
+
                     b.Property<DateTime?>("NgayKetThuc")
                         .HasColumnType("datetime2")
                         .HasColumnName("NgayKetThuc");
@@ -409,10 +427,19 @@ namespace khoaluantotnghiep.Migrations
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("TenSuKien");
 
+                    b.Property<int?>("ThoiGianKhoaHuy")
+                        .HasColumnType("int")
+                        .HasColumnName("ThoiGianKhoaHuy");
+
                     b.Property<string>("TrangThai")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("TrangThai");
+
+                    b.Property<string>("TrangThaiTuyen")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("TrangThaiTuyen");
 
                     b.Property<DateTime?>("TuyenBatDau")
                         .HasColumnType("datetime2")

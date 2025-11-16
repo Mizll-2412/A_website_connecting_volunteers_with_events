@@ -28,6 +28,7 @@ namespace khoaluantotnghiep.Services
             return date.Value.ToString("yyyy-MM-dd");
         }
 
+
         public async Task<SearchResultPaginationDto<SuKienResponseDto>> SearchEventsAsync(EventSearchFilterDto filter)
         {
             try
@@ -217,7 +218,10 @@ namespace khoaluantotnghiep.Services
                             MaKyNang = sk.MaKyNang,
                             TenKyNang = sk.KyNang?.TenKyNang ?? string.Empty
                         }).ToList(),
-                        SoLuongDaDangKy = registrationCounts.ContainsKey(e.MaSuKien) ? registrationCounts[e.MaSuKien] : 0
+                        SoLuongDaDangKy = registrationCounts.ContainsKey(e.MaSuKien) ? registrationCounts[e.MaSuKien] : 0,
+                        TuyenBatDau = e.TuyenBatDau,
+                        TuyenKetThuc = e.TuyenKetThuc,
+                        NgayTao = e.NgayTao
                     };
                 }).ToList();
 

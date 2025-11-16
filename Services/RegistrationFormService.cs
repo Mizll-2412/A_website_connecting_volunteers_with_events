@@ -89,6 +89,13 @@ namespace khoaluantotnghiep.Services
                     throw new Exception("Sự kiện đã hết hạn đăng ký");
                 }
                 
+                // Kiểm tra sự kiện đã kết thúc chưa (dựa trên ngày kết thúc)
+                if (suKien.NgayKetThuc.HasValue && DateTimeHelper.Now > suKien.NgayKetThuc)
+                {
+                    _logger.LogWarning($"Sự kiện đã kết thúc: MaSuKien={createDto.MaSuKien}, NgayKetThuc={suKien.NgayKetThuc}");
+                    throw new Exception("Không thể đăng ký vì sự kiện đã kết thúc");
+                }
+                
                 // Kiểm tra số lượng
                 var soLuongDaDangKy = await _context.DonDangKy
                                     .Where(d => d.MaSuKien == createDto.MaSuKien && d.TrangThai == 1)
@@ -149,6 +156,9 @@ namespace khoaluantotnghiep.Services
         {
             try
             {
+                // Auto-reject expired pending registrations first
+                await AutoRejectPendingRegistrationsAsync();
+                
                 var dons = await _context.DonDangKy
                     .Include(d => d.TinhNguyenVien)
                     .Include(d => d.SuKien)
@@ -169,6 +179,9 @@ namespace khoaluantotnghiep.Services
         {
             try
             {
+                // Auto-reject expired pending registrations first
+                await AutoRejectPendingRegistrationsAsync();
+                
                 var dons = await _context.DonDangKy
                     .Include(d => d.TinhNguyenVien)
                     .Include(d => d.SuKien)
@@ -189,10 +202,60 @@ namespace khoaluantotnghiep.Services
             try
             {
                 var don = await _context.DonDangKy
+                    .Include(d => d.SuKien)
                     .FirstOrDefaultAsync(d => d.MaTNV == maTNV && d.MaSuKien == maSuKien);
 
                 if (don == null)
                     throw new Exception("Đơn đăng ký không tồn tại");
+
+                // Kiểm tra sự kiện đã kết thúc chưa
+                var suKien = don.SuKien;
+                if (suKien == null)
+                    throw new Exception("Sự kiện không tồn tại");
+
+                // Kiểm tra trạng thái sự kiện
+                if (suKien.TrangThai == "Đã kết thúc")
+                    throw new Exception("Không thể hủy đăng ký vì sự kiện đã kết thúc");
+
+                // Kiểm tra ngày kết thúc
+                if (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < DateTime.Now)
+                    throw new Exception("Không thể hủy đăng ký vì sự kiện đã kết thúc");
+
+                // Kiểm tra thời gian khóa hủy (CHỈ áp dụng cho đơn đã duyệt)
+                if (don.TrangThai == 1)
+                {
+                    // Lấy thời gian khóa hủy (mặc định 24 giờ)
+                    int thoiGianKhoaHuy = suKien.ThoiGianKhoaHuy ?? 24;
+                    
+                    // Xác định ngày diễn ra thực tế với fallback logic
+                    DateTime ngayDienRaThucTe;
+                    if (suKien.NgayDienRaBatDau.HasValue)
+                    {
+                        ngayDienRaThucTe = suKien.NgayDienRaBatDau.Value;
+                    }
+                    else if (suKien.TuyenKetThuc.HasValue)
+                    {
+                        // Nếu không nhập ngày diễn ra, tính = TuyenKetThuc + lock time
+                        ngayDienRaThucTe = suKien.TuyenKetThuc.Value.AddHours(thoiGianKhoaHuy);
+                    }
+                    else if (suKien.NgayBatDau.HasValue)
+                    {
+                        ngayDienRaThucTe = suKien.NgayBatDau.Value;
+                    }
+                    else
+                    {
+                        // Fallback cuối: không cho hủy
+                        throw new Exception("Không thể xác định thời gian sự kiện để tính thời gian khóa hủy");
+                    }
+                    
+                    // Tính khoảng cách thời gian
+                    var khoangCach = (ngayDienRaThucTe - DateTime.Now).TotalHours;
+                    
+                    if (khoangCach < thoiGianKhoaHuy)
+                    {
+                        throw new Exception($"Không thể hủy đăng ký trong vòng {thoiGianKhoaHuy} giờ trước khi sự kiện diễn ra");
+                    }
+                }
 
                 _context.DonDangKy.Remove(don);
                 await _context.SaveChangesAsync();
@@ -211,11 +274,86 @@ namespace khoaluantotnghiep.Services
             try
             {
                 var don = await _context.DonDangKy
-                .FirstOrDefaultAsync(d => d.MaTNV == maTNV && d.MaSuKien == maSuKien);
+                    .Include(d => d.SuKien)
+                    .FirstOrDefaultAsync(d => d.MaTNV == maTNV && d.MaSuKien == maSuKien);
+                
                 if (don == null)
                 {
                     throw new Exception("Đơn đăng ký không tồn tại");
                 }
+
+                var suKien = don.SuKien ?? await _context.Event.FindAsync(maSuKien);
+                if (suKien == null)
+                {
+                    throw new Exception("Sự kiện không tồn tại");
+                }
+
+                // === UNDO APPROVAL (1 → 0) ===
+                if (don.TrangThai == 1 && updateDto.TrangThai == 0)
+                {
+                    // Validation: Only allow if event hasn't started yet
+                    if (suKien.TrangThai == "Đã kết thúc")
+                    {
+                        throw new Exception("Không thể hủy duyệt vì sự kiện đã kết thúc");
+                    }
+                    
+                    // Check if event has started
+                    DateTime eventStartDate = suKien.NgayDienRaBatDau 
+                        ?? suKien.NgayBatDau 
+                        ?? DateTime.Now;
+                    
+                    if (eventStartDate < DateTime.Now)
+                    {
+                        throw new Exception("Không thể hủy duyệt vì sự kiện đã bắt đầu");
+                    }
+                    
+                    _logger.LogInformation($"Hủy duyệt đơn đăng ký: MaSuKien={maSuKien}, MaTNV={maTNV}");
+                }
+
+                // === REJECT APPROVED (1 → 2) ===
+                if (don.TrangThai == 1 && updateDto.TrangThai == 2)
+                {
+                    // Require reason when rejecting approved registration
+                    if (string.IsNullOrWhiteSpace(updateDto.GhiChu))
+                    {
+                        throw new Exception("Vui lòng nhập lý do từ chối");
+                    }
+                    
+                    // Validation: Only allow if event hasn't started yet
+                    DateTime eventStartDate = suKien.NgayDienRaBatDau 
+                        ?? suKien.NgayBatDau 
+                        ?? DateTime.Now;
+                    
+                    if (eventStartDate < DateTime.Now)
+                    {
+                        throw new Exception("Không thể từ chối TNV đã duyệt vì sự kiện đã bắt đầu");
+                    }
+                    
+                    _logger.LogWarning($"Từ chối đơn đã duyệt: MaSuKien={maSuKien}, MaTNV={maTNV}, Lý do: {updateDto.GhiChu}");
+                }
+
+                // === APPROVE (0 → 1) ===
+                if (updateDto.TrangThai == 1 && don.TrangThai != 1)
+                {
+                    // Kiểm tra số lượng đã duyệt hiện tại
+                    var soLuongDaDuyet = await _context.DonDangKy
+                        .Where(d => d.MaSuKien == maSuKien && d.TrangThai == 1)
+                        .CountAsync();
+                    
+                    if (suKien.SoLuong.HasValue)
+                    {
+                        // Kiểm tra đã đủ số lượng chưa
+                        if (soLuongDaDuyet >= suKien.SoLuong.Value)
+                        {
+                            _logger.LogWarning($"Không thể duyệt: Sự kiện đã đủ số lượng ({soLuongDaDuyet}/{suKien.SoLuong.Value}). MaSuKien={maSuKien}, MaTNV={maTNV}");
+                            throw new Exception($"Không thể duyệt thêm. Sự kiện đã đủ số lượng tình nguyện viên ({suKien.SoLuong} người).");
+                        }
+                        
+                        _logger.LogInformation($"Duyệt đơn đăng ký: Số lượng hiện tại {soLuongDaDuyet + 1}/{suKien.SoLuong.Value}. MaSuKien={maSuKien}, MaTNV={maTNV}");
+                    }
+                }
+                
+                // Cập nhật trạng thái
                 don.TrangThai = updateDto.TrangThai;
                 don.GhiChu = updateDto.GhiChu ?? don.GhiChu;
 
@@ -229,6 +367,49 @@ namespace khoaluantotnghiep.Services
                 throw;
             }
         }
+
+        public async Task<int> AutoRejectPendingRegistrationsAsync()
+        {
+            try
+            {
+                var now = DateTime.Now;
+                
+                // Query pending registrations with expired recruitment period
+                var pendingRegistrations = await _context.DonDangKy
+                    .Include(d => d.SuKien)
+                    .Where(d => d.TrangThai == 0 && // Chờ duyệt
+                                d.SuKien != null &&
+                                d.SuKien.TuyenKetThuc.HasValue &&
+                                d.SuKien.TuyenKetThuc.Value < now)
+                    .ToListAsync();
+                
+                if (!pendingRegistrations.Any())
+                {
+                    return 0;
+                }
+                
+                // Auto-reject expired registrations
+                foreach (var don in pendingRegistrations)
+                {
+                    don.TrangThai = 2; // Từ chối
+                    don.GhiChu = string.IsNullOrEmpty(don.GhiChu) 
+                        ? "Hết hạn tuyển - Tự động từ chối" 
+                        : don.GhiChu + " | Hết hạn tuyển - Tự động từ chối";
+                }
+                
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Auto-rejected {pendingRegistrations.Count} pending registrations");
+                
+                return pendingRegistrations.Count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi auto-reject pending registrations: {ex.Message}");
+                throw;
+            }
+        }
+
         private DonDangKyResponseDto MapToDto(DonDangKy don)
         {
             return new DonDangKyResponseDto

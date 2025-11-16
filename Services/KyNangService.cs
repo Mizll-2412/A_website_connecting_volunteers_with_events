@@ -17,13 +17,14 @@ namespace khoaluantotnghiep.Services
         public async Task<IEnumerable<KyNangResponse>> GetAllAsync()
         {
             var kyNangs = await _context.KyNang
-                .OrderBy(l => l.TenKyNang)
+                .OrderBy(l => l.MaKyNang)
                 .ToListAsync();
 
             return kyNangs.Select(l => new KyNangResponse
             {
                 MaKyNang = l.MaKyNang,
-                TenKyNang = l.TenKyNang
+                TenKyNang = l.TenKyNang,
+                MoTa = l.MoTa
             });
         }
 
@@ -37,7 +38,8 @@ namespace khoaluantotnghiep.Services
             return new KyNangResponse
             {
                 MaKyNang = kyNang.MaKyNang,
-                TenKyNang = kyNang.TenKyNang
+                TenKyNang = kyNang.TenKyNang,
+                MoTa = kyNang.MoTa
             };
         }
 
@@ -52,7 +54,8 @@ namespace khoaluantotnghiep.Services
 
             var kyNang = new KyNang
             {
-                TenKyNang = request.TenKyNang.Trim()
+                TenKyNang = request.TenKyNang.Trim(),
+                MoTa = request.MoTa?.Trim()
             };
 
             _context.KyNang.Add(kyNang);
@@ -61,7 +64,8 @@ namespace khoaluantotnghiep.Services
             return new KyNangResponse
             {
                 MaKyNang = kyNang.MaKyNang,
-                TenKyNang = kyNang.TenKyNang
+                TenKyNang = kyNang.TenKyNang,
+                MoTa = kyNang.MoTa
             };
         }
 
@@ -81,13 +85,15 @@ namespace khoaluantotnghiep.Services
                 throw new InvalidOperationException($"Lĩnh vực '{request.TenKyNang}' đã tồn tại");
 
             kyNang.TenKyNang = request.TenKyNang.Trim();
+            kyNang.MoTa = request.MoTa?.Trim();
             
             await _context.SaveChangesAsync();
 
             return new KyNangResponse
             {
                 MaKyNang = kyNang.MaKyNang,
-                TenKyNang = kyNang.TenKyNang
+                TenKyNang = kyNang.TenKyNang,
+                MoTa = kyNang.MoTa
             };
         }
 

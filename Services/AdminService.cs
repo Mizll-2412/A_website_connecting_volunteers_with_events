@@ -14,21 +14,76 @@ namespace khoaluantotnghiep.Services
     public class AdminService : IAdminService
     {
         private readonly AppDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public AdminService(AppDbContext context)
+        public AdminService(AppDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // Quản lý tài khoản
-        public async Task<List<TaiKhoan>> GetAllUsersAsync()
+        public async Task<List<AdminUserDto>> GetAllUsersAsync()
         {
-            return await _context.User.ToListAsync();
+            return await _context.User
+                .Select(u => new AdminUserDto
+                {
+                    MaTaiKhoan = u.MaTaiKhoan,
+                    Email = u.Email,
+                    VaiTro = u.VaiTro,
+                    TrangThai = u.TrangThai,
+                    NgayTao = u.NgayTao,
+                    LanDangNhapCuoi = u.LanDangNhapCuoi,
+                    Volunteer = u.Volunteer != null
+                        ? new AdminUserVolunteerDto
+                        {
+                            MaTNV = u.Volunteer.MaTNV,
+                            HoTen = u.Volunteer.HoTen,
+                            AnhDaiDien = u.Volunteer.AnhDaiDien
+                        }
+                        : null,
+                    Organization = u.Organization != null
+                        ? new AdminUserOrganizationDto
+                        {
+                            MaToChuc = u.Organization.MaToChuc,
+                            TenToChuc = u.Organization.TenToChuc,
+                            AnhDaiDien = u.Organization.AnhDaiDien
+                        }
+                        : null
+                })
+                .ToListAsync();
         }
 
-        public async Task<TaiKhoan?> GetUserByIdAsync(int id)
+        public async Task<AdminUserDto?> GetUserByIdAsync(int id)
         {
-            return await _context.User.FirstOrDefaultAsync(u => u.MaTaiKhoan == id);
+            return await _context.User
+                .Where(u => u.MaTaiKhoan == id)
+                .Select(u => new AdminUserDto
+                {
+                    MaTaiKhoan = u.MaTaiKhoan,
+                    Email = u.Email,
+                    VaiTro = u.VaiTro,
+                    TrangThai = u.TrangThai,
+                    NgayTao = u.NgayTao,
+                    LanDangNhapCuoi = u.LanDangNhapCuoi,
+                    Volunteer = u.Volunteer != null
+                        ? new AdminUserVolunteerDto
+                        {
+                            MaTNV = u.Volunteer.MaTNV,
+                            HoTen = u.Volunteer.HoTen,
+                            AnhDaiDien = u.Volunteer.AnhDaiDien
+                        }
+                        : null,
+                    Organization = u.Organization != null
+                        ? new AdminUserOrganizationDto
+                        {
+                            MaToChuc = u.Organization.MaToChuc,
+                            TenToChuc = u.Organization.TenToChuc,
+                            AnhDaiDien = u.Organization.AnhDaiDien
+                        }
+                        : null
+                })
+                .FirstOrDefaultAsync();
         }
 
         public async Task<bool> UpdateUserRoleAsync(int id, string role)
@@ -179,7 +234,7 @@ namespace khoaluantotnghiep.Services
             }
         }
 
-        public async Task<bool> VerifyOrganizationAsync(int id, bool isVerified, string lyDoTuChoi = "")
+        public async Task<bool> VerifyOrganizationAsync(int adminUserId, int id, string action, string lyDoTuChoi = "")
         {
             try
             {
@@ -187,15 +242,50 @@ namespace khoaluantotnghiep.Services
                 if (org == null)
                     return false;
 
-                org.TrangThaiXacMinh = isVerified ? (byte)1 : (byte)2; // 1: Đã xác minh, 2: Từ chối
-                
-                // Nếu từ chối, lưu lại lý do
-                if (!isVerified && !string.IsNullOrEmpty(lyDoTuChoi))
+                var normalizedAction = (action ?? string.Empty).Trim().ToLowerInvariant();
+                string message;
+
+                switch (normalizedAction)
                 {
-                    org.LyDoTuChoi = lyDoTuChoi;
+                    case "approve":
+                        org.TrangThaiXacMinh = 1;
+                        org.LyDoTuChoi = null;
+                        message = "Tổ chức của bạn đã được xác minh thành công.";
+                        break;
+                    case "reject":
+                        org.TrangThaiXacMinh = 2;
+                        org.LyDoTuChoi = lyDoTuChoi;
+                        message = $"Yêu cầu xác minh bị từ chối. Lý do: {(!string.IsNullOrWhiteSpace(lyDoTuChoi) ? lyDoTuChoi : "Không có lý do cụ thể")}";
+                        break;
+                    case "revoke":
+                        org.TrangThaiXacMinh = 3; // 3: Đã thu hồi
+                        org.LyDoTuChoi = lyDoTuChoi;
+                        message = $"Xác minh đã bị thu hồi. Lý do: {(!string.IsNullOrWhiteSpace(lyDoTuChoi) ? lyDoTuChoi : "Không có lý do cụ thể")}";
+                        break;
+                    default:
+                        throw new Exception("Hành động xác minh không hợp lệ");
                 }
-                
+
                 await _context.SaveChangesAsync();
+
+                if (org.MaTaiKhoan > 0)
+                {
+                    try
+                    {
+                        await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                        {
+                            MaNguoiTao = adminUserId,
+                            PhanLoai = 1,
+                            NoiDung = message,
+                            MaNguoiNhans = new List<int> { org.MaTaiKhoan }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Lỗi gửi thông báo xác minh: {ex.Message}");
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)

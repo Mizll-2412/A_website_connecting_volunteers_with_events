@@ -502,14 +502,20 @@ namespace khoaluantotnghiep.Services
                     var tinhNguyenVien = await _context.Volunteer
                         .Include(t => t.TinhNguyenVien_LinhVucs)
                         .Include(t => t.TinhNguyenVien_KyNangs)
+                        .Include(t => t.TaiKhoan)
                         .FirstOrDefaultAsync(t => t.MaTNV == maTNV);
 
                     if (tinhNguyenVien == null)
                         throw new Exception("Tình nguyện viên không tồn tại");
                     
+                    // Lưu MaTaiKhoan trước khi xóa
+                    var maTaiKhoan = tinhNguyenVien.MaTaiKhoan;
+                    
+                    // Xóa các bản ghi liên quan
                     _context.TinhNguyenVien_LinhVuc.RemoveRange(tinhNguyenVien.TinhNguyenVien_LinhVucs);
                     _context.TinhNguyenVien_KyNang.RemoveRange(tinhNguyenVien.TinhNguyenVien_KyNangs);
 
+                    // Xóa file ảnh đại diện
                     if (!string.IsNullOrEmpty(tinhNguyenVien.AnhDaiDien))
                     {
                         var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -518,7 +524,50 @@ namespace khoaluantotnghiep.Services
                             File.Delete(filePath);
                     }
                     
+                    // Xóa tình nguyện viên
                     _context.Volunteer.Remove(tinhNguyenVien);
+                    await _context.SaveChangesAsync();
+
+                    // Xóa tài khoản liên quan
+                    var taiKhoan = await _context.User.FindAsync(maTaiKhoan);
+                    if (taiKhoan != null)
+                    {
+                        // Xóa các bản ghi liên quan đến tài khoản trước
+                        // Xóa đơn đăng ký
+                        var donDangKys = await _context.DonDangKy.Where(d => d.MaTNV == maTNV).ToListAsync();
+                        _context.DonDangKy.RemoveRange(donDangKys);
+
+                        // Xóa đánh giá (nếu có)
+                        var danhGias = await _context.DanhGia
+                            .Where(d => d.MaNguoiDanhGia == maTaiKhoan || d.MaNguoiDuocDanhGia == maTaiKhoan)
+                            .ToListAsync();
+                        _context.DanhGia.RemoveRange(danhGias);
+
+                        // Xóa thông báo (nếu có)
+                        var thongBaos = await _context.ThongBao.Where(t => t.MaNguoiTao == maTaiKhoan).ToListAsync();
+                        _context.ThongBao.RemoveRange(thongBaos);
+
+                        // Xóa người nhận thông báo
+                        var nguoiNhanThongBaos = await _context.NguoiNhanThongBao
+                            .Where(n => n.MaNguoiNhanThongBao == maTaiKhoan)
+                            .ToListAsync();
+                        _context.NguoiNhanThongBao.RemoveRange(nguoiNhanThongBaos);
+
+                        // Xóa token reset mật khẩu
+                        var tokenResetMatKhaus = await _context.TokenResetMatKhau
+                            .Where(t => t.MaTaiKhoan == maTaiKhoan)
+                            .ToListAsync();
+                        _context.TokenResetMatKhau.RemoveRange(tokenResetMatKhaus);
+
+                        // Xóa token đổi email
+                        var tokenDoiEmails = await _context.TokenDoiEmail
+                            .Where(t => t.MaTaiKhoan == maTaiKhoan)
+                            .ToListAsync();
+                        _context.TokenDoiEmail.RemoveRange(tokenDoiEmails);
+
+                        // Xóa tài khoản
+                        _context.User.Remove(taiKhoan);
+                    }
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();

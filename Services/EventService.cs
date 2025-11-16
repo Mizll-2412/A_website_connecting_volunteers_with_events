@@ -32,37 +32,165 @@ namespace khoaluantotnghiep.Services
         }
 
         /// <summary>
-        /// Tính toán trạng thái hiển thị của sự kiện
+        /// Format DateTime theo định dạng dd/MM/yyyy HH:mm (múi giờ Việt Nam)
         /// </summary>
-        private string GetTrangThaiHienThi(SuKien suKien)
+        private string? FormatDateTime(DateTime? dateTime)
         {
-            // Ưu tiên trường TrangThai từ database
+            if (!dateTime.HasValue)
+                return null;
+            
+            return dateTime.Value.ToString("dd/MM/yyyy HH:mm");
+        }
+
+        /// <summary>
+        /// Tính toán trạng thái tuyển dụng dựa trên thời gian và số lượng
+        /// </summary>
+        private (string status, string cssClass, bool canRegister) GetTrangThaiTuyen(
+            SuKien suKien, int soLuongDaDuyet, int tongDangKy, int gioiHanDangKy)
+        {
+            var now = DateTime.Now;
+            
+            // 1. Đóng thủ công
+            if (!string.IsNullOrEmpty(suKien.TrangThaiTuyen) && suKien.TrangThaiTuyen == "Đóng")
+                return ("Đóng", "secondary", false);
+            
+            // 2. Đã đủ người được duyệt
+            if (suKien.SoLuong.HasValue && soLuongDaDuyet >= suKien.SoLuong.Value)
+                return ("Đã đủ người", "warning", false);
+            
+            // 3. Vượt giới hạn đăng ký (1.5x)
+            if (tongDangKy >= gioiHanDangKy && gioiHanDangKy > 0)
+                return ("Đã đủ đơn", "warning", false);
+            
+            // 4. Kiểm tra thời gian tuyển
+            if (suKien.TuyenBatDau.HasValue && now < suKien.TuyenBatDau.Value)
+                return ("Chưa mở đăng ký", "info", false);
+            
+            if (suKien.TuyenBatDau.HasValue && suKien.TuyenKetThuc.HasValue &&
+                now >= suKien.TuyenBatDau.Value && now <= suKien.TuyenKetThuc.Value)
+                return ("Đang tuyển", "success", true);
+            
+            if (suKien.TuyenKetThuc.HasValue && now > suKien.TuyenKetThuc.Value)
+                return ("Hết hạn tuyển", "danger", false);
+            
+            return ("Đang tuyển", "success", true);
+        }
+
+        /// <summary>
+        /// Tính toán trạng thái sự kiện dựa trên thời gian
+        /// </summary>
+        private (string status, string cssClass) GetTrangThaiSuKien(SuKien suKien)
+        {
+            // 1. Ưu tiên trường TrangThai từ database (đóng sớm)
             if (suKien.TrangThai == "Đã kết thúc")
             {
-                return "Đã kết thúc";
+                return ("Đã kết thúc", "secondary");
             }
 
-            // Tính toán dựa trên ngày
+            // 2. Tính toán dựa trên ngày
             var now = DateTime.Now;
             
             if (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < now)
             {
-                return "Đã kết thúc";
+                return ("Đã kết thúc", "secondary");
             }
             
             if (suKien.NgayBatDau.HasValue && suKien.NgayBatDau.Value > now)
             {
-                return "Sắp diễn ra";
+                return ("Sắp diễn ra", "info");
             }
             
             if (suKien.NgayBatDau.HasValue && suKien.NgayBatDau.Value <= now && 
                 (!suKien.NgayKetThuc.HasValue || suKien.NgayKetThuc.Value >= now))
             {
-                return "Đang diễn ra";
+                return ("Đang diễn ra", "success");
             }
             
-            return "Đang tuyển";
+            return ("Sắp diễn ra", "info");
         }
+
+        /// <summary>
+        /// Tính toán trạng thái hiển thị của sự kiện (Legacy - giữ để tương thích)
+        /// </summary>
+        private string GetTrangThaiHienThi(SuKien suKien)
+        {
+            var (status, _) = GetTrangThaiSuKien(suKien);
+            return status;
+        }
+
+        /// <summary>
+        /// Helper method để map SuKien thành SuKienResponseDto với đầy đủ thông tin trạng thái
+        /// </summary>
+        private SuKienResponseDto MapToResponseDto(SuKien suKien, int soLuongDaDuyet, int soLuongChoDuyet)
+        {
+            var tongDangKy = soLuongDaDuyet + soLuongChoDuyet;
+            var gioiHanDangKy = (int)Math.Ceiling((suKien.SoLuong ?? 0) * 1.5);
+            
+            // Tính 2 trạng thái độc lập với logic mới (đếm theo tổng đăng ký và giới hạn)
+            var (trangThaiTuyen, trangThaiTuyenMau, choPhepDangKy) = 
+                GetTrangThaiTuyen(suKien, soLuongDaDuyet, tongDangKy, gioiHanDangKy);
+            
+            var (trangThaiSuKien, trangThaiSuKienMau) = GetTrangThaiSuKien(suKien);
+            
+            // Tính số lượng còn lại
+            var soLuongConLai = (suKien.SoLuong ?? 0) - soLuongDaDuyet;
+            if (soLuongConLai < 0) soLuongConLai = 0;
+            
+            return new SuKienResponseDto
+            {
+                MaSuKien = suKien.MaSuKien,
+                MaToChuc = suKien.MaToChuc,
+                TenSuKien = suKien.TenSuKien,
+                NoiDung = suKien.NoiDung,
+                SoLuong = suKien.SoLuong,
+                DiaChi = suKien.DiaChi,
+                NgayBatDau = suKien.NgayBatDau,
+                NgayKetThuc = suKien.NgayKetThuc,
+                NgayTao = suKien.NgayTao,
+                TuyenBatDau = suKien.TuyenBatDau,
+                TuyenKetThuc = suKien.TuyenKetThuc,
+                TrangThai = int.TryParse(suKien.TrangThai, out int trangThai) ? trangThai : 0,
+                TrangThaiHienThi = GetTrangThaiHienThi(suKien),
+                HinhAnh = suKien.HinhAnh,
+                LinhVucIds = suKien.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
+                KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
+                TenToChuc = suKien.Organization?.TenToChuc,
+                MaTaiKhoanToChuc = suKien.Organization?.MaTaiKhoan,
+                SoLuongDaDangKy = soLuongDaDuyet,  // Compatibility: backward compatibility field
+                // Thêm các trường formatted
+                DateFormat = "dd/MM/yyyy HH:mm",
+                NgayBatDauFormatted = FormatDateTime(suKien.NgayBatDau),
+                NgayKetThucFormatted = FormatDateTime(suKien.NgayKetThuc),
+                TuyenBatDauFormatted = FormatDateTime(suKien.TuyenBatDau),
+                TuyenKetThucFormatted = FormatDateTime(suKien.TuyenKetThuc),
+                NgayTaoFormatted = FormatDateTime(suKien.NgayTao),
+                // Thêm 2 trạng thái độc lập và thông tin chi tiết
+                TrangThaiTuyen = trangThaiTuyen,
+                TrangThaiTuyenMau = trangThaiTuyenMau,
+                TrangThaiSuKien = trangThaiSuKien,
+                TrangThaiSuKienMau = trangThaiSuKienMau,
+                ChoPhepDangKy = choPhepDangKy,
+                SoLuongConLai = soLuongConLai,
+                
+                // Thời gian diễn ra thực tế
+                NgayDienRaBatDau = suKien.NgayDienRaBatDau,
+                NgayDienRaKetThuc = suKien.NgayDienRaKetThuc,
+                NgayDienRaBatDauFormatted = FormatDateTime(suKien.NgayDienRaBatDau),
+                NgayDienRaKetThucFormatted = FormatDateTime(suKien.NgayDienRaKetThuc),
+                ThoiGianKhoaHuy = suKien.ThoiGianKhoaHuy ?? 24,
+                
+                // Thống kê chi tiết
+                SoLuongDaDuyet = soLuongDaDuyet,
+                SoLuongChoDuyet = soLuongChoDuyet,
+                TongSoDangKy = tongDangKy,
+                GioiHanDangKy = gioiHanDangKy,
+                
+                // Thông tin hủy đăng ký - sẽ tính ở detail level
+                CoTheHuyDangKy = false,
+                SoGioConLaiDeHuy = 0
+            };
+        }
+
 
         public async Task<SuKienResponseDto> CreateSuKienAsync(CreateSuKienDto createDto)
         {
@@ -130,11 +258,27 @@ namespace khoaluantotnghiep.Services
                         NoiDung = createDto.NoiDung,
                         DiaChi = createDto.DiaChi,
                         SoLuong = createDto.SoLuong,
-                        NgayBatDau = createDto.NgayBatDau,
-                        NgayKetThuc = createDto.NgayKetThuc,
+                        // DateTime từ frontend đã là local time (GMT+7), không cần convert
+                        NgayBatDau = createDto.NgayBatDau.HasValue 
+                            ? DateTime.SpecifyKind(createDto.NgayBatDau.Value, DateTimeKind.Unspecified) 
+                            : null,
+                        NgayKetThuc = createDto.NgayKetThuc.HasValue 
+                            ? DateTime.SpecifyKind(createDto.NgayKetThuc.Value, DateTimeKind.Unspecified) 
+                            : null,
                         NgayTao = DateTime.Now,
-                        TuyenBatDau = createDto.TuyenBatDau,
-                        TuyenKetThuc = createDto.TuyenKetThuc,
+                        TuyenBatDau = createDto.TuyenBatDau.HasValue 
+                            ? DateTime.SpecifyKind(createDto.TuyenBatDau.Value, DateTimeKind.Unspecified) 
+                            : null,
+                        TuyenKetThuc = createDto.TuyenKetThuc.HasValue 
+                            ? DateTime.SpecifyKind(createDto.TuyenKetThuc.Value, DateTimeKind.Unspecified) 
+                            : null,
+                        NgayDienRaBatDau = createDto.NgayDienRaBatDau.HasValue 
+                            ? DateTime.SpecifyKind(createDto.NgayDienRaBatDau.Value, DateTimeKind.Unspecified) 
+                            : null,
+                        NgayDienRaKetThuc = createDto.NgayDienRaKetThuc.HasValue 
+                            ? DateTime.SpecifyKind(createDto.NgayDienRaKetThuc.Value, DateTimeKind.Unspecified) 
+                            : null,
+                        ThoiGianKhoaHuy = createDto.ThoiGianKhoaHuy ?? 24,
                         HinhAnh = createDto.HinhAnh,
                         TrangThai = createDto.TrangThai ?? "Đang tuyển"
                     };
@@ -203,9 +347,11 @@ namespace khoaluantotnghiep.Services
 
                     var blockingReasons = new List<string>();
 
-                    if (await _context.DonDangKy.AnyAsync(d => d.MaSuKien == maSuKien))
+                    // Chỉ chặn khi có đơn Chờ duyệt (0) hoặc Đã duyệt (1)
+                    // Đơn Từ chối (2) không chặn xóa
+                    if (await _context.DonDangKy.AnyAsync(d => d.MaSuKien == maSuKien && (d.TrangThai == 0 || d.TrangThai == 1)))
                     {
-                        blockingReasons.Add("đơn đăng ký của tình nguyện viên");
+                        blockingReasons.Add("đơn đăng ký đang chờ duyệt hoặc đã duyệt");
                     }
 
                     if (await _context.GiayChungNhan.AnyAsync(g => g.MaSuKien == maSuKien))
@@ -222,6 +368,17 @@ namespace khoaluantotnghiep.Services
                     {
                         var message = $"Không thể xóa sự kiện vì đang có {string.Join(", ", blockingReasons)}. Vui lòng xử lý các dữ liệu này trước khi xóa.";
                         throw new InvalidOperationException(message);
+                    }
+
+                    // Xóa các đơn đăng ký bị từ chối (TrangThai = 2) trước
+                    var rejectedRegistrations = await _context.DonDangKy
+                        .Where(d => d.MaSuKien == maSuKien && d.TrangThai == 2)
+                        .ToListAsync();
+                    
+                    if (rejectedRegistrations.Any())
+                    {
+                        _context.DonDangKy.RemoveRange(rejectedRegistrations);
+                        _logger.LogInformation($"Đã xóa {rejectedRegistrations.Count} đơn đăng ký bị từ chối của sự kiện {maSuKien}");
                     }
 
                     _context.SuKien_KyNang.RemoveRange(sukien.SuKien_KyNangs);
@@ -254,34 +411,29 @@ namespace khoaluantotnghiep.Services
                 // Lấy danh sách ID sự kiện
                 var eventIds = suKiens.Select(s => s.MaSuKien).ToList();
                 
-                // Đếm số đơn đăng ký đã duyệt theo từng sự kiện (TrangThai = 1)
-                var registrationCounts = await _context.DonDangKy
-                    .Where(d => eventIds.Contains(d.MaSuKien) && d.TrangThai == 1)
+                // Đếm 2 loại: Đã duyệt (TrangThai = 1) và Chờ duyệt (TrangThai = 0)
+                var registrationStats = await _context.DonDangKy
+                    .Where(d => eventIds.Contains(d.MaSuKien))
                     .GroupBy(d => d.MaSuKien)
-                    .Select(g => new { MaSuKien = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.MaSuKien, x => x.Count);
+                    .Select(g => new {
+                        MaSuKien = g.Key,
+                        DaDuyet = g.Count(d => d.TrangThai == 1),
+                        ChoDuyet = g.Count(d => d.TrangThai == 0)
+                    })
+                    .ToDictionaryAsync(x => x.MaSuKien);
 
-                return suKiens.Select(s => new SuKienResponseDto
+                return suKiens.Select(s =>
                 {
-                    MaSuKien = s.MaSuKien,
-                    MaToChuc = s.MaToChuc,
-                    TenSuKien = s.TenSuKien,
-                    NoiDung = s.NoiDung,
-                    SoLuong = s.SoLuong,
-                    DiaChi = s.DiaChi,
-                    NgayBatDau = s.NgayBatDau,
-                    NgayKetThuc = s.NgayKetThuc,
-                    NgayTao = s.NgayTao,
-                    TuyenBatDau = s.TuyenBatDau,
-                    TuyenKetThuc = s.TuyenKetThuc,
-                    TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
-                    TrangThaiHienThi = GetTrangThaiHienThi(s),
-                    HinhAnh = s.HinhAnh,
-                    LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = s.Organization?.TenToChuc,
-                    MaTaiKhoanToChuc = s.Organization?.MaTaiKhoan,
-                    SoLuongDaDangKy = registrationCounts.ContainsKey(s.MaSuKien) ? registrationCounts[s.MaSuKien] : 0
+                    int daDuyet = 0;
+                    int choDuyet = 0;
+                    
+                    if (registrationStats.ContainsKey(s.MaSuKien))
+                    {
+                        daDuyet = registrationStats[s.MaSuKien].DaDuyet;
+                        choDuyet = registrationStats[s.MaSuKien].ChoDuyet;
+                    }
+                    
+                    return MapToResponseDto(s, daDuyet, choDuyet);
                 }).ToList();
             }
             catch (Exception ex)
@@ -311,34 +463,29 @@ namespace khoaluantotnghiep.Services
                 // Lấy danh sách ID sự kiện
                 var eventIds = suKiens.Select(s => s.MaSuKien).ToList();
                 
-                // Đếm số đơn đăng ký đã duyệt theo từng sự kiện (TrangThai = 1)
-                var registrationCounts = await _context.DonDangKy
-                    .Where(d => eventIds.Contains(d.MaSuKien) && d.TrangThai == 1)
+                // Đếm 2 loại: Đã duyệt (TrangThai = 1) và Chờ duyệt (TrangThai = 0)
+                var registrationStats = await _context.DonDangKy
+                    .Where(d => eventIds.Contains(d.MaSuKien))
                     .GroupBy(d => d.MaSuKien)
-                    .Select(g => new { MaSuKien = g.Key, Count = g.Count() })
-                    .ToDictionaryAsync(x => x.MaSuKien, x => x.Count);
+                    .Select(g => new {
+                        MaSuKien = g.Key,
+                        DaDuyet = g.Count(d => d.TrangThai == 1),
+                        ChoDuyet = g.Count(d => d.TrangThai == 0)
+                    })
+                    .ToDictionaryAsync(x => x.MaSuKien);
 
-                return suKiens.Select(s => new SuKienResponseDto
+                return suKiens.Select(s =>
                 {
-                    MaSuKien = s.MaSuKien,
-                    MaToChuc = s.MaToChuc,
-                    TenSuKien = s.TenSuKien,
-                    NoiDung = s.NoiDung,
-                    SoLuong = s.SoLuong,
-                    DiaChi = s.DiaChi,
-                    NgayBatDau = s.NgayBatDau,
-                    NgayKetThuc = s.NgayKetThuc,
-                    NgayTao = s.NgayTao,
-                    TuyenBatDau = s.TuyenBatDau,
-                    TuyenKetThuc = s.TuyenKetThuc,
-                    TrangThai = int.TryParse(s.TrangThai, out int trangThai) ? trangThai : 0,
-                    TrangThaiHienThi = GetTrangThaiHienThi(s),
-                    HinhAnh = s.HinhAnh,
-                    LinhVucIds = s.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = s.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = s.Organization?.TenToChuc,
-                    MaTaiKhoanToChuc = s.Organization?.MaTaiKhoan,
-                    SoLuongDaDangKy = registrationCounts.ContainsKey(s.MaSuKien) ? registrationCounts[s.MaSuKien] : 0
+                    int daDuyet = 0;
+                    int choDuyet = 0;
+                    
+                    if (registrationStats.ContainsKey(s.MaSuKien))
+                    {
+                        daDuyet = registrationStats[s.MaSuKien].DaDuyet;
+                        choDuyet = registrationStats[s.MaSuKien].ChoDuyet;
+                    }
+                    
+                    return MapToResponseDto(s, daDuyet, choDuyet);
                 }).ToList();
             }
             catch (Exception ex)
@@ -363,33 +510,16 @@ namespace khoaluantotnghiep.Services
                     throw new Exception("Sự kiện không tồn tại");
                 }
                 
-                // Đếm số đơn đăng ký đã được duyệt (TrangThai = 1)
-                var soLuongDaDangKy = await _context.DonDangKy
+                // Đếm 2 loại: Đã duyệt (TrangThai = 1) và Chờ duyệt (TrangThai = 0)
+                var soLuongDaDuyet = await _context.DonDangKy
                     .Where(d => d.MaSuKien == maSuKien && d.TrangThai == 1)
                     .CountAsync();
                 
-                return new SuKienResponseDto
-                {
-                    MaSuKien = suKien.MaSuKien,
-                    MaToChuc = suKien.MaToChuc,
-                    TenSuKien = suKien.TenSuKien,
-                    NoiDung = suKien.NoiDung,
-                    SoLuong = suKien.SoLuong,
-                    DiaChi = suKien.DiaChi,
-                    NgayBatDau = suKien.NgayBatDau,
-                    NgayKetThuc = suKien.NgayKetThuc,
-                    NgayTao = suKien.NgayTao,
-                    TuyenBatDau = suKien.TuyenBatDau,
-                    TuyenKetThuc = suKien.TuyenKetThuc,
-                    TrangThai = int.TryParse(suKien.TrangThai, out int trangThai) ? trangThai : 0,
-                    TrangThaiHienThi = GetTrangThaiHienThi(suKien),
-                    HinhAnh = suKien.HinhAnh,
-                    LinhVucIds = suKien.SuKien_LinhVucs?.Select(l => l.MaLinhVuc).ToList(),
-                    KyNangIds = suKien.SuKien_KyNangs?.Select(k => k.MaKyNang).ToList(),
-                    TenToChuc = suKien.Organization?.TenToChuc,
-                    MaTaiKhoanToChuc = suKien.Organization?.MaTaiKhoan,
-                    SoLuongDaDangKy = soLuongDaDangKy
-                };
+                var soLuongChoDuyet = await _context.DonDangKy
+                    .Where(d => d.MaSuKien == maSuKien && d.TrangThai == 0)
+                    .CountAsync();
+                
+                return MapToResponseDto(suKien, soLuongDaDuyet, soLuongChoDuyet);
 
             }
             catch (Exception ex)
@@ -501,10 +631,26 @@ namespace khoaluantotnghiep.Services
                     suKien.NoiDung = updateDto.NoiDung;
                     suKien.SoLuong = updateDto.SoLuong;
                     suKien.DiaChi = updateDto.DiaChi;
-                    suKien.NgayBatDau = updateDto.NgayBatDau;
-                    suKien.NgayKetThuc = updateDto.NgayKetThuc;
-                    suKien.TuyenBatDau = updateDto.TuyenBatDau;
-                    suKien.TuyenKetThuc = updateDto.TuyenKetThuc;
+                    // DateTime từ frontend đã là local time (GMT+7), không cần convert
+                    suKien.NgayBatDau = updateDto.NgayBatDau.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.NgayBatDau.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.NgayKetThuc = updateDto.NgayKetThuc.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.NgayKetThuc.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.TuyenBatDau = updateDto.TuyenBatDau.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.TuyenBatDau.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.TuyenKetThuc = updateDto.TuyenKetThuc.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.TuyenKetThuc.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.NgayDienRaBatDau = updateDto.NgayDienRaBatDau.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.NgayDienRaBatDau.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.NgayDienRaKetThuc = updateDto.NgayDienRaKetThuc.HasValue 
+                        ? DateTime.SpecifyKind(updateDto.NgayDienRaKetThuc.Value, DateTimeKind.Unspecified) 
+                        : null;
+                    suKien.ThoiGianKhoaHuy = updateDto.ThoiGianKhoaHuy ?? suKien.ThoiGianKhoaHuy ?? 24;
                     suKien.TrangThai = updateDto.TrangThai;
                     suKien.HinhAnh = updateDto.HinhAnh;
                     if (updateDto.LinhVucIds != null)

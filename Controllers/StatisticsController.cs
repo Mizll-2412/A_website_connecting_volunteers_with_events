@@ -103,11 +103,11 @@ namespace khoaluantotnghiep.Controllers
         /// </summary>
         [HttpGet("overall")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetOverallStatistics()
+        public async Task<IActionResult> GetOverallStatistics([FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _statisticsService.GetOverallStatisticsAsync();
+                var result = await _statisticsService.GetOverallStatisticsAsync(filter);
                 return Ok(new { data = result });
             }
             catch (Exception ex)
@@ -122,11 +122,11 @@ namespace khoaluantotnghiep.Controllers
         /// </summary>
         [HttpGet("ratings")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetRatingStatistics()
+        public async Task<IActionResult> GetRatingStatistics([FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _statisticsService.GetRatingStatisticsAsync();
+                var result = await _statisticsService.GetRatingStatisticsAsync(filter);
                 return Ok(new { data = result });
             }
             catch (Exception ex)
@@ -141,11 +141,11 @@ namespace khoaluantotnghiep.Controllers
         /// </summary>
         [HttpGet("organization/{organizationId}")]
         [Authorize(Roles = "Admin,Organization")]
-        public async Task<IActionResult> GetOrganizationSpecificStatistics(int organizationId)
+        public async Task<IActionResult> GetOrganizationSpecificStatistics(int organizationId, [FromQuery] StatisticFilterDto filter)
         {
             try
             {
-                var result = await _statisticsService.GetOrganizationSpecificStatisticsAsync(organizationId);
+                var result = await _statisticsService.GetOrganizationSpecificStatisticsAsync(organizationId, filter);
                 return Ok(new { data = result });
             }
             catch (Exception ex)

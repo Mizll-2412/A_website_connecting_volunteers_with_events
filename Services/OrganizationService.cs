@@ -14,14 +14,16 @@ namespace khoaluantotnghiep.Services
         private readonly AppDbContext _context;
         private readonly ILogger<OrganizationService> _logger;
         private readonly IWebHostEnvironment _env;
+        private readonly INotificationService _notificationService;
         private const long MaxFileSize = 5242880; // 5MB
         private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
 
-        public OrganizationService(AppDbContext context, ILogger<OrganizationService> logger, IWebHostEnvironment env)
+        public OrganizationService(AppDbContext context, ILogger<OrganizationService> logger, IWebHostEnvironment env, INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
             _env = env;
+            _notificationService = notificationService;
         }
 
         public async Task<ToChucResponseDto> GetToChucAsync(int maToChuc)
@@ -297,12 +299,107 @@ namespace khoaluantotnghiep.Services
                 {
                     var tochuc = await _context.Organization
                         .Include(t => t.GiayToPhapLys)
+                        .Include(t => t.TaiKhoan)
                         .FirstOrDefaultAsync(t => t.MaToChuc == maToChuc);
 
                     if (tochuc == null)
                         throw new Exception("Tổ chức không tồn tại");
-                    _context.GiayToPhapLy.RemoveRange(tochuc.GiayToPhapLys);
+                    
+                    // Lưu MaTaiKhoan trước khi xóa
+                    var maTaiKhoan = tochuc.MaTaiKhoan;
+                    
+                    // Xóa giấy tờ pháp lý
+                    if (tochuc.GiayToPhapLys != null && tochuc.GiayToPhapLys.Any())
+                    {
+                        _context.GiayToPhapLy.RemoveRange(tochuc.GiayToPhapLys);
+                        await _context.SaveChangesAsync(); // Lưu ngay để tránh lỗi
+                    }
 
+                    // Xóa các bản ghi liên quan đến sự kiện TRƯỚC khi xóa tổ chức
+                    // Xóa sự kiện (nếu có)
+                    var suKiens = await _context.Event.Where(s => s.MaToChuc == maToChuc).ToListAsync();
+                    var suKienIds = suKiens.Select(s => s.MaSuKien).ToList();
+                    
+                    if (suKienIds.Any())
+                    {
+                        // Xóa file ảnh của sự kiện trước
+                        var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        foreach (var suKien in suKiens)
+                        {
+                            if (!string.IsNullOrEmpty(suKien.HinhAnh))
+                            {
+                                var filePath = Path.Combine(webRootPath, suKien.HinhAnh.TrimStart('/'));
+                                if (File.Exists(filePath))
+                                {
+                                    try
+                                    {
+                                        File.Delete(filePath);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        _logger.LogWarning($"Không thể xóa file ảnh sự kiện {suKien.MaSuKien}: {ex.Message}");
+                                    }
+                                }
+                            }
+                        }
+
+                        // Xóa tất cả các bản ghi liên quan đến sự kiện cùng lúc (hiệu quả hơn)
+                        // Xóa theo thứ tự để tránh foreign key constraint
+                        
+                        // 1. Xóa đơn đăng ký (có NoAction với SuKien)
+                        var donDangKys = await _context.DonDangKy.Where(d => suKienIds.Contains(d.MaSuKien)).ToListAsync();
+                        if (donDangKys.Any())
+                        {
+                            _context.DonDangKy.RemoveRange(donDangKys);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 2. Xóa đánh giá (có thể có foreign key đến SuKien)
+                        var danhGiasSuKien = await _context.DanhGia.Where(d => suKienIds.Contains(d.MaSuKien)).ToListAsync();
+                        if (danhGiasSuKien.Any())
+                        {
+                            _context.DanhGia.RemoveRange(danhGiasSuKien);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 3. Xóa giấy chứng nhận (có Cascade với SuKien, nhưng xóa trước để chắc chắn)
+                        var giayChungNhans = await _context.GiayChungNhan.Where(g => suKienIds.Contains(g.MaSuKien)).ToListAsync();
+                        if (giayChungNhans.Any())
+                        {
+                            _context.GiayChungNhan.RemoveRange(giayChungNhans);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 4. Xóa mẫu giấy chứng nhận
+                        var mauGiayChungNhans = await _context.MauGiayChungNhan.Where(m => m.MaSuKien.HasValue && suKienIds.Contains(m.MaSuKien.Value)).ToListAsync();
+                        if (mauGiayChungNhans.Any())
+                        {
+                            _context.MauGiayChungNhan.RemoveRange(mauGiayChungNhans);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 5. Xóa quan hệ sự kiện - kỹ năng
+                        var suKienKyNangs = await _context.SuKien_KyNang.Where(s => suKienIds.Contains(s.MaSuKien)).ToListAsync();
+                        if (suKienKyNangs.Any())
+                        {
+                            _context.SuKien_KyNang.RemoveRange(suKienKyNangs);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 6. Xóa quan hệ sự kiện - lĩnh vực
+                        var suKienLinhVucs = await _context.SuKien_LinhVuc.Where(s => suKienIds.Contains(s.MaSuKien)).ToListAsync();
+                        if (suKienLinhVucs.Any())
+                        {
+                            _context.SuKien_LinhVuc.RemoveRange(suKienLinhVucs);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 7. Xóa sự kiện (cuối cùng)
+                        _context.Event.RemoveRange(suKiens);
+                        await _context.SaveChangesAsync(); // Lưu thay đổi trước khi xóa tổ chức
+                    }
+                    
+                    // Xóa file ảnh đại diện
                     if (!string.IsNullOrEmpty(tochuc.AnhDaiDien))
                     {
                         var webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
@@ -310,7 +407,92 @@ namespace khoaluantotnghiep.Services
                         if (File.Exists(filePath))
                             File.Delete(filePath);
                     }
+                    
+                    // Xóa tổ chức
                     _context.Organization.Remove(tochuc);
+                    await _context.SaveChangesAsync();
+
+                    // Xóa tài khoản liên quan
+                    var taiKhoan = await _context.User.FindAsync(maTaiKhoan);
+                    if (taiKhoan != null)
+                    {
+                        // Xóa các bản ghi liên quan đến tài khoản
+                        // Lưu ý: Đánh giá liên quan đến sự kiện đã được xóa ở trên
+                        // Chỉ xóa đánh giá không liên quan đến sự kiện (nếu có)
+                        if (suKienIds.Any())
+                        {
+                            var danhGiasTaiKhoan = await _context.DanhGia
+                                .Where(d => (d.MaNguoiDanhGia == maTaiKhoan || d.MaNguoiDuocDanhGia == maTaiKhoan)
+                                    && !suKienIds.Contains(d.MaSuKien))
+                                .ToListAsync();
+                            _context.DanhGia.RemoveRange(danhGiasTaiKhoan);
+                        }
+                        else
+                        {
+                            // Nếu không có sự kiện, xóa tất cả đánh giá liên quan đến tài khoản
+                            var danhGiasTaiKhoan = await _context.DanhGia
+                                .Where(d => d.MaNguoiDanhGia == maTaiKhoan || d.MaNguoiDuocDanhGia == maTaiKhoan)
+                                .ToListAsync();
+                            _context.DanhGia.RemoveRange(danhGiasTaiKhoan);
+                        }
+
+                        // Xóa thông báo (nếu có)
+                        var thongBaos = await _context.ThongBao.Where(t => t.MaNguoiTao == maTaiKhoan).ToListAsync();
+                        var thongBaoIds = thongBaos.Select(t => t.MaThongBao).ToList();
+                        
+                        // Xóa TẤT CẢ người nhận thông báo liên quan đến các thông báo này (không chỉ của maTaiKhoan)
+                        // Điều này quan trọng vì có thể có người khác cũng nhận thông báo này
+                        if (thongBaoIds.Any())
+                        {
+                            var nguoiNhanThongBaos = await _context.NguoiNhanThongBao
+                                .Where(n => thongBaoIds.Contains(n.MaThongBao))
+                                .ToListAsync();
+                            if (nguoiNhanThongBaos.Any())
+                            {
+                                _context.NguoiNhanThongBao.RemoveRange(nguoiNhanThongBaos);
+                                await _context.SaveChangesAsync(); // Lưu trước khi xóa ThongBao
+                            }
+                        }
+                        
+                        // Xóa người nhận thông báo của tài khoản này (nếu có thông báo khác)
+                        var nguoiNhanThongBaosCuaTaiKhoan = await _context.NguoiNhanThongBao
+                            .Where(n => n.MaNguoiNhanThongBao == maTaiKhoan && !thongBaoIds.Contains(n.MaThongBao))
+                            .ToListAsync();
+                        if (nguoiNhanThongBaosCuaTaiKhoan.Any())
+                        {
+                            _context.NguoiNhanThongBao.RemoveRange(nguoiNhanThongBaosCuaTaiKhoan);
+                            await _context.SaveChangesAsync();
+                        }
+                        
+                        // Sau đó mới xóa thông báo
+                        if (thongBaos.Any())
+                        {
+                            _context.ThongBao.RemoveRange(thongBaos);
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // Xóa token reset mật khẩu
+                        var tokenResetMatKhaus = await _context.TokenResetMatKhau
+                            .Where(t => t.MaTaiKhoan == maTaiKhoan)
+                            .ToListAsync();
+                        _context.TokenResetMatKhau.RemoveRange(tokenResetMatKhaus);
+
+                        // Xóa token đổi email
+                        var tokenDoiEmails = await _context.TokenDoiEmail
+                            .Where(t => t.MaTaiKhoan == maTaiKhoan)
+                            .ToListAsync();
+                        _context.TokenDoiEmail.RemoveRange(tokenDoiEmails);
+
+                        // Xóa Admin nếu có (mặc dù tổ chức không phải Admin, nhưng để an toàn)
+                        var admin = await _context.Admin.FirstOrDefaultAsync(a => a.MaTaiKhoan == maTaiKhoan);
+                        if (admin != null)
+                        {
+                            _context.Admin.Remove(admin);
+                        }
+
+                        // Xóa tài khoản
+                        _context.User.Remove(taiKhoan);
+                    }
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -320,8 +502,13 @@ namespace khoaluantotnghiep.Services
                 catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
-                    _logger.LogError($"Lỗi xóa tổ chức: {ex.Message}");
-                    throw;
+                    _logger.LogError($"Lỗi xóa tổ chức (MaToChuc: {maToChuc}): {ex.Message}");
+                    _logger.LogError($"Stack trace: {ex.StackTrace}");
+                    if (ex.InnerException != null)
+                    {
+                        _logger.LogError($"Inner exception: {ex.InnerException.Message}");
+                    }
+                    throw new Exception($"Không thể xóa tổ chức: {ex.Message}", ex);
                 }
             }
         }
@@ -359,6 +546,36 @@ namespace khoaluantotnghiep.Services
                 toChuc.TrangThaiXacMinh = 0; // 0 = Chờ xác minh
                 
                 await _context.SaveChangesAsync();
+
+                // Gửi thông báo tới Admin
+                var adminUserIds = await _context.Admin
+                    .Select(a => a.MaTaiKhoan)
+                    .Where(id => id > 0)
+                    .ToListAsync();
+
+                if (adminUserIds.Any() && toChuc.MaTaiKhoan > 0)
+                {
+                    string tenToChuc = toChuc.TenToChuc ?? "Một tổ chức";
+                    await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                    {
+                        MaNguoiTao = toChuc.MaTaiKhoan,
+                        PhanLoai = 1, // Thông báo hệ thống
+                        NoiDung = $"Tổ chức \"{tenToChuc}\" đã gửi yêu cầu xác minh.",
+                        MaNguoiNhans = adminUserIds
+                    });
+                }
+
+                // Gửi thông báo xác nhận cho chính tổ chức
+                if (toChuc.MaTaiKhoan > 0)
+                {
+                    await _notificationService.CreateNotificationAsync(new CreateNotificationDto
+                    {
+                        MaNguoiTao = toChuc.MaTaiKhoan,
+                        PhanLoai = 1,
+                        NoiDung = "Bạn đã gửi yêu cầu xác minh. Chúng tôi sẽ xem xét trong thời gian sớm nhất.",
+                        MaNguoiNhans = new List<int> { toChuc.MaTaiKhoan }
+                    });
+                }
                 
                 return await GetVerificationStatusAsync(requestDto.MaToChuc);
             }
@@ -395,6 +612,9 @@ namespace khoaluantotnghiep.Services
                         break;
                     case 2:
                         trangThaiText = "Đã từ chối";
+                        break;
+                    case 3:
+                        trangThaiText = "Đã thu hồi";
                         break;
                     default:
                         trangThaiText = "Chưa xác minh";

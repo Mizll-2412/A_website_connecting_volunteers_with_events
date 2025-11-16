@@ -16,5 +16,8 @@ namespace khoaluantotnghiep.Models
         [Column("TenLinhVuc")]
         public string TenLinhVuc { get; set; } = string.Empty;
 
+        [StringLength(500)]
+        [Column("MoTa")]
+        public string? MoTa { get; set; }
     }
 }

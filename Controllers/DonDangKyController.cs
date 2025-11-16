@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using khoaluantotnghiep.DTOs;
 using khoaluantotnghiep.Services;
 using khoaluantotnghiep.Data;
@@ -219,6 +220,96 @@ namespace khoaluantotnghiep.Controllers
             {
                 _logger.LogError($"Lỗi: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// Kiểm tra có thể hủy đăng ký không
+        [HttpGet("{maTNV}/{maSuKien}/can-cancel")]
+        [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> CanCancelRegistration(int maTNV, int maSuKien)
+        {
+            try
+            {
+                var don = await _context.DonDangKy
+                    .Include(d => d.SuKien)
+                    .FirstOrDefaultAsync(d => d.MaTNV == maTNV && d.MaSuKien == maSuKien);
+                
+                if (don == null)
+                    return NotFound(new { canCancel = false, reason = "Đơn không tồn tại", hoursRemaining = 0 });
+                
+                var suKien = don.SuKien;
+                
+                // Kiểm tra sự kiện kết thúc
+                if (suKien.TrangThai == "Đã kết thúc" || 
+                    (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < DateTime.Now))
+                {
+                    return Ok(new { 
+                        canCancel = false, 
+                        reason = "Sự kiện đã kết thúc",
+                        hoursRemaining = 0
+                    });
+                }
+                
+                // Chưa duyệt -> luôn hủy được
+                if (don.TrangThai == 0)
+                {
+                    return Ok(new { canCancel = true, reason = "", hoursRemaining = -1 });
+                }
+                
+                // Đã duyệt -> kiểm tra thời gian
+                if (don.TrangThai == 1)
+                {
+                    int lockTime = suKien.ThoiGianKhoaHuy ?? 24;
+                    
+                    // Ưu tiên NgayDienRaBatDau, nếu không có thì dùng TuyenKetThuc + lock time
+                    DateTime ngayDienRa;
+                    if (suKien.NgayDienRaBatDau.HasValue)
+                    {
+                        ngayDienRa = suKien.NgayDienRaBatDau.Value;
+                    }
+                    else if (suKien.TuyenKetThuc.HasValue)
+                    {
+                        // Nếu không nhập ngày diễn ra, tính = TuyenKetThuc + lock time
+                        ngayDienRa = suKien.TuyenKetThuc.Value.AddHours(lockTime);
+                    }
+                    else if (suKien.NgayBatDau.HasValue)
+                    {
+                        ngayDienRa = suKien.NgayBatDau.Value;
+                    }
+                    else
+                    {
+                        // Fallback cuối cùng: không cho hủy
+                        return Ok(new { 
+                            canCancel = false, 
+                            reason = "Không thể xác định thời gian sự kiện",
+                            hoursRemaining = 0
+                        });
+                    }
+                    
+                    double hoursRemaining = (ngayDienRa - DateTime.Now).TotalHours;
+                    
+                    if (hoursRemaining < lockTime)
+                    {
+                        return Ok(new { 
+                            canCancel = false, 
+                            reason = $"Không thể hủy trong vòng {lockTime} giờ trước sự kiện",
+                            hoursRemaining = Math.Max(0, hoursRemaining)
+                        });
+                    }
+                    
+                    return Ok(new { 
+                        canCancel = true, 
+                        reason = "",
+                        hoursRemaining = hoursRemaining
+                    });
+                }
+                
+                return Ok(new { canCancel = false, reason = "Đơn đã bị từ chối", hoursRemaining = 0 });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi: {ex.Message}");
+                return BadRequest(new { canCancel = false, reason = ex.Message, hoursRemaining = 0 });
             }
         }
     }

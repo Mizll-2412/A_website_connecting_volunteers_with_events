@@ -10,17 +10,20 @@ namespace khoaluantotnghiep.Services
        Task<List<DanhGiaResponseDto>> GetDanhGiaCuaNguoiAsync(int maNguoi);
        Task<ThongKeDanhGiaDto> GetThongKeDanhGiaAsync(int maNguoi);
        Task<bool> XoaDanhGiaAsync(int maDanhGia, int currentUserId, string currentUserRole);
-       Task<List<DanhGiaResponseDto>> GetAllEvaluationsAsync();
+       Task<List<DanhGiaResponseDto>> GetAllEvaluationsAsync(StatisticFilterDto? filter = null);
        
        // API mới
        Task<List<DanhGiaResponseDto>> GetDanhGiaByEventAsync(int maSuKien);
-       Task<List<DanhGiaResponseDto>> GetDanhGiaNhanDuocAsync(int maUser);
-       Task<List<DanhGiaResponseDto>> GetDanhGiaDaDuaRaAsync(int maUser);
+       Task<List<DanhGiaResponseDto>> GetDanhGiaNhanDuocAsync(int maUser, StatisticFilterDto? filter = null);
+       Task<List<DanhGiaResponseDto>> GetDanhGiaDaDuaRaAsync(int maUser, StatisticFilterDto? filter = null);
        
        // Chức năng liên quan đến cấp bậc và điểm uy tín
        Task<List<CapBacDto>> GetDanhSachCapBacAsync();
        Task<string> GetCapBacTheoSoSaoAsync(decimal soSao);
        Task<decimal> TinhDiemTrungBinhAsync(int maNguoi);
        Task<bool> CapNhatDiemVaCapBacAsync(int maNguoi);
+       
+       // Đánh giá hàng loạt
+       Task<List<DanhGiaResponseDto>> TaoNhieuDanhGiaAsync(BulkCreateDanhGiaDto bulkDto, int maNguoiDanhGia);
    }
 }

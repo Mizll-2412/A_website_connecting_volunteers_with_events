@@ -74,6 +74,110 @@ namespace khoaluantotnghiep.Controllers
             }
         }
 
+        // Đóng phiên tuyển dụng sớm
+        [HttpPost("{maSuKien}/close-recruitment")]
+        [Authorize(Roles = "Organization,Admin")]
+        public async Task<IActionResult> CloseRecruitment(int maSuKien)
+        {
+            try
+            {
+                var sk = await _context.Event.FindAsync(maSuKien);
+                if (sk == null) return NotFound(new { message = "Sự kiện không tồn tại" });
+                
+                // Chỉ tổ chức sở hữu sự kiện hoặc admin mới được đóng phiên tuyển
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+                if (!string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                    var org = await _context.Organization.FindAsync(sk.MaToChuc);
+                    if (org == null || org.MaTaiKhoan != userId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                // Kiểm tra nếu sự kiện đã kết thúc thì không cho đóng phiên tuyển
+                if (sk.TrangThai == "Đã kết thúc")
+                {
+                    return BadRequest(new { message = "Không thể đóng phiên tuyển của sự kiện đã kết thúc" });
+                }
+
+                // Đóng phiên tuyển
+                sk.TrangThaiTuyen = "Đóng";
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Phiên tuyển của sự kiện {maSuKien} đã được đóng");
+                
+                return Ok(new { message = "Đã đóng phiên tuyển dụng" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi đóng phiên tuyển: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        // Mở lại phiên tuyển dụng
+        [HttpPost("{maSuKien}/open-recruitment")]
+        [Authorize(Roles = "Organization,Admin")]
+        public async Task<IActionResult> OpenRecruitment(int maSuKien)
+        {
+            try
+            {
+                var sk = await _context.Event.FindAsync(maSuKien);
+                if (sk == null) return NotFound(new { message = "Sự kiện không tồn tại" });
+                
+                // Chỉ tổ chức sở hữu sự kiện hoặc admin mới được mở lại phiên tuyển
+                var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+                if (!string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase))
+                {
+                    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                    var org = await _context.Organization.FindAsync(sk.MaToChuc);
+                    if (org == null || org.MaTaiKhoan != userId)
+                    {
+                        return Forbid();
+                    }
+                }
+
+                // Kiểm tra nếu sự kiện đã kết thúc thì không cho mở lại phiên tuyển
+                if (sk.TrangThai == "Đã kết thúc")
+                {
+                    return BadRequest(new { message = "Không thể mở lại phiên tuyển của sự kiện đã kết thúc" });
+                }
+
+                // Kiểm tra nếu phiên tuyển chưa đóng thì không cần mở lại
+                if (string.IsNullOrEmpty(sk.TrangThaiTuyen) || sk.TrangThaiTuyen != "Đóng")
+                {
+                    return BadRequest(new { message = "Phiên tuyển chưa được đóng" });
+                }
+
+                // Kiểm tra xem có còn trong thời gian tuyển không
+                var now = DateTime.Now;
+                if (!sk.TuyenBatDau.HasValue || !sk.TuyenKetThuc.HasValue)
+                {
+                    return BadRequest(new { message = "Sự kiện không có thời gian tuyển dụng" });
+                }
+
+                if (now < sk.TuyenBatDau.Value || now > sk.TuyenKetThuc.Value)
+                {
+                    return BadRequest(new { message = "Không thể mở lại phiên tuyển vì đã ngoài thời gian tuyển dụng" });
+                }
+
+                // Mở lại phiên tuyển bằng cách set null, backend sẽ tự động tính toán lại trạng thái
+                sk.TrangThaiTuyen = null;
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Phiên tuyển của sự kiện {maSuKien} đã được mở lại");
+                
+                return Ok(new { message = "Đã mở lại phiên tuyển dụng thành công" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Lỗi mở lại phiên tuyển: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
         [HttpPost]
         [Authorize(Roles = "Organization,Admin")]

@@ -49,6 +49,19 @@ namespace khoaluantotnghiep.Models
         [Column("TrangThai")]
         public string? TrangThai { get; set; }
 
+        [StringLength(50)]
+        [Column("TrangThaiTuyen")]
+        public string? TrangThaiTuyen { get; set; }
+
+        [Column("NgayDienRaBatDau")]
+        public DateTime? NgayDienRaBatDau { get; set; }
+
+        [Column("NgayDienRaKetThuc")]
+        public DateTime? NgayDienRaKetThuc { get; set; }
+
+        [Column("ThoiGianKhoaHuy")]
+        public int? ThoiGianKhoaHuy { get; set; }
+
         [Column("HinhAnh")]
         [StringLength(255)]
         public string? HinhAnh { get; set; }

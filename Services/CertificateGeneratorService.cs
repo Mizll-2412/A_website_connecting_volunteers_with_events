@@ -85,7 +85,7 @@ namespace khoaluantotnghiep.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"Cannot parse CertificateData, falling back to dynamic generation: {ex.Message}");
+                    _logger.LogWarning($"Không thể phân tích CertificateData, sẽ sử dụng phương thức tạo động: {ex.Message}");
                 }
             }
             
