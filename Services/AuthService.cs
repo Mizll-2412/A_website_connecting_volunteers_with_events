@@ -287,8 +287,12 @@ namespace khoaluantotnghiep.Services
                     <div style='max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eaeaea'>
                       <div style='padding:24px 24px 8px 24px'>
                         <h2 style='margin:0;color:#111827;font-family:Arial'>Khôi phục mật khẩu</h2>
-                        <p style='color:#4b5563;font-family:Arial'>Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn.</p>
-                        <a href='{resetUrl}' style='display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:600;font-family:Arial'>Đặt lại mật khẩu</a>
+                        <p style='color:#4b5563;font-family:Arial;margin-top:16px'>Chúng tôi nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn.</p>
+                        <div style='margin:24px 0;text-align:center'>
+                          <a href='{resetUrl}' style='display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-family:Arial'>Đặt lại mật khẩu</a>
+                        </div>
+                        <p style='color:#6b7280;font-size:12px;margin-top:24px;font-family:Arial'>Hoặc sao chép và dán liên kết sau vào trình duyệt:</p>
+                        <div style='background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin:12px 0;word-break:break-all;font-family:monospace;font-size:12px;color:#374151'>{resetUrl}</div>
                         <p style='color:#6b7280;font-size:12px;margin-top:16px;font-family:Arial'>Liên kết có hiệu lực trong 24 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
                         <hr style='border:none;border-top:1px solid #e5e7eb;margin:16px 0'>
                         <p style='color:#9ca3af;font-size:12px;font-family:Arial'>Hệ thống Tình nguyện viên</p>
@@ -423,8 +427,12 @@ namespace khoaluantotnghiep.Services
                     <div style='max-width:560px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eaeaea'>
                       <div style='padding:24px 24px 8px 24px'>
                         <h2 style='margin:0;color:#111827;font-family:Arial'>Xác nhận đổi email</h2>
-                        <p style='color:#4b5563;font-family:Arial'>Bạn yêu cầu đổi email đăng nhập sang: <b>{System.Net.WebUtility.HtmlEncode(request.NewEmail)}</b></p>
-                        <a href='{confirmUrl}' style='display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:600;font-family:Arial'>Xác nhận đổi email</a>
+                        <p style='color:#4b5563;font-family:Arial;margin-top:16px'>Bạn yêu cầu đổi email đăng nhập sang: <b>{System.Net.WebUtility.HtmlEncode(request.NewEmail)}</b></p>
+                        <div style='margin:24px 0;text-align:center'>
+                          <a href='{confirmUrl}' style='display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-family:Arial'>Xác nhận đổi email</a>
+                        </div>
+                        <p style='color:#6b7280;font-size:12px;margin-top:24px;font-family:Arial'>Hoặc sao chép và dán liên kết sau vào trình duyệt:</p>
+                        <div style='background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin:12px 0;word-break:break-all;font-family:monospace;font-size:12px;color:#374151'>{confirmUrl}</div>
                         <p style='color:#6b7280;font-size:12px;margin-top:16px;font-family:Arial'>Liên kết có hiệu lực trong 24 giờ.</p>
                         <hr style='border:none;border-top:1px solid #e5e7eb;margin:16px 0'>
                         <p style='color:#9ca3af;font-size:12px;font-family:Arial'>Hệ thống Tình nguyện viên</p>

@@ -374,13 +374,19 @@ namespace khoaluantotnghiep.Services
             {
                 var now = DateTime.Now;
                 
-                // Query pending registrations with expired recruitment period
+                // Query pending registrations that should be auto-rejected:
+                // 1. Sự kiện đã kết thúc (NgayKetThuc < now)
+                // 2. Hoặc hết hạn tuyển (TuyenKetThuc < now)
                 var pendingRegistrations = await _context.DonDangKy
                     .Include(d => d.SuKien)
                     .Where(d => d.TrangThai == 0 && // Chờ duyệt
                                 d.SuKien != null &&
-                                d.SuKien.TuyenKetThuc.HasValue &&
-                                d.SuKien.TuyenKetThuc.Value < now)
+                                (
+                                    // Sự kiện đã kết thúc
+                                    (d.SuKien.NgayKetThuc.HasValue && d.SuKien.NgayKetThuc.Value < now) ||
+                                    // Hoặc hết hạn tuyển
+                                    (d.SuKien.TuyenKetThuc.HasValue && d.SuKien.TuyenKetThuc.Value < now)
+                                ))
                     .ToListAsync();
                 
                 if (!pendingRegistrations.Any())
@@ -392,9 +398,24 @@ namespace khoaluantotnghiep.Services
                 foreach (var don in pendingRegistrations)
                 {
                     don.TrangThai = 2; // Từ chối
+                    
+                    // Xác định lý do từ chối
+                    string rejectionReason = string.Empty;
+                    if (don.SuKien != null)
+                    {
+                        if (don.SuKien.NgayKetThuc.HasValue && don.SuKien.NgayKetThuc.Value < now)
+                        {
+                            rejectionReason = "Sự kiện đã kết thúc - Tự động từ chối";
+                        }
+                        else if (don.SuKien.TuyenKetThuc.HasValue && don.SuKien.TuyenKetThuc.Value < now)
+                        {
+                            rejectionReason = "Hết hạn tuyển - Tự động từ chối";
+                        }
+                    }
+                    
                     don.GhiChu = string.IsNullOrEmpty(don.GhiChu) 
-                        ? "Hết hạn tuyển - Tự động từ chối" 
-                        : don.GhiChu + " | Hết hạn tuyển - Tự động từ chối";
+                        ? rejectionReason
+                        : don.GhiChu + " | " + rejectionReason;
                 }
                 
                 await _context.SaveChangesAsync();
