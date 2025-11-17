@@ -251,6 +251,31 @@ namespace khoaluantotnghiep.Services
                         }
                     }
                     
+                    // Validation thời gian diễn ra thực tế (nếu có)
+                    if (createDto.NgayDienRaBatDau.HasValue)
+                    {
+                        if (createDto.NgayDienRaBatDau.Value < createDto.NgayBatDau.Value ||
+                            createDto.NgayDienRaBatDau.Value > createDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu diễn ra phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+                    }
+
+                    if (createDto.NgayDienRaKetThuc.HasValue)
+                    {
+                        if (createDto.NgayDienRaKetThuc.Value < createDto.NgayBatDau.Value ||
+                            createDto.NgayDienRaKetThuc.Value > createDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày kết thúc diễn ra phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+
+                        if (createDto.NgayDienRaBatDau.HasValue &&
+                            createDto.NgayDienRaBatDau.Value > createDto.NgayDienRaKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu diễn ra phải nhỏ hơn hoặc bằng ngày kết thúc diễn ra");
+                        }
+                    }
+
                     var suKien = new SuKien
                     {
                         MaToChuc = createDto.MaToChuc,
@@ -624,6 +649,31 @@ namespace khoaluantotnghiep.Services
                             updateDto.TuyenKetThuc.Value > updateDto.NgayKetThuc.Value)
                         {
                             throw new Exception("Ngày kết thúc tuyển phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+                    }
+
+                    // Validation thời gian diễn ra thực tế (nếu có)
+                    if (updateDto.NgayDienRaBatDau.HasValue)
+                    {
+                        if (updateDto.NgayDienRaBatDau.Value < updateDto.NgayBatDau.Value ||
+                            updateDto.NgayDienRaBatDau.Value > updateDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu diễn ra phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+                    }
+
+                    if (updateDto.NgayDienRaKetThuc.HasValue)
+                    {
+                        if (updateDto.NgayDienRaKetThuc.Value < updateDto.NgayBatDau.Value ||
+                            updateDto.NgayDienRaKetThuc.Value > updateDto.NgayKetThuc.Value)
+                        {
+                            throw new Exception("Ngày kết thúc diễn ra phải nằm trong khoảng từ ngày bắt đầu đến ngày kết thúc sự kiện");
+                        }
+
+                        if (updateDto.NgayDienRaBatDau.HasValue &&
+                            updateDto.NgayDienRaBatDau.Value > updateDto.NgayDienRaKetThuc.Value)
+                        {
+                            throw new Exception("Ngày bắt đầu diễn ra phải nhỏ hơn hoặc bằng ngày kết thúc diễn ra");
                         }
                     }
 

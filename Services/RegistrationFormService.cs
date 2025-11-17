@@ -310,26 +310,36 @@ namespace khoaluantotnghiep.Services
                     _logger.LogInformation($"Hủy duyệt đơn đăng ký: MaSuKien={maSuKien}, MaTNV={maTNV}");
                 }
 
-                // === REJECT APPROVED (1 → 2) ===
-                if (don.TrangThai == 1 && updateDto.TrangThai == 2)
+                // === REJECT (bất kỳ) ===
+                if (updateDto.TrangThai == 2)
                 {
+                    // Không cho phép thao tác nếu sự kiện đã kết thúc
+                    if ((suKien.TrangThai != null && suKien.TrangThai.Equals("Đã kết thúc", StringComparison.OrdinalIgnoreCase)) ||
+                        (suKien.NgayKetThuc.HasValue && suKien.NgayKetThuc.Value < DateTime.Now))
+                    {
+                        throw new Exception("Không thể từ chối tình nguyện viên vì sự kiện đã kết thúc");
+                    }
+
                     // Require reason when rejecting approved registration
-                    if (string.IsNullOrWhiteSpace(updateDto.GhiChu))
+                    if (don.TrangThai == 1)
                     {
-                        throw new Exception("Vui lòng nhập lý do từ chối");
+                        if (string.IsNullOrWhiteSpace(updateDto.GhiChu))
+                        {
+                            throw new Exception("Vui lòng nhập lý do từ chối");
+                        }
+                        
+                        // Validation: Only allow if event hasn't started yet
+                        DateTime eventStartDate = suKien.NgayDienRaBatDau 
+                            ?? suKien.NgayBatDau 
+                            ?? DateTime.Now;
+                        
+                        if (eventStartDate < DateTime.Now)
+                        {
+                            throw new Exception("Không thể từ chối TNV đã duyệt vì sự kiện đã bắt đầu");
+                        }
+                        
+                        _logger.LogWarning($"Từ chối đơn đã duyệt: MaSuKien={maSuKien}, MaTNV={maTNV}, Lý do: {updateDto.GhiChu}");
                     }
-                    
-                    // Validation: Only allow if event hasn't started yet
-                    DateTime eventStartDate = suKien.NgayDienRaBatDau 
-                        ?? suKien.NgayBatDau 
-                        ?? DateTime.Now;
-                    
-                    if (eventStartDate < DateTime.Now)
-                    {
-                        throw new Exception("Không thể từ chối TNV đã duyệt vì sự kiện đã bắt đầu");
-                    }
-                    
-                    _logger.LogWarning($"Từ chối đơn đã duyệt: MaSuKien={maSuKien}, MaTNV={maTNV}, Lý do: {updateDto.GhiChu}");
                 }
 
                 // === APPROVE (0 → 1) ===
