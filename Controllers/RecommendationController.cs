@@ -2,8 +2,11 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using khoaluantotnghiep.DTOs;
+using Newtonsoft.Json;
 using khoaluantotnghiep.Services;
+using System.Text;
 
 namespace khoaluantotnghiep.Controllers
 {
@@ -27,8 +30,8 @@ namespace khoaluantotnghiep.Controllers
         [HttpGet("volunteer/{maTNV}")]
         [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> GetRecommendedEvents(
-            int maTNV, 
-            [FromQuery] int? maxResults = 10, 
+            int maTNV,
+            [FromQuery] int? maxResults = 10,
             [FromQuery] double? locationWeight = 0.3,
             [FromQuery] double? skillWeight = 0.4,
             [FromQuery] double? interestWeight = 0.3)
@@ -69,12 +72,12 @@ namespace khoaluantotnghiep.Controllers
             try
             {
                 var score = await _service.CalculateMatchScoreAsync(
-                    maSuKien, 
-                    maTNV, 
-                    locationWeight, 
-                    skillWeight, 
+                    maSuKien,
+                    maTNV,
+                    locationWeight,
+                    skillWeight,
                     interestWeight);
-                
+
                 return Ok(new { score });
             }
             catch (Exception ex)
@@ -83,14 +86,14 @@ namespace khoaluantotnghiep.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
+
         /// <summary>
         /// Lấy danh sách sự kiện gợi ý cho tình nguyện viên theo lĩnh vực
         /// </summary>
         [HttpPost("volunteer/{maTNV}/field-preferences")]
         [Authorize(Roles = "User,Admin")]
         public async Task<IActionResult> GetRecommendedEventsByFields(
-            int maTNV, 
+            int maTNV,
             [FromBody] List<int> linhVucIds,
             [FromQuery] int? maxResults = 10)
         {
@@ -110,6 +113,51 @@ namespace khoaluantotnghiep.Controllers
             {
                 _logger.LogError($"Lỗi lấy sự kiện gợi ý theo lĩnh vực: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("python/{maTNV}")]
+        public IActionResult GetModelRecommendations(int maTNV)
+        {
+            try
+            {
+                string pythonExe = @"D:\rcm\venv\Scripts\python.exe";
+                string scriptPath = @"D:\rcm\recommend_api.py";
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = pythonExe,
+                    Arguments = $"\"{scriptPath}\" {maTNV}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                };
+
+                var process = Process.Start(psi);
+
+                string output = process!.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(error))
+                    return BadRequest(new { error });
+
+                var data = JsonConvert.DeserializeObject<List<Recommendation>>(output);
+
+                return Ok(new
+                {
+                    status = "success",
+                    data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    error = ex.Message,
+                    details = ex.InnerException?.Message
+                });
             }
         }
     }
