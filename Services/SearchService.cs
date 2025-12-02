@@ -577,7 +577,8 @@ namespace khoaluantotnghiep.Services
                     Email = o.Email ?? string.Empty,
                     SoDienThoai = o.SoDienThoai,
                     DiaChi = o.DiaChi ?? string.Empty,
-                    Website = null, // o.Website không tồn tại
+                    Facebook = o.Facebook ?? string.Empty,
+                    Website = o.Website ?? string.Empty, // o.Website không tồn tại
                     Logo = o.AnhDaiDien,
                     TrangThaiXacMinh = o.TrangThaiXacMinh,
                     DiemTrungBinh = o.DiemTrungBinh,

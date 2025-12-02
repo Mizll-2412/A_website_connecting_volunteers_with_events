@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "lZxOsU8MR8c=",
+  "dgSpecHash": "C3Fyn7oLATA=",
   "success": true,
-  "projectFilePath": "D:\\KhoaLuanTotNghiep\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
+  "projectFilePath": "D:\\WebsiteKetNoiTinhNguyen\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Admin\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Admin\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
@@ -109,8 +109,10 @@
     {
       "code": "NU1903",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'SixLabors.ImageSharp' 3.1.6 has a known high severity vulnerability, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
+      "projectPath": "D:\\WebsiteKetNoiTinhNguyen\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\WebsiteKetNoiTinhNguyen\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net8.0"
@@ -119,8 +121,10 @@
     {
       "code": "NU1902",
       "level": "Warning",
-      "warningLevel": 1,
       "message": "Package 'SixLabors.ImageSharp' 3.1.6 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-rxmq-m78w-7wmc",
+      "projectPath": "D:\\WebsiteKetNoiTinhNguyen\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
+      "warningLevel": 1,
+      "filePath": "D:\\WebsiteKetNoiTinhNguyen\\A_website_connecting_volunteers_with_events\\khoaluantotnghiep.csproj",
       "libraryId": "SixLabors.ImageSharp",
       "targetGraphs": [
         "net8.0"

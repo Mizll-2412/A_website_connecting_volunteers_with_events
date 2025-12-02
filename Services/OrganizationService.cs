@@ -51,6 +51,8 @@ namespace khoaluantotnghiep.Services
                     DiemTrungBinh = toChuc.DiemTrungBinh,
                     AnhDaiDien = toChuc.AnhDaiDien,
                     TrangThaiXacMinh = toChuc.TrangThaiXacMinh,
+                    Website = toChuc.Website,
+                    Facebook = toChuc.Facebook,
                     LyDoTuChoi = toChuc.LyDoTuChoi,
                     GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
                 };
@@ -80,7 +82,9 @@ namespace khoaluantotnghiep.Services
                     toChuc.DiaChi = updateDto.DiaChi ?? toChuc.DiaChi;
                     toChuc.GioiThieu = updateDto.GioiThieu ?? toChuc.GioiThieu;
                     toChuc.AnhDaiDien = updateDto.AnhDaiDien ?? toChuc.AnhDaiDien;
-
+                    toChuc.Website = updateDto.Website ?? toChuc.Website;
+                    toChuc.Facebook = updateDto.Facebook ?? toChuc.Facebook;
+                    
                     var taiKhoan = await _context.User
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
 
@@ -106,6 +110,8 @@ namespace khoaluantotnghiep.Services
                         GioiThieu = toChuc.GioiThieu,
                         DiemTrungBinh = toChuc.DiemTrungBinh,
                         AnhDaiDien = toChuc.AnhDaiDien,
+                        Website = toChuc.Website,
+                        Facebook = toChuc.Facebook,
                         GiayToPhapLyIds = toChuc.GiayToPhapLys?.Select(g => g.MaGiayTo).ToList() ?? new List<int>()
                     };
                 }
@@ -189,6 +195,8 @@ namespace khoaluantotnghiep.Services
                         Email = createDto.Email,
                         DiaChi = createDto.DiaChi,
                         GioiThieu = createDto.GioiThieu,
+                        Website = createDto.Website,
+                        Facebook = createDto.Facebook,
                         AnhDaiDien = createDto.AnhDaiDien
                     };
 
@@ -239,6 +247,8 @@ namespace khoaluantotnghiep.Services
                     Email = t.Email,
                     SoDienThoai = t.SoDienThoai,
                     DiaChi = t.DiaChi,
+                    Website = t.Website,
+                    Facebook = t.Facebook,
                     NgayTao = t.NgayTao,
                     GioiThieu = t.GioiThieu,
                     AnhDaiDien = t.AnhDaiDien,
@@ -275,6 +285,8 @@ namespace khoaluantotnghiep.Services
                     Email = toChuc.Email,
                     SoDienThoai = toChuc.SoDienThoai,
                     DiaChi = toChuc.DiaChi,
+                    Website = toChuc.Website,
+                    Facebook = toChuc.Facebook,
                     NgayTao = toChuc.NgayTao,
                     GioiThieu = toChuc.GioiThieu,
                     DiemTrungBinh = toChuc.DiemTrungBinh,

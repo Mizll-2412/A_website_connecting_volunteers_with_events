@@ -120,8 +120,8 @@ namespace khoaluantotnghiep.Controllers
         {
             try
             {
-                string pythonExe = @"D:\rcm\venv\Scripts\python.exe";
-                string scriptPath = @"D:\rcm\recommend_api.py";
+                string pythonExe = @"D:\WebsiteKetNoiTinhNguyen\rcm\venv\Scripts\python.exe";
+                string scriptPath = @"D:\WebsiteKetNoiTinhNguyen\rcm\recommend_api.py";
 
                 var psi = new ProcessStartInfo
                 {

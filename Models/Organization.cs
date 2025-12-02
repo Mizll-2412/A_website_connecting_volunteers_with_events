@@ -31,6 +31,12 @@ namespace khoaluantotnghiep.Models
         [StringLength(255)]
         [Column("DiaChi")]
         public string? DiaChi { get; set; }
+        [StringLength(255)]
+        [Column("Website")]
+        public string? Website { get; set; }
+        [StringLength(255)]
+        [Column("Facebook")]
+        public string? Facebook { get; set; }
 
         [Column("NgayTao")]
         public DateTime? NgayTao { get; set; } = DateTime.Now;

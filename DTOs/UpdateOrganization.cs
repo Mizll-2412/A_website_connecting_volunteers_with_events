@@ -18,6 +18,12 @@ namespace khoaluantotnghiep.DTOs
 
         [StringLength(255)]
         public string? DiaChi { get; set; }
+       [StringLength(255)]
+        public string? Website { get; set; }
+
+        [StringLength(255)]
+        public string? Facebook { get; set; }
+
 
         [StringLength(500)]
         public string? GioiThieu { get; set; }
@@ -44,6 +50,12 @@ namespace khoaluantotnghiep.DTOs
         [StringLength(255)]
         public string? DiaChi { get; set; }
 
+        [StringLength(255)]
+        public string? Website { get; set; }
+
+        [StringLength(255)]
+        public string? Facebook { get; set; }
+
         [StringLength(500)]
         public string? GioiThieu { get; set; }
 
@@ -60,6 +72,8 @@ namespace khoaluantotnghiep.DTOs
         public string Email { get; set; } = string.Empty;
         public string? SoDienThoai { get; set; }
         public string? DiaChi { get; set; }
+        public string? Website {get; set;}
+        public string? Facebook {get; set;}
         public DateTime? NgayTao { get; set; }
         public string? GioiThieu { get; set; }
         public decimal? DiemTrungBinh { get; set; }
@@ -69,7 +83,6 @@ namespace khoaluantotnghiep.DTOs
         public string? LyDoTuChoi { get; set; }
         // Thêm các thuộc tính cho SearchService
         public string? MoTa { get; set; }
-        public string? Website { get; set; }
         public string? Logo { get; set; }
     }
 }
