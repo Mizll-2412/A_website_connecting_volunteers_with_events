@@ -18,7 +18,7 @@ namespace khoaluantotnghiep.DTOs
 
         [StringLength(255)]
         public string? DiaChi { get; set; }
-       [StringLength(255)]
+        [StringLength(255)]
         public string? Website { get; set; }
 
         [StringLength(255)]

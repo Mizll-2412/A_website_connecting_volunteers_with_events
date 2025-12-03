@@ -40,7 +40,21 @@ namespace khoaluantotnghiep.Services
                     _logger.LogWarning($"Sự kiện không tồn tại: MaSuKien={createDto.MaSuKien}");
                     throw new Exception("Sự kiện không tồn tại");
                 }
-                
+                //check trùng ngày 
+                var cacSuKienDaDangKy = await _context.DonDangKy
+                    .Include(d => d.SuKien)
+                    .Where(d => d.MaTNV == createDto.MaTNV && d.TrangThai != 0)
+                    .ToListAsync();
+
+                bool biTrungThoiGian = cacSuKienDaDangKy.Any(d =>
+                    suKien.NgayDienRaBatDau < d.SuKien.NgayDienRaKetThuc &&
+                    suKien.NgayDienRaKetThuc > d.SuKien.NgayDienRaBatDau
+                );
+
+                if (biTrungThoiGian)
+                {
+                    throw new Exception("Bạn đã đăng ký sự kiện khác trùng thời gian. Vui lòng chọn sự kiện không trùng thời gian.");
+                }
                 // Kiểm tra đã đăng ký chưa
                 var existing = await _context.DonDangKy.FirstOrDefaultAsync(d => d.MaTNV == createDto.MaTNV && d.MaSuKien == createDto.MaSuKien);
                 if (existing != null)

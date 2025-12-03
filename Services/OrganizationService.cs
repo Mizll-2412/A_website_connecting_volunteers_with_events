@@ -79,11 +79,11 @@ namespace khoaluantotnghiep.Services
                     toChuc.TenToChuc = updateDto.TenToChuc ?? toChuc.TenToChuc;
                     toChuc.Email = updateDto.Email; // Email bắt buộc
                     toChuc.SoDienThoai = updateDto.SoDienThoai ?? toChuc.SoDienThoai;
-                    toChuc.DiaChi = updateDto.DiaChi ?? toChuc.DiaChi;
-                    toChuc.GioiThieu = updateDto.GioiThieu ?? toChuc.GioiThieu;
+                    toChuc.DiaChi = updateDto.DiaChi;
+                    toChuc.GioiThieu = updateDto.GioiThieu;
                     toChuc.AnhDaiDien = updateDto.AnhDaiDien ?? toChuc.AnhDaiDien;
-                    toChuc.Website = updateDto.Website ?? toChuc.Website;
-                    toChuc.Facebook = updateDto.Facebook ?? toChuc.Facebook;
+                    toChuc.Website = updateDto.Website;
+                    toChuc.Facebook = updateDto.Facebook;
                     
                     var taiKhoan = await _context.User
                         .FirstOrDefaultAsync(t => t.MaTaiKhoan == toChuc.MaTaiKhoan);
